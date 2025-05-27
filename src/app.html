@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="utf-8" />
+  <title>PyScript Examples</title>
+  <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- PyScript CSS -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.1/core.css">
+  <!-- This script tag bootstraps PyScript -->
+  <script type="module" src="https://pyscript.net/releases/2025.2.1/core.js"></script>
+  <style>
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      outline: none;
+      transform: translate(-50%, -50%);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #ccc;
+      background: rgba(255, 255, 255, 0.9);
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+
+    #loading h1 {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    #loading::backdrop {
+      backdrop-filter: blur(5px);
+    }
+
+    /* Terminal Styles */
+    #terminal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 600px;
+      min-height: 400px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0;
+      resize: both;
+      overflow: auto;
+    }
+
+    #terminal::backdrop {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+    }
+
+    .terminal-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #333;
+      padding: 8px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      cursor: move;
+    }
+
+    .terminal-title {
+      color: #fff;
+      font-size: 14px;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+    }
+
+    .terminal-close {
+      background: #ff5f57;
+      border: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .terminal-close:hover::before {
+      content: "×";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #660000;
+      font-size: 10px;
+    }
+
+    #terminal-content {
+      padding: 12px;
+      color: #fff;
+      font-family: 'Consolas', 'Monaco', monospace;
+      height: calc(100% - 35px);
+      overflow: auto;
+    }
+
+    .open-terminal-btn {
+      background: #2d2d2d;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: all 0.2s;
+    }
+
+    .open-terminal-btn:hover {
+      background: #444;
+      border-color: #666;
+    }
+  </style>
+  <script type="module">
+    const loading = document.getElementById('loading');
+    addEventListener('py:all-done', () => loading.close());
+    loading.showModal();
+    loading.innerHTML = '<h1>Loading PyScript Runtime...</h1>';
+    // Terminal functionality
+    window.openTerminal = () => {
+      const terminal = document.getElementById('terminal');
+      terminal.showModal();
+    }
+    // 
+    document.addEventListener('DOMContentLoaded', () => {
+      const terminal = document.getElementById('terminal');
+      const titleBar = document.querySelector('.terminal-title-bar');
+      const closeBtn = document.querySelector('.terminal-close');
+      const openBtn = document.getElementById('open-terminal-btn');
+
+      let isDragging = false;
+      let currentX;
+      let currentY;
+      let initialX;
+      let initialY;
+      let xOffset = 0;
+      let yOffset = 0;
+
+      titleBar.addEventListener('mousedown', dragStart);
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('mouseup', dragEnd);
+
+      function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+        if (e.target === titleBar) {
+          isDragging = true;
+        }
+      }
+
+      function drag(e) {
+        if (isDragging) {
+          e.preventDefault();
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+          xOffset = currentX;
+          yOffset = currentY;
+          terminal.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        }
+      }
+
+      function dragEnd() {
+        isDragging = false;
+      }
+
+      closeBtn.addEventListener('click', () => {
+        terminal.close();
+      });
+
+      openBtn.addEventListener('click', () => {
+        window.openTerminal();
+      });
+    });
+  </script>
+  %sveltekit.head%
+</head>
+
+<body data-sveltekit-preload-data="hover" class="flex h-full flex-col">
+  <dialog id="loading">
+    <h1>Loading...</h1>
+  </dialog>
+  <div class="flex-1">
+    <div style="display: contents">%sveltekit.body%</div>
+  </div>
+  <footer class="flex h-10 w-full items-center justify-between bg-slate-900 text-white">
+    <div class="flex items-center gap-4">
+      <button id="open-terminal-btn" class="open-terminal-btn">🖥️ Terminal</button>
+      <p>
+        Coded by
+        <a href="https://github.com/guinetik" target="_blank" style="
+            color: #facc15;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 2px solid #facc15;
+            transition: 
+              color 0.2s,
+              background 0.2s,
+              border-radius 0.2s,
+              box-shadow 0.2s;
+            padding: 2px 8px;
+            border-radius: 6px;
+          "
+          onmouseover="this.style.background='#facc15';this.style.color='#1e293b';this.style.boxShadow='0 2px 8px #facc1540';this.style.borderRadius='12px';"
+          onmouseout="this.style.background='';this.style.color='#facc15';this.style.boxShadow='';this.style.borderRadius='6px';">
+          Guinetik
+        </a>      
+      </p>
+      <div id="py-script-footer" class="py-script float-right">
+        <script type="py">
+          from pyscript import document
+          from datetime import datetime
+          now = datetime.now()
+          document.querySelector("#py-script-footer").innerText = "🐍 Hello from python. All systems go! " + now.strftime("%m/%d/%Y, %H:%M:%S")
+        </script>
+      </div>
+    </div>
+  </footer>
+  <dialog id="terminal">
+    <div class="terminal-title-bar">
+      <h3 class="terminal-title">🐍 Python Terminal</h3>
+      <button class="terminal-close"></button>
+    </div>
+    <div id="terminal-content">
+      <script type="py" terminal id="terminal-script"></script>
+    </div>
+  </dialog>
+</body>
+
+</html>
