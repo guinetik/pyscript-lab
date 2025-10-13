@@ -3,7 +3,7 @@
 	import SiteMapStore from '$lib/SiteMapStore';
 	import SiteMapLink from '$lib/SiteMapLink.svelte';
 	import { page } from '$app/stores';
-	import ExperimentCard from '../../../lib/experiment_card.svelte';
+	import ExperimentCard from '../../../lib/ExperimentCard.svelte';
 	import PyExample from '$lib/PyExample.svelte';
 	export let name = 'HELLO WORLD';
 </script>
@@ -17,7 +17,7 @@
                     print("hello world")
 				</script>
 			</PyExample>
-            <button class="open-terminal-btn" onclick={() => window.openTerminal()}>🖥️ Open Terminal to see console output</button>
+            <button class="open-console-btn" onclick={() => window.openConsole()}>🖥️ Open Console to see script output</button>
             <hr class="my-4" />
             <h1>Example 2</h1>
 			<PyExample title="Current date and time, as computed by Python:">

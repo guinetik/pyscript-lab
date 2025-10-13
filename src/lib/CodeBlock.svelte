@@ -1,27 +1,39 @@
 <script>
-	import { onMount } from 'svelte';
-	import Prism from 'prismjs';
-	import 'prismjs/components/prism-python';
-	import 'prismjs/themes/prism-tomorrow.css';
+/**
+ * Displays syntax-highlighted Python (or other languages) using Prism.js.
+ * @typedef {Object} CodeBlockProps
+ * @property {string} [language='python'] - Prism language identifier used for highlighting.
+ * @property {string} [code=''] - Literal code to highlight when no slot content is provided.
+ */
+import { onMount } from 'svelte';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-python';
+import 'prismjs/themes/prism-tomorrow.css';
 
-	let { language = 'python', code = '' } = $props();
-	let highlighted = $state('');
-	let codeElement;
-	let slotContent = '';
+let { language = 'python', code = '' } = $props();
+let highlighted = $state('');
+let codeElement;
+let slotContent = '';
 
-	function updateHighlight(content) {
-		if (!content) return;
-		try {
-			highlighted = Prism.highlight(
-				content,
-				Prism.languages[language] || Prism.languages.plain,
-				language
-			);
-		} catch (e) {
-			// Fallback to plain text if highlighting fails
-			highlighted = content;
-		}
+/**
+ * Computes highlighted markup for the provided source.
+ * Falls back to the raw content when Prism cannot parse the language.
+ * @param {string} content - Source code to highlight.
+ * @returns {void}
+ */
+function updateHighlight(content) {
+	if (!content) return;
+	try {
+		highlighted = Prism.highlight(
+			content,
+			Prism.languages[language] || Prism.languages.plain,
+			language
+		);
+	} catch (e) {
+		// Fallback to plain text if highlighting fails
+		highlighted = content;
 	}
+}
 
 	$effect(() => {
 		updateHighlight(code || slotContent);

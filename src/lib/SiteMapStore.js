@@ -21,21 +21,36 @@ const pages = [
   new Page("bokeh_index", "Bokeh", getLink("/examples/bokeh"), [
     new PageProp("show", "all"),
     new PageProp("prev_page", getLink("/examples/interop")),
-    new PageProp("next_page", getLink("/examples/bokeh-pandas")),
+    new PageProp("next_page", getLink("/examples/bokeh/pandas")),
   ]),
-  new Page("bokeh_1", "Bokeh + Pandas", getLink("/examples/bokeh-pandas"), [
+  new Page("bokeh_1", "Bokeh + Pandas", getLink("/examples/bokeh/pandas"), [
     new PageProp("show", "none"), //show in no menus
     new PageProp("prev_page", getLink("/examples/bokeh")),
-    new PageProp("next_page", getLink("/examples/bokeh-networkx")),
+    new PageProp("next_page", getLink("/examples/bokeh/networks")),
   ]),
-  new Page("bokeh_2", "Bokeh + NetworkX", getLink("/examples/bokeh-networkx"), [
+  new Page("bokeh_2", "Bokeh + NetworkX", getLink("/examples/bokeh/networks"), [
     new PageProp("show", "none"),
-    new PageProp("prev_page", getLink("/examples/bokeh-pandas")),
-    new PageProp("next_page", getLink("/examples/media")),
+    new PageProp("prev_page", getLink("/examples/bokeh/pandas")),
+    new PageProp("next_page", getLink("/examples/bokeh/communities")),
   ]),
-  new Page("media", "Media", getLink("/examples/media"), [
+  new Page("bokeh_3", "Community Detection", getLink("/examples/bokeh/communities"), [
+    new PageProp("show", "none"),
+    new PageProp("prev_page", getLink("/examples/bokeh/networks")),
+    new PageProp("next_page", getLink("/examples/diagrams")),
+  ]),
+  new Page("diagrams", "Diagrams as Code", getLink("/examples/diagrams"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/bokeh-networkx")),
+    new PageProp("prev_page", getLink("/examples/bokeh/communities")),
+    new PageProp("next_page", getLink("/examples/ml")),
+  ]),
+  new Page("ml", "Machine Learning", getLink("/examples/ml"), [
+    new PageProp("show", "all"),
+    new PageProp("prev_page", getLink("/examples/diagrams")),
+    new PageProp("next_page", getLink("/examples/sentiment")),
+  ]),
+  new Page("sentiment", "Sentiment Analysis", getLink("/examples/sentiment"), [
+    new PageProp("show", "all"),
+    new PageProp("prev_page", getLink("/examples/ml")),
     new PageProp("next_page", getLink("/")),
   ]),
   new Page("github", "Github", "https://github.com/guinetik", [
@@ -47,7 +62,7 @@ const pages = [
 ];
 const siteMap = new SiteMap(pages);
 //////
-siteMap.setMainMenuTemplate("py-5 px-3 hover:text-yellow-500");
+siteMap.setMainMenuTemplate("py-5 px-2 hover:text-yellow-500");
 //////
 siteMap.setMobileTemplate("block p-4 hover:text-white hover:bg-yellow-500");
 //

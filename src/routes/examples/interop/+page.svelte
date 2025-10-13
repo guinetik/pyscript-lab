@@ -1,5 +1,5 @@
 <script>
-	import ExperimentCard from '$lib/experiment_card.svelte';
+	import ExperimentCard from '$lib/ExperimentCard.svelte';
 	import { getLink } from '$lib/utils.js';
 	import RunPython from '$lib/RunPython.js';
 	import { onMount, onDestroy } from 'svelte';
@@ -50,7 +50,7 @@
 	};
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/repl', nextPage: '/' }}>
+<ExperimentCard props={{ previousPage: '/examples/repl', nextPage: '/examples/bokeh' }}>
 	<div slot="py_slot" id="chart" class="h-full w-full p-5" />
 	<article slot="content_slot" class="mb-10">
 		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>

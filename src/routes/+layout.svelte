@@ -5,7 +5,7 @@
 	let { children } = $props();
 </script>
 
-<Nav activePage="repl" />
+<Nav />
 
 <main class="flex h-[calc(100%-120px)] w-full flex-col justify-center">
 	{@render children()}

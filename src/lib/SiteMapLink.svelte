@@ -3,6 +3,12 @@
     The idea here is to onMount replace the component's contents with the SiteMap page link contents
  -->
 <script>
+  /**
+   * Hyperlink component bound to a `SiteMap` entry that highlights when active.
+   * Internally resolves the current page from the shared `SiteMapStore` to compute active state.
+   * @typedef {import('./SiteMap').SiteMap} SiteMap
+   * @typedef {import('./SiteMap').Page} Page
+   */
   import { onMount } from "svelte";
   import SiteMapStore from "./SiteMapStore";
   import { SiteMap, Page } from "./SiteMap";
@@ -41,9 +47,13 @@
    */
   let isActive;
 
+  // Reactive statement: Update activeSiteMapPage whenever siteMap or active changes
   $: activeSiteMapPage = siteMap.getPageByUrl(active);
-  $: isActive = activeSiteMapPage && activeSiteMapPage.id === page.id;
 
+  // Reactive statement: Update isActive by comparing URLs directly
+  $: isActive = active === page.url;
+
+  // Subscribe to SiteMapStore updates and update siteMap accordingly
   SiteMapStore.subscribe((s) => {
     siteMap = s;
   });
