@@ -3,6 +3,7 @@
  * Well OOP is a good strat when you want your code to follow a particular strucutre.
  * One aspect OOP helps a lot is avoidind code duplication.
  * This class manages a site menu and their templates in order to minimize code duplication
+ * @author Guinetik
  */
 export class SiteMap {
   /**

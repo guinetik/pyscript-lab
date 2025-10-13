@@ -6,12 +6,12 @@
   /**
    * Hyperlink component bound to a `SiteMap` entry that highlights when active.
    * Internally resolves the current page from the shared `SiteMapStore` to compute active state.
-   * @typedef {import('./SiteMap').SiteMap} SiteMap
-   * @typedef {import('./SiteMap').Page} Page
+   * @typedef {import('../SiteMap').SiteMap} SiteMap
+   * @typedef {import('../SiteMap').Page} Page
    */
   import { onMount } from "svelte";
-  import SiteMapStore from "./SiteMapStore";
-  import { SiteMap, Page } from "./SiteMap";
+  import SiteMapStore from "../stores/SiteMapStore";
+  import { SiteMap, Page } from "../SiteMap";
   //
   /**
    * @type {String}

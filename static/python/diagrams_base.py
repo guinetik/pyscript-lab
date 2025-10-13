@@ -5,7 +5,10 @@ This module provides the core functionality for rendering Diagrams library code
 in the browser using viz.js. It patches graphviz and subprocess to intercept
 DOT generation instead of executing native binaries.
 
-Author: PyScript L.A.B
+This is the SINGLE SOURCE OF TRUTH for diagram patching logic.
+All other modules (diagram_manager, diagram_creator) should import and use this.
+
+Author: Guinetik
 """
 
 from pyscript import window
@@ -32,8 +35,7 @@ class DiagramsBase:
         self.current_chart_id = None
         self.original_digraph = None
         self.is_patched = False
-
-        console.log("🐍 [Python] DiagramsBase initialized")
+        console.log("🐍 DiagramsBase initialized")
 
     def patch_graphviz(self):
         """
@@ -43,7 +45,7 @@ class DiagramsBase:
         with JavaScript for viz.js rendering instead of executing subprocess.
         """
         if self.is_patched:
-            console.log("⚠️ [Python] Already patched, skipping")
+            console.log("⚠️ Already patched, skipping")
             return
 
         import graphviz
@@ -58,9 +60,7 @@ class DiagramsBase:
             """Custom Digraph that captures DOT source."""
 
             def render(self, *args, **kwargs):
-                """
-                Intercept render to capture DOT and coordinate JS rendering.
-                """
+                """Intercept render to capture DOT and coordinate JS rendering."""
                 # Get DOT source
                 dot_source = self.source
 
@@ -68,15 +68,15 @@ class DiagramsBase:
                 filename = kwargs.get('filename') or (args[0] if args else 'diagram')
                 filename = str(filename)
 
-                console.log(f"🎯 [Python] Captured DOT: {len(dot_source)} bytes")
+                console.log(f"🎯 Captured DOT: {len(dot_source)} bytes")
 
                 # Extract icon URLs
                 image_urls = base._extract_icon_urls(dot_source)
-                console.log(f"✅ [Python] Found {len(image_urls)} images")
+                console.log(f"✅ Found {len(image_urls)} images")
 
                 # Determine chart ID
-                chart_id = base.current_chart_id or f"user-diagram-output"
-                console.log(f"📊 [Python] Chart ID: {chart_id}")
+                chart_id = base.current_chart_id or "user-diagram-output"
+                console.log(f"📊 Chart ID: {chart_id}")
 
                 # Store DOT
                 base.dot_outputs[chart_id] = dot_source
@@ -95,7 +95,7 @@ class DiagramsBase:
         # Replace Digraph
         graphviz.Digraph = CaptureDigraph
         self.is_patched = True
-        console.log("✅ [Python] graphviz.Digraph patched")
+        console.log("✅ graphviz.Digraph patched")
 
     def patch_subprocess(self):
         """
@@ -109,7 +109,7 @@ class DiagramsBase:
         def mock_subprocess_run(args, **kwargs):
             """Mock subprocess calls."""
             if args and 'dot' in str(args[0]):
-                console.log(f"🔧 [Python] Intercepting subprocess: {args}")
+                console.log(f"🔧 Intercepting subprocess: {args}")
 
                 class MockResult:
                     returncode = 0
@@ -126,7 +126,7 @@ class DiagramsBase:
             raise OSError(138, "emscripten does not support processes")
 
         subprocess.run = mock_subprocess_run
-        console.log("✅ [Python] subprocess.run patched")
+        console.log("✅ subprocess.run patched")
 
     def _extract_icon_urls(self, dot_source: str) -> Dict[str, str]:
         """
@@ -157,10 +157,10 @@ class DiagramsBase:
 
     def setup(self):
         """Apply all necessary patches."""
-        console.log("🐍 [Python] Setting up DiagramsBase patches...")
+        console.log("🐍 Setting up DiagramsBase patches...")
         self.patch_graphviz()
         self.patch_subprocess()
-        console.log("✅ [Python] DiagramsBase setup complete")
+        console.log("✅ DiagramsBase setup complete")
 
 
 # Global instance for reuse

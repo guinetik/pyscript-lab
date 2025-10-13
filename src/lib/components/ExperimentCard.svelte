@@ -5,7 +5,7 @@
    * @property {string} previousPage - URL to navigate to the previous example.
    * @property {string} nextPage - URL to navigate to the next example.
    */
-  import { getLink } from "./utils.js";
+  import { getLink } from "../utils.js";
 
   /** @type {ExperimentCardProps} */
   export let props;

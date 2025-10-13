@@ -1,52 +1,76 @@
 <script>
-	import ExperimentCard from '$lib/ExperimentCard.svelte';
-	import CodeBlock from '$lib/CodeBlock.svelte';
-	import { getLink } from '$lib/utils.js';
-	import RunPython from '$lib/RunPython.js';
-	import { DiagramRenderer } from '$lib/DiagramRenderer.js';
+	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import DiagramCard from '$lib/components/DiagramCard.svelte';
+	import { DiagramGalleryController } from '$lib/controller/DiagramGalleryController.js';
 	import { onMount, onDestroy } from 'svelte';
 
 	// Page metadata
 	let name = 'Diagrams Gallery';
 
-	// Python runner instance
-	let pyScriptRunner;
+	// Controller instance
+	let controller;
 	let loading = $state(true);
 
+	// Diagram examples configuration
+	const examples = [
+		{
+			id: 'chart1',
+			title: 'Example 1: Grouped Workers',
+			src: 'python/diagrams/grouped_workers.py'
+		},
+		{
+			id: 'chart2',
+			title: 'Example 2: Clustered Web Services',
+			src: 'python/diagrams/clustered_services.py'
+		},
+		{
+			id: 'chart3',
+			title: 'Example 3: Event-Driven Architecture',
+			src: 'python/diagrams/event_driven.py'
+		},
+		{
+			id: 'chart4',
+			title: 'Example 4: Microservices API',
+			src: 'python/diagrams/microservices_api.py'
+		},
+		{
+			id: 'chart5',
+			title: 'Example 5: Data Analytics Pipeline',
+			src: 'python/diagrams/data_pipeline.py'
+		}
+	];
+
+	/**
+	 * Regenerate a specific diagram.
+	 * @param {string} exampleId - The ID of the diagram to regenerate
+	 */
+	function regenerateDiagram(exampleId) {
+		const container = document.getElementById(exampleId);
+		if (container) {
+			container.innerHTML = '<p class="text-gray-500 animate-pulse">🔄 Regenerating...</p>';
+		}
+		setTimeout(() => {
+			if (controller) {
+				controller.regenerateDiagram(exampleId);
+			}
+		}, 100);
+	}
+
 	onMount(async () => {
-		// Load viz.js dynamically
-		const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.2.0/+esm');
-		const viz = await instance();
-		console.log('✅ Viz.js loaded and ready!');
-
-		// Create DiagramRenderer instance
-		const diagramRenderer = new DiagramRenderer(viz);
-		console.log('✅ DiagramRenderer created!');
-
-		// Expose to window for Python to call
-		window.diagramRenderer = diagramRenderer;
-		window.fetchAndRenderDiagram = (chartId, dotContent, imageMappingJson) => {
-			diagramRenderer.render(chartId, dotContent, imageMappingJson);
-		};
-		window.renderDiagram = (chartId, dotContent) => {
-			diagramRenderer.renderSimple(chartId, dotContent);
-		};
-
-		console.log('✅ DiagramRenderer ready!');
-
-		if (!pyScriptRunner) {
-			pyScriptRunner = RunPython();
-			pyScriptRunner.runScript(getLink('python/diagrams_example.py'), 'script_gutter', false);
-
-			setTimeout(() => {
-				loading = false;
-			}, 5000);
+		try {
+			// Initialize controller
+			controller = new DiagramGalleryController();
+			await controller.initialize();
+			loading = false;
+		} catch (error) {
+			console.error('Failed to initialize diagram gallery:', error);
+			loading = false;
 		}
 	});
 
 	onDestroy(() => {
-		if (pyScriptRunner) {
-			pyScriptRunner.destroy();
+		if (controller) {
+			controller.destroy();
 		}
 	});
 </script>
@@ -63,207 +87,14 @@
 
 		<!-- Example diagrams will be rendered here -->
 		<div class="space-y-6 p-6">
-			<div class="rounded-lg border-2 border-gray-200 bg-white p-6">
-				<div class="mb-4 flex items-center justify-between">
-					<h3 class="text-lg font-bold">Example 1: Grouped Workers</h3>
-					<button
-						onclick={() => {
-							const container = document.getElementById('chart1');
-							container.innerHTML = '<p class=\"text-gray-500 animate-pulse\">🔄 Regenerating...</p>';
-							setTimeout(() => window.regenerateDiagram1(), 100);
-						}}
-						class="rounded bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
-					>
-						🔄 Regenerate
-					</button>
-				</div>
-				<div
-					id="chart1"
-					class="flex min-h-[200px] items-center justify-center overflow-auto rounded bg-gray-50 p-4"
-				></div>
-				<div class="mt-4">
-					<CodeBlock code={`from diagrams import Diagram
-from diagrams.aws.compute import EC2
-from diagrams.aws.database import RDS
-from diagrams.aws.network import ELB
-
-with Diagram("Grouped Workers", show=False):
-    ELB("lb") >> [EC2("worker1"),
-                  EC2("worker2"),
-                  EC2("worker3"),
-                  EC2("worker4"),
-                  EC2("worker5")] >> RDS("events")`} />
-				</div>
-			</div>
-
-			<div class="rounded-lg border-2 border-gray-200 bg-white p-6">
-				<div class="mb-4 flex items-center justify-between">
-					<h3 class="text-lg font-bold">Example 2: Clustered Web Services</h3>
-					<button
-						onclick={() => {
-							const container = document.getElementById('chart2');
-							container.innerHTML = '<p class=\"text-gray-500 animate-pulse\">🔄 Regenerating...</p>';
-							setTimeout(() => window.regenerateDiagram2(), 100);
-						}}
-						class="rounded bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
-					>
-						🔄 Regenerate
-					</button>
-				</div>
-				<div
-					id="chart2"
-					class="flex min-h-[200px] items-center justify-center overflow-auto rounded bg-gray-50 p-4"
-				></div>
-				<div class="mt-4">
-					<CodeBlock code={`from diagrams import Cluster, Diagram
-from diagrams.aws.compute import ECS
-from diagrams.aws.database import ElastiCache, RDS
-from diagrams.aws.network import ELB, Route53
-
-with Diagram("Clustered Web Services", show=False):
-    dns = Route53("dns")
-    lb = ELB("lb")
-
-    with Cluster("Services"):
-        svc_group = [ECS("web1"),
-                     ECS("web2"),
-                     ECS("web3")]
-
-    with Cluster("DB Cluster"):
-        db_primary = RDS("userdb")
-        db_primary - [RDS("userdb ro")]
-
-    memcached = ElastiCache("memcached")
-
-    dns >> lb >> svc_group
-    svc_group >> db_primary
-    svc_group >> memcached`} />
-				</div>
-			</div>
-
-			<div class="rounded-lg border-2 border-gray-200 bg-white p-6">
-				<div class="mb-4 flex items-center justify-between">
-					<h3 class="text-lg font-bold">Example 3: Event-Driven Architecture</h3>
-					<button
-						onclick={() => {
-							const container = document.getElementById('chart3');
-							container.innerHTML = '<p class=\"text-gray-500 animate-pulse\">🔄 Regenerating...</p>';
-							setTimeout(() => window.regenerateDiagram3(), 100);
-						}}
-						class="rounded bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
-					>
-						🔄 Regenerate
-					</button>
-				</div>
-				<div
-					id="chart3"
-					class="flex min-h-[200px] items-center justify-center overflow-auto rounded bg-gray-50 p-4"
-				></div>
-				<div class="mt-4">
-					<CodeBlock code={`from diagrams import Cluster, Diagram
-from diagrams.aws.compute import EC2, Lambda
-from diagrams.aws.database import Dynamodb
-from diagrams.aws.integration import SNS, SQS
-
-with Diagram("Event-Driven Architecture", show=False):
-    source = EC2("event source")
-
-    with Cluster("Event Processing"):
-        topic = SNS("topic")
-        queue = SQS("queue")
-        workers = [Lambda("handler1"),
-                  Lambda("handler2"),
-                  Lambda("handler3")]
-
-    db = Dynamodb("state")
-
-    source >> topic >> queue >> workers >> db`} />
-				</div>
-			</div>
-
-			<div class="rounded-lg border-2 border-gray-200 bg-white p-6">
-				<div class="mb-4 flex items-center justify-between">
-					<h3 class="text-lg font-bold">Example 4: Microservices API</h3>
-					<button
-						onclick={() => {
-							const container = document.getElementById('chart4');
-							container.innerHTML = '<p class=\"text-gray-500 animate-pulse\">🔄 Regenerating...</p>';
-							setTimeout(() => window.regenerateDiagram4(), 100);
-						}}
-						class="rounded bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
-					>
-						🔄 Regenerate
-					</button>
-				</div>
-				<div
-					id="chart4"
-					class="flex min-h-[200px] items-center justify-center overflow-auto rounded bg-gray-50 p-4"
-				></div>
-				<div class="mt-4">
-					<CodeBlock code={`from diagrams import Cluster, Diagram
-from diagrams.aws.compute import Lambda
-from diagrams.aws.database import Dynamodb
-from diagrams.aws.network import APIGateway
-
-with Diagram("Microservices API", show=False):
-    api = APIGateway("api")
-
-    with Cluster("Microservices"):
-        svc1 = Lambda("users")
-        svc2 = Lambda("orders")
-        svc3 = Lambda("products")
-
-    with Cluster("Data Layer"):
-        db1 = Dynamodb("users-db")
-        db2 = Dynamodb("orders-db")
-        db3 = Dynamodb("products-db")
-
-    api >> [svc1, svc2, svc3]
-    svc1 >> db1
-    svc2 >> db2
-    svc3 >> db3`} />
-				</div>
-			</div>
-
-			<div class="rounded-lg border-2 border-gray-200 bg-white p-6">
-				<div class="mb-4 flex items-center justify-between">
-					<h3 class="text-lg font-bold">Example 5: Data Analytics Pipeline</h3>
-					<button
-						onclick={() => {
-							const container = document.getElementById('chart5');
-							container.innerHTML = '<p class=\"text-gray-500 animate-pulse\">🔄 Regenerating...</p>';
-							setTimeout(() => window.regenerateDiagram5(), 100);
-						}}
-						class="rounded bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
-					>
-						🔄 Regenerate
-					</button>
-				</div>
-				<div
-					id="chart5"
-					class="flex min-h-[200px] items-center justify-center overflow-auto rounded bg-gray-50 p-4"
-				></div>
-				<div class="mt-4">
-					<CodeBlock code={`from diagrams import Cluster, Diagram
-from diagrams.aws.analytics import Athena
-from diagrams.aws.compute import Lambda
-from diagrams.aws.database import ElastiCache
-from diagrams.aws.storage import S3
-
-with Diagram("Data Analytics Pipeline", show=False):
-    source = S3("raw-data")
-
-    with Cluster("Processing"):
-        etl = Lambda("transform")
-        processed = S3("processed")
-
-    analytics = Athena("analytics")
-    cache = ElastiCache("cache")
-
-    source >> etl >> processed >> analytics
-    analytics >> cache`} />
-				</div>
-			</div>
+			{#each examples as example (example.id)}
+				<DiagramCard 
+					id={example.id}
+					title={example.title}
+					src={example.src}
+					onRegenerate={regenerateDiagram}
+				/>
+			{/each}
 		</div>
 	</div>
 
@@ -365,8 +196,14 @@ with Diagram("Data Analytics Pipeline", show=False):
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/diagrams_example.py"
-				target="_blank">View source</a
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/diagram_manager.py"
+				target="_blank">View Manager Source</a
+			>
+			|
+			<a
+				class="text-sky-500"
+				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/diagrams"
+				target="_blank">View Diagram Files</a
 			>
 			<br />
 			<a

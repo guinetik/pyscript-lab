@@ -1,5 +1,5 @@
-import { SiteMap, Page, PageProp } from "./SiteMap";
-import { getLink } from "./utils.js";
+import { SiteMap, Page, PageProp } from "../SiteMap";
+import { getLink } from "../utils.js";
 import { writable } from "svelte/store";
 //
 const pages = [
@@ -100,6 +100,11 @@ const pages = [
     new Page("sentiment", "Sentiment Analysis", getLink("/examples/sentiment"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/ml")),
+      new PageProp("next_page", getLink("/examples/ml/rl")),
+    ]),
+    new Page("ml_rl", "Reinforcement Learning", getLink("/examples/ml/rl"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/sentiment")),
       new PageProp("next_page", getLink("/")),
     ]),
   ]),

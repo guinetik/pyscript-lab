@@ -10,6 +10,16 @@
 
 	let editorElement;
 	let editor;
+	let isEditorReady = $state(false);
+
+	// Watch for external value changes (must be at top level in Svelte 5)
+	$effect(() => {
+		if (isEditorReady && editor && editor.getValue() !== value) {
+			const cursorPosition = editor.getCursorPosition();
+			editor.setValue(value, -1);
+			editor.moveCursorToPosition(cursorPosition);
+		}
+	});
 
 	onMount(async () => {
 		// Load ACE using script tags
@@ -54,20 +64,15 @@
 			value = editor.getValue();
 		});
 
-		// Watch for external value changes
-		$effect(() => {
-			if (editor && editor.getValue() !== value) {
-				const cursorPosition = editor.getCursorPosition();
-				editor.setValue(value, -1);
-				editor.moveCursorToPosition(cursorPosition);
-			}
-		});
+		// Mark editor as ready
+		isEditorReady = true;
 	});
 
 	onDestroy(() => {
 		if (editor) {
 			editor.destroy();
 		}
+		isEditorReady = false;
 	});
 
 	// Helper function to load scripts dynamically

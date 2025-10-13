@@ -11,6 +11,8 @@
  *   Clears the registered script elements and optionally removes them from the DOM.
  *
  * @returns {RunPythonController}
+ *
+ * @author Guinetik
  */
 
 export default function RunPython() {

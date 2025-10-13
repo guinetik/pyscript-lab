@@ -1,5 +1,5 @@
 <script>
-	import ExperimentCard from '$lib/ExperimentCard.svelte';
+	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import { getLink } from '$lib/utils.js';
 	import RunPython from '$lib/RunPython.js';
 	import { onMount, onDestroy } from 'svelte';

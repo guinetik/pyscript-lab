@@ -1,17 +1,14 @@
 <script>
-	import ExperimentCard from '$lib/ExperimentCard.svelte';
-	import CodeEditor from '$lib/CodeEditor.svelte';
-	import { getLink } from '$lib/utils.js';
-	import RunPython from '$lib/RunPython.js';
-	import { DiagramRenderer } from '$lib/DiagramRenderer.js';
+	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import CodeEditor from '$lib/components/CodeEditor.svelte';
+	import { DiagramCreatorController } from '$lib/controller/DiagramCreatorController.js';
 	import { onMount, onDestroy } from 'svelte';
 
 	// Page metadata
 	let name = 'Create Diagrams';
 
-	// Python runner instance
-	let pyScriptRunner = RunPython();
-	let diagramRenderer;
+	// Controller instance
+	let controller = $state(null);
 
 	// UI State
 	let codeInput = $state(`from diagrams import Diagram
@@ -24,116 +21,28 @@ with Diagram("Simple Web Service", show=False):
 
 	let status = $state('ready'); // 'ready' | 'processing' | 'success' | 'error'
 	let statusMessage = $state('Click "Run Diagram" to generate visualization');
+	let loading = $state(true);
 
-	const templates = [
-		{
-			name: 'Simple Web Service',
-			code: `from diagrams import Diagram
-from diagrams.aws.compute import EC2
-from diagrams.aws.database import RDS
-from diagrams.aws.network import ELB
+	/**
+	 * Handle status updates from Python
+	 */
+	function handleStatusUpdate(event) {
+		status = event.detail.status;
+		statusMessage = event.detail.message;
+	}
 
-with Diagram("Simple Web Service", show=False):
-    ELB("load balancer") >> EC2("web server") >> RDS("database")`
-		},
-		{
-			name: 'Microservices',
-			code: `from diagrams import Diagram
-from diagrams.aws.compute import Lambda
-from diagrams.aws.network import APIGateway
-from diagrams.aws.database import Dynamodb
-
-with Diagram("Microservices API", show=False):
-    api = APIGateway("api gateway")
-
-    svc1 = Lambda("users service")
-    svc2 = Lambda("orders service")
-
-    db1 = Dynamodb("users db")
-    db2 = Dynamodb("orders db")
-
-    api >> [svc1, svc2]
-    svc1 >> db1
-    svc2 >> db2`
-		},
-		{
-			name: 'Data Pipeline',
-			code: `from diagrams import Diagram
-from diagrams.aws.storage import S3
-from diagrams.aws.compute import Lambda
-from diagrams.aws.analytics import Athena
-
-with Diagram("Data Pipeline", show=False):
-    S3("raw data") >> Lambda("transform") >> S3("processed") >> Athena("analytics")`
-		}
-	];
-
-	onMount(async () => {
-		// Expose JS callback functions for Python to call
-		window.updateDiagramStatus = (newStatus, message) => {
-			console.log('🟢 [JS] updateDiagramStatus called:', newStatus, message);
-			status = newStatus;
-			statusMessage = message;
-
-			// Update output div based on status
-			const outputDiv = document.getElementById('user-diagram-output');
-			if (outputDiv && newStatus === 'error') {
-				outputDiv.innerHTML = `<p class="text-red-600">❌ Error occurred</p>`;
-			}
-		};
-
-		// Load viz.js dynamically
-		const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.2.0/+esm');
-		const viz = await instance();
-		console.log('✅ [JS] Viz.js loaded');
-
-		// Create DiagramRenderer instance
-		diagramRenderer = new DiagramRenderer(viz);
-		console.log('✅ [JS] DiagramRenderer created');
-
-		// Expose to window for Python to call
-		window.diagramRenderer = diagramRenderer;
-		window.fetchAndRenderDiagram = (chartId, dotContent, imageMappingJson) => {
-			console.log('🟢 [JS] fetchAndRenderDiagram called for:', chartId);
-			diagramRenderer.render(chartId, dotContent, imageMappingJson);
-		};
-		window.renderDiagram = (chartId, dotContent) => {
-			console.log('🟢 [JS] renderDiagram called for:', chartId);
-			diagramRenderer.renderSimple(chartId, dotContent);
-		};
-
-		// Load the Python diagram creator script
-		const pyScriptUrl = getLink('python/diagram_creator.py');
-		pyScriptRunner.runScript(pyScriptUrl, 'diagram-creator-script', false);
-		console.log('✅ [JS] Diagram creator initialized');
-	});
-
-	onDestroy(() => {
-		if (pyScriptRunner) {
-			pyScriptRunner.destroy();
-		}
-	});
-
+	/**
+	 * Run diagram generation
+	 */
 	function runDiagram() {
-		console.log('🔵 [JS] runDiagram() called');
-
-		// Clear previous output
-		const outputDiv = document.getElementById('user-diagram-output');
-		if (outputDiv) {
-			outputDiv.innerHTML = '<p class="text-gray-500 animate-pulse">🔄 Generating diagram...</p>';
-		}
-
-		// Call Python function through window
-		if (window.create_diagram) {
-			console.log('🔵 [JS] Calling window.create_diagram()');
-			window.create_diagram(codeInput);
-		} else {
-			console.error('🔴 [JS] window.create_diagram not found! Python may not be ready.');
-			status = 'error';
-			statusMessage = 'Python is not ready yet. Please wait a moment and try again.';
+		if (controller) {
+			controller.runDiagram(codeInput);
 		}
 	}
 
+	/**
+	 * Load a template
+	 */
 	function loadTemplate(template) {
 		codeInput = template.code;
 		// Reset status
@@ -146,71 +55,68 @@ with Diagram("Data Pipeline", show=False):
 		}
 	}
 
+	/**
+	 * Save diagram as SVG
+	 */
 	function saveDiagram() {
-		console.log('🔵 [JS] saveDiagram() called');
-
-		const outputDiv = document.getElementById('user-diagram-output');
-		if (!outputDiv) {
-			console.error('🔴 [JS] Output div not found');
-			return;
+		if (controller) {
+			controller.saveDiagram();
 		}
-
-		// Find the SVG element
-		const svg = outputDiv.querySelector('svg');
-		if (!svg) {
-			console.error('🔴 [JS] No SVG found. Generate a diagram first.');
-			alert('Please generate a diagram first before saving.');
-			return;
-		}
-
-		// Clone the SVG to avoid modifying the displayed one
-		const svgClone = svg.cloneNode(true);
-
-		// Get SVG as string
-		const svgData = new XMLSerializer().serializeToString(svgClone);
-
-		// Create blob
-		const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-
-		// Create download link
-		const url = URL.createObjectURL(blob);
-		const link = document.createElement('a');
-		link.href = url;
-		link.download = 'diagram.svg';
-
-		// Trigger download
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-
-		// Clean up
-		URL.revokeObjectURL(url);
-
-		console.log('✅ [JS] Diagram saved!');
 	}
 
-	// Computed status display
-	$effect(() => {
-		console.log('Status changed:', status, statusMessage);
+	onMount(async () => {
+		try {
+			// Listen for status updates (browser only)
+			if (typeof window !== 'undefined') {
+				window.addEventListener('diagramStatusUpdate', handleStatusUpdate);
+			}
+
+			// Initialize controller
+			controller = new DiagramCreatorController();
+			await controller.initialize();
+
+			loading = false;
+		} catch (error) {
+			console.error('Failed to initialize diagram creator:', error);
+			loading = false;
+			status = 'error';
+			statusMessage = 'Failed to initialize. Please refresh the page.';
+		}
+	});
+
+	onDestroy(() => {
+		// Clean up event listener (browser only)
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('diagramStatusUpdate', handleStatusUpdate);
+		}
+
+		if (controller) {
+			controller.destroy();
+		}
 	});
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/diagrams/gallery', nextPage: '/examples/ml' }}>
 	<div slot="py_slot" class="flex h-full flex-col p-5">
-		<!-- Templates -->
-		<div class="mb-4">
-			<label class="mb-2 block text-sm font-bold text-gray-700">Quick Start Templates:</label>
-			<div class="flex flex-wrap gap-2">
-				{#each templates as template}
-					<button
-						onclick={() => loadTemplate(template)}
-						class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 transition-colors"
-					>
-						{template.name}
-					</button>
-				{/each}
+		{#if loading}
+			<div class="flex items-center justify-center p-8">
+				<p class="text-lg">🐍 Loading diagram creator...</p>
 			</div>
-		</div>
+		{:else}
+			<!-- Templates -->
+			<div class="mb-4">
+				<label class="mb-2 block text-sm font-bold text-gray-700">Quick Start Templates:</label>
+				<div class="flex flex-wrap gap-2">
+					{#each controller?.getTemplates() || [] as template}
+						<button
+							onclick={() => loadTemplate(template)}
+							class="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 transition-colors"
+						>
+							{template.name}
+						</button>
+					{/each}
+				</div>
+			</div>
 
 		<!-- Code Editor -->
 		<div class="mb-4 flex-1 flex flex-col">
@@ -256,8 +162,9 @@ with Diagram("Data Pipeline", show=False):
 			</div>
 		</div>
 
-		<!-- Hidden Python script container -->
-		<div id="diagram-creator-script" style="display: none;"></div>
+			<!-- Hidden Python script container -->
+			<div id="diagram-creator-script" style="display: none;"></div>
+		{/if}
 	</div>
 
 	<article slot="content_slot" class="mb-10">

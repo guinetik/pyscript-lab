@@ -1,6 +1,6 @@
 <script>
-	import ExperimentCard from '$lib/ExperimentCard.svelte';
-	import PyExample from '$lib/PyExample.svelte';
+	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import PyExample from '$lib/components/PyExample.svelte';
 	export let name = 'COVID-19 World Map';
 </script>
 

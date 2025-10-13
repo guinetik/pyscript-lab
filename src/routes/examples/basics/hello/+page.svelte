@@ -1,10 +1,10 @@
 <script>
 	import { getLink } from '$lib/utils';
-	import SiteMapStore from '$lib/SiteMapStore';
-	import SiteMapLink from '$lib/SiteMapLink.svelte';
+	import SiteMapStore from '$lib/stores/SiteMapStore';
+	import SiteMapLink from '$lib/components/SiteMapLink.svelte';
 	import { page } from '$app/stores';
-	import ExperimentCard from '$lib/ExperimentCard.svelte';
-	import PyExample from '$lib/PyExample.svelte';
+	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import PyExample from '$lib/components/PyExample.svelte';
 	export let name = 'HELLO WORLD';
 </script>
 

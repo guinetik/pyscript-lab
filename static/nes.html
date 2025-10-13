@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>NES Test</title>
+	<style>
+		body {
+			background: #000;
+			color: #fff;
+			font-family: monospace;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			margin: 0;
+		}
+		#controls {
+			margin-bottom: 20px;
+		}
+		canvas {
+			border: 2px solid #fff;
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+			width: 512px;
+			height: 480px;
+		}
+		button {
+			background: #333;
+			color: #fff;
+			border: 2px solid #666;
+			padding: 10px 20px;
+			cursor: pointer;
+			font-size: 16px;
+		}
+		button:hover {
+			background: #555;
+		}
+		#status {
+			margin-top: 10px;
+			font-size: 14px;
+		}
+		input[type="file"] {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<div id="controls">
+		<button onclick="document.getElementById('romFile').click()">Load ROM File</button>
+		<input type="file" id="romFile" accept=".nes" onchange="handleROMFile(event)">
+		<button onclick="loadROMFromURL()">Load from /data/mario.nes</button>
+		<button onclick="toggleAudio()">Toggle Audio</button>
+	</div>
+	<canvas id="nes-canvas" width="256" height="240"></canvas>
+	<div id="status">Load a ROM or use /data/mario.nes</div>
+
+	<script src="https://unpkg.com/jsnes@1.2.1/dist/jsnes.min.js"></script>
+	<script>
+		var SCREEN_WIDTH = 256;
+		var SCREEN_HEIGHT = 240;
+		var FRAMEBUFFER_SIZE = SCREEN_WIDTH * SCREEN_HEIGHT;
+
+		var canvas_ctx, image;
+		var framebuffer_u8, framebuffer_u32;
+
+		var AUDIO_BUFFERING = 512; // Standard buffer size
+		var SAMPLE_COUNT = 4 * 1024; // Standard buffer size
+		var SAMPLE_MASK = SAMPLE_COUNT - 1;
+		var audio_samples_L = new Float32Array(SAMPLE_COUNT);
+		var audio_samples_R = new Float32Array(SAMPLE_COUNT);
+		var audio_write_cursor = 0, audio_read_cursor = 0;
+		var audio_ctx, script_processor;
+		var audioEnabled = true;
+		var audioInitialized = false;
+
+		var nes = null;
+		var isRunning = false;
+
+		function onAnimationFrame() {
+			if (!isRunning) return;
+
+			window.requestAnimationFrame(onAnimationFrame);
+
+			// Generate one frame (RAF runs at ~60fps naturally)
+			nes.frame();
+
+			// Draw to canvas
+			image.data.set(framebuffer_u8);
+			canvas_ctx.putImageData(image, 0, 0);
+		}
+
+		function audio_remain() {
+			return (audio_write_cursor - audio_read_cursor) & SAMPLE_MASK;
+		}
+
+		function audio_callback(event) {
+			var dst = event.outputBuffer;
+			var len = dst.length;
+
+			// Just consume audio samples (RAF generates frames)
+			var dst_l = dst.getChannelData(0);
+			var dst_r = dst.getChannelData(1);
+
+			var available = audio_remain();
+			for(var i = 0; i < len; i++) {
+				if (i < available) {
+					var src_idx = (audio_read_cursor + i) & SAMPLE_MASK;
+					dst_l[i] = audio_samples_L[src_idx];
+					dst_r[i] = audio_samples_R[src_idx];
+				} else {
+					// Not enough samples - silence
+					dst_l[i] = 0;
+					dst_r[i] = 0;
+				}
+			}
+
+			audio_read_cursor = (audio_read_cursor + len) & SAMPLE_MASK;
+		}
+
+		function toggleAudio() {
+			audioEnabled = !audioEnabled;
+			if (audioEnabled && audio_ctx) {
+				script_processor.connect(audio_ctx.destination);
+				updateStatus('Audio enabled');
+			} else if (script_processor) {
+				script_processor.disconnect();
+				updateStatus('Audio disabled');
+			}
+		}
+
+		function nes_init() {
+			if (audioInitialized) {
+				console.log('✅ Already initialized, reusing audio context');
+				return;
+			}
+
+			var canvas = document.getElementById('nes-canvas');
+			canvas_ctx = canvas.getContext("2d");
+			image = canvas_ctx.getImageData(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+			canvas_ctx.fillStyle = "black";
+			canvas_ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+			// Allocate framebuffer array.
+			var buffer = new ArrayBuffer(image.data.length);
+			framebuffer_u8 = new Uint8ClampedArray(buffer);
+			framebuffer_u32 = new Uint32Array(buffer);
+
+			// Setup audio - ONLY ONCE
+			try {
+				audio_ctx = new (window.AudioContext || window.webkitAudioContext)();
+				script_processor = audio_ctx.createScriptProcessor(AUDIO_BUFFERING, 0, 2);
+				script_processor.onaudioprocess = audio_callback;
+				if (audioEnabled) {
+					script_processor.connect(audio_ctx.destination);
+				}
+				console.log('✅ Audio initialized');
+				audioInitialized = true;
+			} catch(e) {
+				console.warn('⚠️ Audio not available:', e);
+				audioEnabled = false;
+			}
+
+			console.log('✅ NES initialized');
+		}
+
+		function createNESInstance() {
+			// Stop previous instance if running
+			if (isRunning) {
+				isRunning = false;
+				console.log('🛑 Stopping previous instance');
+			}
+
+			// Create new NES instance
+			nes = new jsnes.NES({
+				onFrame: function(framebuffer_24) {
+					for(var i = 0; i < FRAMEBUFFER_SIZE; i++) {
+						framebuffer_u32[i] = 0xFF000000 | framebuffer_24[i];
+					}
+				},
+				onAudioSample: function(l, r) {
+					audio_samples_L[audio_write_cursor] = l;
+					audio_samples_R[audio_write_cursor] = r;
+					audio_write_cursor = (audio_write_cursor + 1) & SAMPLE_MASK;
+				}
+			});
+
+			// Clear audio buffers
+			audio_write_cursor = 0;
+			audio_read_cursor = 0;
+			audio_samples_L.fill(0);
+			audio_samples_R.fill(0);
+		}
+
+		function nes_boot(rom_data) {
+			console.log('🎮 Loading ROM...');
+
+			// Initialize audio/canvas only once
+			nes_init();
+
+			// Create fresh NES instance (stops previous if running)
+			createNESInstance();
+
+			// Load the ROM
+			nes.loadROM(rom_data);
+			console.log('✅ ROM loaded, starting...');
+
+			// Resume audio context if needed
+			if (audio_ctx && audio_ctx.state === 'suspended') {
+				audio_ctx.resume().then(() => {
+					console.log('✅ Audio context resumed');
+				});
+			}
+
+			// Start the game loop (RAF-driven)
+			isRunning = true;
+			window.requestAnimationFrame(onAnimationFrame);
+			console.log('✅ Animation started');
+			updateStatus('Game running! Use arrow keys + A/S');
+		}
+
+		function updateStatus(message) {
+			document.getElementById('status').textContent = message;
+		}
+
+		async function loadROMFromURL() {
+			updateStatus('Loading ROM from /data/mario.nes...');
+			
+			try {
+				const response = await fetch('/data/mario.nes');
+				if (!response.ok) {
+					throw new Error(`Failed to fetch ROM: ${response.statusText}`);
+				}
+
+				const arrayBuffer = await response.arrayBuffer();
+				const romData = new Uint8Array(arrayBuffer);
+
+				// Convert to binary string
+				let binaryString = '';
+				for (let i = 0; i < romData.length; i++) {
+					binaryString += String.fromCharCode(romData[i]);
+				}
+
+				console.log('✅ ROM fetched, size:', romData.length, 'bytes');
+				nes_boot(binaryString);
+			} catch (error) {
+				console.error('❌ Error loading ROM:', error);
+				updateStatus('Error loading ROM from URL: ' + error.message);
+			}
+		}
+
+		function handleROMFile(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+
+			updateStatus('Loading ROM: ' + file.name);
+			
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				try {
+					const arrayBuffer = e.target.result;
+					const romData = new Uint8Array(arrayBuffer);
+
+					// Convert to binary string
+					let binaryString = '';
+					for (let i = 0; i < romData.length; i++) {
+						binaryString += String.fromCharCode(romData[i]);
+					}
+
+					console.log('✅ ROM loaded, size:', romData.length, 'bytes');
+					nes_boot(binaryString);
+				} catch (error) {
+					console.error('❌ Error loading ROM:', error);
+					updateStatus('Error loading ROM: ' + error.message);
+				}
+			};
+			reader.onerror = function() {
+				updateStatus('Error reading file');
+			};
+			reader.readAsArrayBuffer(file);
+		}
+
+		// Keyboard controls
+		document.addEventListener('keydown', (event) => {
+			var player = 1;
+			switch(event.keyCode) {
+				case 38: // UP
+					nes.buttonDown(player, jsnes.Controller.BUTTON_UP); 
+					event.preventDefault();
+					break;
+				case 40: // Down
+					nes.buttonDown(player, jsnes.Controller.BUTTON_DOWN); 
+					event.preventDefault();
+					break;
+				case 37: // Left
+					nes.buttonDown(player, jsnes.Controller.BUTTON_LEFT); 
+					event.preventDefault();
+					break;
+				case 39: // Right
+					nes.buttonDown(player, jsnes.Controller.BUTTON_RIGHT); 
+					event.preventDefault();
+					break;
+				case 65: // 'a'
+				case 81: // 'q'
+					nes.buttonDown(player, jsnes.Controller.BUTTON_A); 
+					event.preventDefault();
+					break;
+				case 83: // 's'
+				case 79: // 'o'
+					nes.buttonDown(player, jsnes.Controller.BUTTON_B); 
+					event.preventDefault();
+					break;
+				case 9: // Tab
+					nes.buttonDown(player, jsnes.Controller.BUTTON_SELECT); 
+					event.preventDefault();
+					break;
+				case 13: // Return
+					nes.buttonDown(player, jsnes.Controller.BUTTON_START); 
+					event.preventDefault();
+					break;
+			}
+		});
+
+		document.addEventListener('keyup', (event) => {
+			var player = 1;
+			switch(event.keyCode) {
+				case 38: nes.buttonUp(player, jsnes.Controller.BUTTON_UP); break;
+				case 40: nes.buttonUp(player, jsnes.Controller.BUTTON_DOWN); break;
+				case 37: nes.buttonUp(player, jsnes.Controller.BUTTON_LEFT); break;
+				case 39: nes.buttonUp(player, jsnes.Controller.BUTTON_RIGHT); break;
+				case 65: case 81: nes.buttonUp(player, jsnes.Controller.BUTTON_A); break;
+				case 83: case 79: nes.buttonUp(player, jsnes.Controller.BUTTON_B); break;
+				case 9: nes.buttonUp(player, jsnes.Controller.BUTTON_SELECT); break;
+				case 13: nes.buttonUp(player, jsnes.Controller.BUTTON_START); break;
+			}
+		});
+
+		console.log('🚀 Ready! Load a ROM file to begin.');
+	</script>
+</body>
+</html>

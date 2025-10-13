@@ -1,11 +1,11 @@
 <script>
     /**
      * Responsive navigation bar that renders main and mobile menus derived from the site map.
-     * @typedef {import('./SiteMap').SiteMap} SiteMap
-     * @typedef {import('./SiteMap').Page} Page
+     * @typedef {import('../SiteMap').SiteMap} SiteMap
+     * @typedef {import('../SiteMap').Page} Page
      */
-    import { getLink } from './utils';
-    import SiteMapStore from './SiteMapStore';
+    import { getLink } from '../utils';
+    import SiteMapStore from '../stores/SiteMapStore';
     import SiteMapLink from './SiteMapLink.svelte';
     import { page } from '$app/stores';
     import { beforeUpdate } from 'svelte';

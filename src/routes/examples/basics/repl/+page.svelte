@@ -1,5 +1,5 @@
 <script>
-	import ExperimentCard from '$lib/ExperimentCard.svelte';
+	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	export let name = 'REPL';
 </script>
 
