@@ -51,7 +51,7 @@
 	});
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/bokeh/communities', nextPage: '/' }}>
+<ExperimentCard props={{ previousPage: '/examples/bokeh/communities', nextPage: '/examples/matplotlib/intro' }}>
 	<div slot="py_slot" class="relative">
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">

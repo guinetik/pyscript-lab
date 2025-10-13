@@ -3,24 +3,31 @@ import { getLink } from "./utils.js";
 import { writable } from "svelte/store";
 //
 const pages = [
-  new Page("hello-world", "Hello World", getLink("/examples/hello"), [
-    new PageProp("show", "all"), // show in all menus
-    new PageProp("prev_page", getLink("/")), // what page links to this
-    new PageProp("next_page", getLink("/examples/repl")), // what page this links to
-  ]),
-  new Page("repl", "R.E.P.L", getLink("/examples/repl"), [
-    new PageProp("show", "all"), // show in all menus
-    new PageProp("prev_page", getLink("/examples/hello")), // what page links to this
-    new PageProp("next_page", getLink("/examples/interop")), // what page this links to
-  ]),
-  new Page("interop", "Interoperability In Python", getLink("/examples/interop"), [
+  new Page("basics", "Basic Examples", getLink("/examples/basics/hello"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/repl")),
-    new PageProp("next_page", getLink("/examples/bokeh")),
+    new PageProp("prev_page", getLink("/")),
+    new PageProp("next_page", getLink("/examples/basics/repl")),
+  ], [
+    // Basic Examples sub-pages
+    new Page("hello-world", "Hello World", getLink("/examples/basics/hello"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/")),
+      new PageProp("next_page", getLink("/examples/basics/repl")),
+    ]),
+    new Page("repl", "R.E.P.L", getLink("/examples/basics/repl"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/basics/hello")),
+      new PageProp("next_page", getLink("/examples/basics/interop")),
+    ]),
+    new Page("interop", "Interoperability", getLink("/examples/basics/interop"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/basics/repl")),
+      new PageProp("next_page", getLink("/examples/bokeh")),
+    ]),
   ]),
   new Page("bokeh_index", "Bokeh", getLink("/examples/bokeh"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/interop")),
+    new PageProp("prev_page", getLink("/examples/basics/interop")),
     new PageProp("next_page", getLink("/examples/bokeh/pandas")),
   ], [
     // Bokeh sub-pages
@@ -43,17 +50,39 @@ const pages = [
   new Page("diagrams", "Diagrams as Code", getLink("/examples/diagrams"), [
     new PageProp("show", "all"),
     new PageProp("prev_page", getLink("/examples/bokeh/communities")),
-    new PageProp("next_page", getLink("/examples/ml")),
+    new PageProp("next_page", getLink("/examples/matplotlib/intro")),
+  ]),
+  new Page("matplotlib", "Matplotlib", getLink("/examples/matplotlib/intro"), [
+    new PageProp("show", "all"),
+    new PageProp("prev_page", getLink("/examples/diagrams")),
+    new PageProp("next_page", getLink("/examples/matplotlib/charts")),
+  ], [
+    // Matplotlib sub-pages
+    new Page("matplotlib_intro", "Introduction", getLink("/examples/matplotlib/intro"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/diagrams")),
+      new PageProp("next_page", getLink("/examples/matplotlib/charts")),
+    ]),
+    new Page("matplotlib_charts", "COVID-19 Charts", getLink("/examples/matplotlib/charts"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/matplotlib/intro")),
+      new PageProp("next_page", getLink("/examples/matplotlib/maps")),
+    ]),
+    new Page("matplotlib_maps", "COVID-19 World Map", getLink("/examples/matplotlib/maps"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/matplotlib/charts")),
+      new PageProp("next_page", getLink("/examples/ml")),
+    ]),
   ]),
   new Page("ml", "Machine Learning", getLink("/examples/ml"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/diagrams")),
+    new PageProp("prev_page", getLink("/examples/matplotlib/maps")),
     new PageProp("next_page", getLink("/examples/sentiment")),
   ], [
     // ML sub-pages
     new Page("ml_digit", "Digit Recognition", getLink("/examples/ml"), [
       new PageProp("show", "none"),
-      new PageProp("prev_page", getLink("/examples/diagrams")),
+      new PageProp("prev_page", getLink("/examples/matplotlib/maps")),
       new PageProp("next_page", getLink("/examples/sentiment")),
     ]),
     new Page("sentiment", "Sentiment Analysis", getLink("/examples/sentiment"), [

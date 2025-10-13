@@ -15,6 +15,8 @@
     let scriptId = $state('');
     /** @type {HTMLElement | null | undefined} */
     let scriptElement;
+    /** @type {boolean} */
+    let isCodeVisible = $state(false);
 
     /**
      * Loads the PyScript source from the rendered slot and updates highlighted output.
@@ -37,6 +39,13 @@
         }
     }
 
+    /**
+     * Toggles the visibility of the code block.
+     */
+    function toggleCode() {
+        isCodeVisible = !isCodeVisible;
+    }
+
     onMount(async () => {
         const script = scriptElement?.querySelector('script[type="py"]');
         if (script) {
@@ -49,7 +58,31 @@
     {#if title}
         <p class="mb-2">{title}</p>
     {/if}
-    <CodeBlock code={sourceCode} />
+
+    <!-- Toggle button -->
+    <button
+        onclick={toggleCode}
+        class="mb-3 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+        aria-expanded={isCodeVisible}
+    >
+        <svg
+            class="w-4 h-4 transition-transform duration-200 {isCodeVisible ? 'rotate-90' : ''}"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+        >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+        {isCodeVisible ? 'Hide code' : 'See the code'}
+    </button>
+
+    <!-- Collapsible code block -->
+    {#if isCodeVisible}
+        <div class="code-container transition-all duration-300 ease-in-out">
+            <CodeBlock code={sourceCode} />
+        </div>
+    {/if}
+
     <div id={scriptId} class="output mt-4" bind:this={scriptElement}>
         <slot />
     </div>

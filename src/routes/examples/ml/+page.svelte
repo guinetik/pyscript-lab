@@ -200,7 +200,7 @@
 	}
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/diagrams', nextPage: '/' }}>
+<ExperimentCard props={{ previousPage: '/examples/matplotlib/maps', nextPage: '/' }}>
 	<div slot="py_slot" class="flex h-full w-full flex-col items-center justify-start p-5">
 		<!-- Heading -->
 		<h3 class="text-2xl font-bold mb-4 text-gray-800">Draw a Number</h3>

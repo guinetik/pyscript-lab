@@ -50,12 +50,23 @@
 	};
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/repl', nextPage: '/examples/bokeh' }}>
+<ExperimentCard props={{ previousPage: '/examples/basics/repl', nextPage: '/examples/bokeh' }}>
 	<div slot="py_slot" id="chart" class="h-full w-full p-5" />
 	<article slot="content_slot" class="mb-10">
 		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
-		<p>This example shows how to call a Python function from JavaScript</p>
-		<div class="mt-8 flex items-center justify-center bg-white">
+
+		<p class="mb-4">
+			PyScript's interoperability allows seamless communication between Python and JavaScript,
+			enabling you to leverage both languages' strengths in a single application. Call Python
+			functions from JavaScript, access browser APIs from Python, and share data bidirectionally.
+		</p>
+
+		<p class="mb-4 text-sm text-gray-600">
+			<strong>Try it:</strong> Enter your name and age below. The form data will be sent to a Python function
+			that processes it and generates a personalized chart.
+		</p>
+
+		<div class="mb-8 flex items-center justify-center bg-white">
 			<div class="relative rounded border-2 border-grey px-1 py-2">
 				<label
 					class="bg-white px-2 text-grey-darker"
@@ -95,5 +106,27 @@
 				target="_blank">View source</a
 			>
 		</p>
+
+		<div class="prose max-w-none mt-8">
+			<div class="mb-6 rounded-lg bg-gray-100 p-4">
+				<h3 class="mb-2 text-lg font-bold">How It Works:</h3>
+				<ul class="list-disc space-y-2 pl-5">
+					<li><strong>Expose Python Functions:</strong> Make Python functions available to JavaScript via the <code class="rounded bg-white px-1">window</code> object</li>
+					<li><strong>Access JavaScript from Python:</strong> Use the <code class="rounded bg-white px-1">js</code> module to interact with DOM and browser APIs</li>
+					<li><strong>Data Conversion:</strong> Automatic conversion between Python and JavaScript data types</li>
+					<li><strong>Event-Driven:</strong> Trigger Python functions from user interactions</li>
+				</ul>
+			</div>
+
+			<div class="mb-6 rounded-lg bg-blue-50 p-4">
+				<h3 class="mb-2 text-lg font-bold">Use Cases:</h3>
+				<ul class="list-disc space-y-2 pl-5">
+					<li>Process form data with Python's powerful libraries</li>
+					<li>Update UI dynamically based on Python computations</li>
+					<li>Combine JavaScript frameworks (like Svelte) with Python logic</li>
+					<li>Access Python's data science ecosystem from web interfaces</li>
+				</ul>
+			</div>
+		</div>
 	</article>
 </ExperimentCard>

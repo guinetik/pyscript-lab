@@ -16,6 +16,8 @@
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.6.2.min.js"></script>
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.6.2.min.js"></script>
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-3.6.2.min.js"></script>
+  <!-- Plotly JS -->
+  <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
   <style>
     #loading {
       position: fixed;
@@ -229,7 +231,7 @@
         </a>      
       </p>
       <div id="py-script-footer" class="py-script float-right">
-        <script type="py" config='{"packages": ["bokeh", "pandas", "numpy", "networkx", "diagrams", "scikit-learn", "pillow"]}'>
+        <script type="py" config='{"packages": ["bokeh", "pandas", "numpy", "networkx", "diagrams", "scikit-learn", "pillow", "matplotlib", "plotly"]}'>
           from pyscript import document
           from datetime import datetime
           now = datetime.now()
