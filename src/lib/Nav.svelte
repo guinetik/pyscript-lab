@@ -78,12 +78,40 @@
                 </div>
                 <div class="hidden items-center space-x-1 md:flex">
                     {#each mainLinks as link}
-                        <SiteMapLink
-                            template={link.template}
-                            page={link.page}
-                            active={currentPath}
-                            activeClass="main_menu_active"
-                        />
+                        {#if link.page.hasChildren()}
+                            <!-- Dropdown menu for pages with children -->
+                            <div class="relative group">
+                                <button
+                                    class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 {currentPath.startsWith(link.page.url) ? 'text-yellow-500 font-bold' : 'text-gray-700'}"
+                                >
+                                    {link.page.title}
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <!-- Dropdown content -->
+                                <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                    <div class="py-1">
+                                        {#each link.page.children as child}
+                                            <a
+                                                href={child.url}
+                                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 {currentPath === child.url ? 'bg-yellow-50 text-yellow-500 font-bold' : ''}"
+                                            >
+                                                {child.title}
+                                            </a>
+                                        {/each}
+                                    </div>
+                                </div>
+                            </div>
+                        {:else}
+                            <!-- Regular link for pages without children -->
+                            <SiteMapLink
+                                template={link.template}
+                                page={link.page}
+                                active={currentPath}
+                                activeClass="main_menu_active"
+                            />
+                        {/if}
                     {/each}
                 </div>
             </div>
@@ -155,13 +183,28 @@
             </div>
             {#each mobileLinks as link}
                 <li class="border-b border-inherit">
-                    <SiteMapLink
-                        onclick={closeMenu}
-                        template={link.template}
-                        page={link.page}
-                        active={currentPath}
-                        activeClass="mobile_menu_active"
-                    />
+                    {#if link.page.hasChildren()}
+                        <!-- Mobile dropdown for pages with children -->
+                        <div class="block p-4 text-gray-700 font-bold">{link.page.title}</div>
+                        {#each link.page.children as child}
+                            <a
+                                href={child.url}
+                                on:click={closeMenu}
+                                class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 {currentPath === child.url ? 'bg-yellow-50 text-yellow-500 font-bold' : ''}"
+                            >
+                                {child.title}
+                            </a>
+                        {/each}
+                    {:else}
+                        <!-- Regular link -->
+                        <SiteMapLink
+                            onclick={closeMenu}
+                            template={link.template}
+                            page={link.page}
+                            active={currentPath}
+                            activeClass="mobile_menu_active"
+                        />
+                    {/if}
                 </li>
             {/each}
         </ul>

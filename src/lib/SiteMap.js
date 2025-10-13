@@ -144,12 +144,22 @@ export class Page {
    * @param {String} title - Page title
    * @param {String} url - Page Url
    * @param {Array<PageProp>} props - An array of PageProp objects
+   * @param {Array<Page>} children - Optional array of child pages (for dropdowns)
    */
-  constructor(id, title, url, props) {
+  constructor(id, title, url, props, children = []) {
     this.id = id;
     this.title = title;
     this.url = url;
     this.props = props;
+    this.children = children;
+  }
+
+  /**
+   * Check if this page has children
+   * @returns {Boolean} true if page has children
+   */
+  hasChildren() {
+    return this.children && this.children.length > 0;
   }
   /**
    * Gets a page property by name
