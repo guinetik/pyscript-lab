@@ -4,7 +4,7 @@ Date and Time Display Example
 This module demonstrates how to get and format the current date and time using Python's
 datetime module running in the browser via PyScript.
 
-Author: PyScript L.A.B
+Author: Guinetik
 """
 
 from pyscript import display

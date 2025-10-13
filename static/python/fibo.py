@@ -7,7 +7,7 @@ running in the browser via PyScript.
 The Fibonacci sequence is a series where each number is the sum of the two preceding ones,
 usually starting with 0 and 1. The sequence appears in nature, art, and mathematics.
 
-Author: PyScript L.A.B
+Author: Guinetik
 """
 
 from pyscript import display

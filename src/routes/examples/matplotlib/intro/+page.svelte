@@ -4,7 +4,7 @@
 	export let name = 'Matplotlib Introduction';
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/diagrams', nextPage: '/examples/matplotlib/charts' }}>
+<ExperimentCard props={{ previousPage: '/examples/basics/interop', nextPage: '/examples/matplotlib/charts' }}>
 	<div slot="py_slot">
 		<section class="pyscript p-5">
 			<h1>Example 1: Simple Line Plot</h1>

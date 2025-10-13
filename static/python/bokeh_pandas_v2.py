@@ -17,7 +17,7 @@ These examples showcase:
 - Interactive tooltips and tools
 - Responsive sizing for web displays
 
-Author: PyScript L.A.B
+Author: Guinetik
 Adapted from: https://www.kaggle.com/code/cindyteh/data-visualization-with-bokeh
 """
 

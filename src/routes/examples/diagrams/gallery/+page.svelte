@@ -7,7 +7,7 @@
 	import { onMount, onDestroy } from 'svelte';
 
 	// Page metadata
-	let name = 'Diagrams as Code';
+	let name = 'Diagrams Gallery';
 
 	// Python runner instance
 	let pyScriptRunner;
@@ -51,7 +51,7 @@
 	});
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/bokeh/communities', nextPage: '/examples/matplotlib/intro' }}>
+<ExperimentCard props={{ previousPage: '/examples/bokeh/communities', nextPage: '/examples/diagrams/create' }}>
 	<div slot="py_slot" class="relative">
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">

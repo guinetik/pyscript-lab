@@ -11,7 +11,7 @@ This example shows:
 - Embedding Bokeh visualizations in a PyScript page
 - Using tooltips to display data on hover
 
-Author: PyScript L.A.B
+Author: Guinetik
 Based on: PyScript official documentation examples
 """
 

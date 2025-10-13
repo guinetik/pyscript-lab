@@ -22,12 +22,34 @@ const pages = [
     new Page("interop", "Interoperability", getLink("/examples/basics/interop"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/basics/repl")),
+      new PageProp("next_page", getLink("/examples/matplotlib/intro")),
+    ]),
+  ]),
+  new Page("matplotlib", "Matplotlib", getLink("/examples/matplotlib/intro"), [
+    new PageProp("show", "all"),
+    new PageProp("prev_page", getLink("/examples/basics/interop")),
+    new PageProp("next_page", getLink("/examples/matplotlib/charts")),
+  ], [
+    // Matplotlib sub-pages
+    new Page("matplotlib_intro", "Introduction", getLink("/examples/matplotlib/intro"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/basics/interop")),
+      new PageProp("next_page", getLink("/examples/matplotlib/charts")),
+    ]),
+    new Page("matplotlib_charts", "COVID-19 Charts", getLink("/examples/matplotlib/charts"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/matplotlib/intro")),
+      new PageProp("next_page", getLink("/examples/matplotlib/maps")),
+    ]),
+    new Page("matplotlib_maps", "COVID-19 World Map", getLink("/examples/matplotlib/maps"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/matplotlib/charts")),
       new PageProp("next_page", getLink("/examples/bokeh")),
     ]),
   ]),
   new Page("bokeh_index", "Bokeh", getLink("/examples/bokeh"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/basics/interop")),
+    new PageProp("prev_page", getLink("/examples/matplotlib/maps")),
     new PageProp("next_page", getLink("/examples/bokeh/pandas")),
   ], [
     // Bokeh sub-pages
@@ -44,45 +66,35 @@ const pages = [
     new Page("bokeh_3", "Community Detection", getLink("/examples/bokeh/communities"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/bokeh/networks")),
-      new PageProp("next_page", getLink("/examples/diagrams")),
+      new PageProp("next_page", getLink("/examples/diagrams/gallery")),
     ]),
   ]),
-  new Page("diagrams", "Diagrams as Code", getLink("/examples/diagrams"), [
+  new Page("diagrams", "Diagrams as Code", getLink("/examples/diagrams/gallery"), [
     new PageProp("show", "all"),
     new PageProp("prev_page", getLink("/examples/bokeh/communities")),
-    new PageProp("next_page", getLink("/examples/matplotlib/intro")),
-  ]),
-  new Page("matplotlib", "Matplotlib", getLink("/examples/matplotlib/intro"), [
-    new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/diagrams")),
-    new PageProp("next_page", getLink("/examples/matplotlib/charts")),
+    new PageProp("next_page", getLink("/examples/diagrams/create")),
   ], [
-    // Matplotlib sub-pages
-    new Page("matplotlib_intro", "Introduction", getLink("/examples/matplotlib/intro"), [
+    // Diagrams sub-pages
+    new Page("diagrams_gallery", "Diagrams Gallery", getLink("/examples/diagrams/gallery"), [
       new PageProp("show", "none"),
-      new PageProp("prev_page", getLink("/examples/diagrams")),
-      new PageProp("next_page", getLink("/examples/matplotlib/charts")),
+      new PageProp("prev_page", getLink("/examples/bokeh/communities")),
+      new PageProp("next_page", getLink("/examples/diagrams/create")),
     ]),
-    new Page("matplotlib_charts", "COVID-19 Charts", getLink("/examples/matplotlib/charts"), [
+    new Page("diagrams_create", "Create Diagrams", getLink("/examples/diagrams/create"), [
       new PageProp("show", "none"),
-      new PageProp("prev_page", getLink("/examples/matplotlib/intro")),
-      new PageProp("next_page", getLink("/examples/matplotlib/maps")),
-    ]),
-    new Page("matplotlib_maps", "COVID-19 World Map", getLink("/examples/matplotlib/maps"), [
-      new PageProp("show", "none"),
-      new PageProp("prev_page", getLink("/examples/matplotlib/charts")),
+      new PageProp("prev_page", getLink("/examples/diagrams/gallery")),
       new PageProp("next_page", getLink("/examples/ml")),
     ]),
   ]),
   new Page("ml", "Machine Learning", getLink("/examples/ml"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/matplotlib/maps")),
+    new PageProp("prev_page", getLink("/examples/diagrams/create")),
     new PageProp("next_page", getLink("/examples/sentiment")),
   ], [
     // ML sub-pages
     new Page("ml_digit", "Digit Recognition", getLink("/examples/ml"), [
       new PageProp("show", "none"),
-      new PageProp("prev_page", getLink("/examples/matplotlib/maps")),
+      new PageProp("prev_page", getLink("/examples/diagrams/create")),
       new PageProp("next_page", getLink("/examples/sentiment")),
     ]),
     new Page("sentiment", "Sentiment Analysis", getLink("/examples/sentiment"), [

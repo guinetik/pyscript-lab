@@ -7,7 +7,7 @@ It shows how JavaScript can call Python functions and how Python can manipulate 
 This example creates an interactive greeting system that responds to user input with
 personalized messages based on their name and age.
 
-Author: PyScript L.A.B
+Author: Guinetik
 """
 
 import json

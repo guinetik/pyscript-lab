@@ -34,7 +34,7 @@
 	<!-- Intentionally left empty, Bokeh configured in app.html -->
 </svelte:head>
 
-<ExperimentCard props={{ previousPage: '/examples/interop', nextPage: '/examples/bokeh/pandas' }}>
+<ExperimentCard props={{ previousPage: '/examples/matplotlib/maps', nextPage: '/examples/bokeh/pandas' }}>
 	<div slot="py_slot" class="relative flex h-full items-center justify-center">
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">

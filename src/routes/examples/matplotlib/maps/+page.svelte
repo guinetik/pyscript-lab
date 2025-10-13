@@ -4,7 +4,7 @@
 	export let name = 'COVID-19 World Map';
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/matplotlib/charts', nextPage: '/examples/ml' }}>
+<ExperimentCard props={{ previousPage: '/examples/matplotlib/charts', nextPage: '/examples/bokeh' }}>
 	<div slot="py_slot">
 		<section class="pyscript p-5">
 			<h1>COVID-19 Interactive World Map</h1>

@@ -17,7 +17,7 @@ These examples showcase:
 - Interactive network graphs with Bokeh
 - Kamada-Kawai layout algorithm
 
-Author: PyScript L.A.B
+Author: Guinetik
 """
 
 from pyodide.http import open_url

@@ -11,7 +11,7 @@ in the browser using PyScript. It demonstrates:
 The system allows users to draw digits, get predictions, and correct the model
 when it makes mistakes, providing a hands-on introduction to machine learning.
 
-Author: PyScript L.A.B
+Author: Guinetik
 """
 
 import base64

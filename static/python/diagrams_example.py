@@ -19,7 +19,7 @@ These examples showcase:
 - Multi-cloud architecture visualization
 - Python-to-JavaScript interoperability
 
-Author: PyScript L.A.B
+Author: Guinetik
 """
 
 print("🐍 Starting Diagrams as Code example with viz.js rendering...")

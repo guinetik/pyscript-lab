@@ -16,7 +16,7 @@ These examples showcase:
 - Subgraph extraction and analysis
 - Spring layout algorithm for node positioning
 
-Author: PyScript L.A.B
+Author: Guinetik
 Adapted from: https://www.kaggle.com/code/mayeesha/network-analysis-for-dummies-stackoverflow-data/notebook
 """
 

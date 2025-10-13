@@ -50,7 +50,7 @@
 	};
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/basics/repl', nextPage: '/examples/bokeh' }}>
+<ExperimentCard props={{ previousPage: '/examples/basics/repl', nextPage: '/examples/matplotlib/intro' }}>
 	<div slot="py_slot" id="chart" class="h-full w-full p-5" />
 	<article slot="content_slot" class="mb-10">
 		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
