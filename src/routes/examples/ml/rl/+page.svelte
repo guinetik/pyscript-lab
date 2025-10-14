@@ -1,10 +1,11 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import NesEmulator from '$lib/nes/NesEmulator.svelte';
-	import { getLink } from '$lib/utils.js';
-	import RunPython from '$lib/RunPython.js';
+	import { RLController } from '$lib/controller/RLController.js';
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { createLogger } from '@guinetik/logger';
+	import {getLink} from '$lib/utils.js';
 
 	const logger = createLogger({
 		prefix: 'RlPage',
@@ -14,8 +15,8 @@
 	// Page metadata
 	let name = 'Reinforcement Learning';
 
-	// Python runner instance
-	let pyScriptRunner = RunPython();
+	// Controller instance
+	let controller = browser ? new RLController() : null;
 
 	// UI State
 	let status = $state('initializing'); // 'initializing' | 'ready' | 'training' | 'playing' | 'paused' | 'error'
@@ -31,40 +32,47 @@
 	let emulatorKey = $state(0); // Key to force emulator remount
 
 	onMount(async () => {
+		if (!browser || !controller) return;
+
 		logger.log('🎮 RL Page mounted');
 
-		// Expose JS callback functions for Python to call
-		window.updateRLStatus = (newStatus, message) => {
-			logger.log('🟢 [JS] updateRLStatus called:', newStatus, message);
-			status = newStatus;
-			statusMessage = message;
-		};
+		// Expose UI handler for Python to call
+		window.rlUIHandler = {
+			onPythonReady: () => {
+				logger.log('✅ Python RL module is ready!');
+			},
 
-		window.updateRLMetrics = (episodeNum, reward, high) => {
-			episode = episodeNum;
-			totalReward = reward;
-			highScore = high;
+			onStatusUpdate: (newStatus, message) => {
+				logger.log('🟢 Status update:', newStatus, message);
+				status = newStatus;
+				statusMessage = message;
+			},
+
+			onMetricsUpdate: (episodeNum, reward, high) => {
+				logger.log('🟢 Metrics update:', { episodeNum, reward, high });
+				episode = episodeNum;
+				totalReward = reward;
+				highScore = high;
+			},
+
+			onError: (message) => {
+				logger.error('🔴 Error:', message);
+				status = 'error';
+				statusMessage = message;
+			}
 		};
 
 		// Expose save/load state functions for Python
 		window.saveStateJS = saveState;
 		window.loadStateJS = loadState;
 
-		// Load Python neural network module first
-		const neuralUrl = getLink('python/ml/rl/neural.py');
-		await pyScriptRunner.runScript(neuralUrl, 'neural-script', false);
-		logger.log('✅ [JS] Neural network module loaded');
-
-		// Load Python Mario agent script
-		const playerAgentUrl = getLink('python/ml/rl/player_agent.py');
-		await pyScriptRunner.runScript(playerAgentUrl, 'player-script', false);
-		logger.log('✅ [JS] Player agent loaded');
+		// Initialize controller (loads both Python modules)
+		await controller.initialize();
 	});
 
 	onDestroy(() => {
-		if (pyScriptRunner) {
-			pyScriptRunner.destroy();
-		}
+		if (!browser || !controller) return;
+		controller.destroy();
 	});
 
 	async function handleEmulatorReady(emulator) {
@@ -95,6 +103,8 @@
 	function startTraining() {
 		logger.log('🔵 [JS] startTraining() called');
 
+		if (!browser || !controller) return;
+
 		if (!emulatorReady) {
 			alert('Emulator not ready yet!');
 			return;
@@ -113,14 +123,7 @@
 			return;
 		}
 
-		if (window.startRLTraining) {
-			logger.log('🔵 [JS] Calling window.startRLTraining()');
-			window.startRLTraining();
-		} else {
-			console.error('🔴 [JS] window.startRLTraining not found! Python may not be ready.');
-			status = 'error';
-			statusMessage = 'Python is not ready yet. Please wait a moment and try again.';
-		}
+		controller.startTraining();
 	}
 
 	function pauseGame() {
@@ -131,8 +134,8 @@
 			emulator.stop();
 
 			// If training was running, notify Python
-			if (status === 'training' && window.pauseRLTraining) {
-				window.pauseRLTraining();
+			if (status === 'training' && controller) {
+				controller.pauseTraining();
 			}
 
 			// Update status
@@ -147,15 +150,8 @@
 	}
 
 	function resetTraining() {
-		if (window.resetRLTraining) {
-			window.resetRLTraining();
-		}
-	}
-
-	function playDemo() {
-		if (window.playRLDemo) {
-			window.playRLDemo();
-		}
+		if (!browser || !controller) return;
+		controller.resetTraining();
 	}
 
 	function playManual() {

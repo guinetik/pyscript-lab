@@ -1,9 +1,15 @@
 """
-Player Agent - Neural Network Controller for Super Player Bros
-Simplified single-agent version for real-time gameplay visualization
+Player Agent - Neural Network Controller for Super Mario Bros
+
+Reinforcement Learning agent that learns to play Mario through trial and error.
+Uses PyScriptManager for clean event-driven initialization.
+
+Author: Guinetik
 """
-from js import console, window
+from js import console, window, setTimeout
+from pyodide.ffi import create_proxy
 import numpy as np
+from lib.pyscript_manager import PyScriptManager
 
 # Import neural network (loaded as separate script)
 # The NeuralNetwork class will be available globally after neural.py loads
@@ -17,17 +23,17 @@ class MarioAgent:
 
     def __init__(self, vision_width: int = 13, vision_height: int = 10):
         """
-        Initialize Player agent.
+        Initialize Mario agent.
 
         Args:
-            vision_width: How many tiles wide Player can "see"
-            vision_height: How many tiles tall Player can "see"
+            vision_width: How many tiles wide Mario can "see"
+            vision_height: How many tiles tall Mario can "see"
         """
         self.vision_width = vision_width
         self.vision_height = vision_height
 
         # Neural network architecture
-        input_size = vision_width * vision_height  # Tile grid around Player
+        input_size = vision_width * vision_height  # Tile grid around Mario
         hidden_size = 32  # Hidden layer
         output_size = 6  # [UP, DOWN, LEFT, RIGHT, A, B]
 
@@ -46,14 +52,21 @@ class MarioAgent:
         self.BUTTON_LEFT = 6
         self.BUTTON_RIGHT = 7
 
-        # Stats tracking
+        # Episode stats tracking
         self.frames = 0
         self.max_x = 0
         self.stuck_frames = 0
         self.last_x = 0
         self.max_frames = 1200  # Maximum frames per episode (20 seconds at 60fps)
 
-        print("🧠 Player Agent initialized")
+        # Training state
+        self.is_training = False
+        self.current_episode = 0
+        self.episode_reward = 0
+        self.best_distance = 0
+        self.total_episodes = 0
+
+        print("🧠 Mario Agent initialized")
         print(f"   Network: {input_size} → {hidden_size} → {output_size}")
 
     def get_game_state(self) -> np.ndarray:
@@ -305,211 +318,187 @@ class MarioAgent:
         print("🎲 Weights randomized")
 
 
-# Create global agent instance
-print("🐍 Initializing Player Agent...")
-mario_agent = MarioAgent()
-print("✅ Player Agent ready")
+    def training_loop(self):
+        """
+        Main training loop - runs continuously while training.
+        Makes decisions at ~15fps (every 4 frames at 60fps).
+        """
+        if not self.is_training:
+            return
 
-# Training state
-is_training = False
-training_interval_id = None
-current_episode = 0
-episode_reward = 0
-best_distance = 0
-total_episodes = 0
+        # Make a decision (returns False if Mario died)
+        alive = self.step()
 
+        if not alive:
+            # Episode ended - Mario died
+            self.end_episode()
+            return
 
-def training_loop():
-    """
-    Main training loop - runs continuously while training.
-    Makes decisions at ~15fps (every 4 frames at 60fps).
-    """
-    global is_training, episode_reward, current_episode, best_distance
-
-    if not is_training:
-        return
-
-    # Make a decision (returns False if Player died)
-    alive = mario_agent.step()
-
-    if not alive:
-        # Episode ended - Player died
-        end_episode()
-        return
-
-    # Schedule next decision (every ~67ms = ~15 decisions per second)
-    # This gives Player time to react to each action
-    from js import setTimeout
-    from pyodide.ffi import create_proxy
-
-    # Create a proxy that won't be garbage collected
-    proxy = create_proxy(training_loop)
-    setTimeout(proxy, 67)
+        # Schedule next decision (every ~67ms = ~15 decisions per second)
+        # This gives Mario time to react to each action
+        proxy = create_proxy(self.training_loop)
+        setTimeout(proxy, 67)
 
 
-def end_episode():
-    """Handle end of episode - calculate reward and restart."""
-    global current_episode, episode_reward, best_distance, total_episodes
+    def end_episode(self):
+        """Handle end of episode - calculate reward and restart."""
+        # Calculate reward (how far Mario got)
+        distance = self.max_x
+        self.episode_reward = distance
 
-    # Calculate reward (how far Player got)
-    distance = mario_agent.max_x
-    episode_reward = distance
+        # Track if this was better than previous
+        improved = distance > self.best_distance
 
-    # Track if this was better than previous
-    improved = distance > best_distance
+        # Update best distance
+        if improved:
+            self.best_distance = distance
+            print(f"🎉 New best distance: {self.best_distance}!")
 
-    # Update best distance
-    if improved:
-        best_distance = distance
-        print(f"🎉 New best distance: {best_distance}!")
+        self.total_episodes += 1
 
-    total_episodes += 1
+        print(f"📊 Episode {self.total_episodes} complete: Distance = {distance}, Best = {self.best_distance}")
 
-    print(f"📊 Episode {total_episodes} complete: Distance = {distance}, Best = {best_distance}")
+        # Update UI metrics
+        window.updateRLMetrics(self.total_episodes, self.episode_reward, self.best_distance)
 
-    # Update UI metrics
-    window.updateRLMetrics(total_episodes, episode_reward, best_distance)
+        # Mutation strategy: if doing poorly, mutate more aggressively
+        if distance < self.best_distance * 0.5:  # Less than 50% of best
+            print("🎲 Poor performance - large mutation")
+            self.network.mutate(mutation_rate=0.3, mutation_scale=1.0)
+        elif improved:
+            print("✨ Improved - small mutation")
+            self.network.mutate(mutation_rate=0.05, mutation_scale=0.2)
+        else:
+            print("🔄 Normal mutation")
+            self.network.mutate(mutation_rate=0.15, mutation_scale=0.5)
 
-    # Mutation strategy: if doing poorly, mutate more aggressively
-    if distance < best_distance * 0.5:  # Less than 50% of best
-        print("🎲 Poor performance - large mutation")
-        mario_agent.network.mutate(mutation_rate=0.3, mutation_scale=1.0)
-    elif improved:
-        print("✨ Improved - small mutation")
-        mario_agent.network.mutate(mutation_rate=0.05, mutation_scale=0.2)
-    else:
-        print("🔄 Normal mutation")
-        mario_agent.network.mutate(mutation_rate=0.15, mutation_scale=0.5)
+        # Wait for game to restart naturally, then continue
+        def restart_episode():
+            if self.is_training:
+                self.start_new_episode()
 
-    # Wait for game to restart naturally, then continue
-    from js import setTimeout
-    from pyodide.ffi import create_proxy
-
-    def restart_episode():
-        if is_training:
-            start_new_episode()
-
-    proxy = create_proxy(restart_episode)
-    setTimeout(proxy, 3000)  # Wait 3 seconds for death animation
+        proxy = create_proxy(restart_episode)
+        setTimeout(proxy, 3000)  # Wait 3 seconds for death animation
 
 
-def start_new_episode():
-    """Start a new training episode - just reset stats, game continues."""
-    global episode_reward
+    def start_new_episode(self):
+        """Start a new training episode - just reset stats, game continues."""
+        print(f"🔄 Starting new episode {self.total_episodes + 1}")
 
-    print(f"🔄 Starting new episode {total_episodes + 1}")
+        # Calculate timeout based on episode number
+        # Start at 20 seconds (1200 frames), increase by 10 seconds per episode
+        # Cap at 200 seconds (12000 frames)
+        base_timeout = 1200  # 20 seconds
+        timeout_increase = 600  # 10 seconds per episode
+        max_timeout = 12000  # 200 seconds
 
-    # Calculate timeout based on episode number
-    # Start at 20 seconds (1200 frames), increase by 10 seconds per episode
-    # Cap at 200 seconds (12000 frames)
-    base_timeout = 1200  # 20 seconds
-    timeout_increase = 600  # 10 seconds per episode
-    max_timeout = 12000  # 200 seconds
+        new_timeout = min(base_timeout + (self.total_episodes * timeout_increase), max_timeout)
+        self.max_frames = new_timeout
 
-    new_timeout = min(base_timeout + (total_episodes * timeout_increase), max_timeout)
-    mario_agent.max_frames = new_timeout
+        timeout_seconds = new_timeout / 60
+        print(f"⏱️ Episode timeout set to {timeout_seconds:.1f} seconds ({new_timeout} frames)")
 
-    timeout_seconds = new_timeout / 60
-    print(f"⏱️ Episode timeout set to {timeout_seconds:.1f} seconds ({new_timeout} frames)")
+        # Just reset agent stats - don't touch emulator
+        # The game will naturally respawn Mario or restart level
+        self.reset()
+        self.episode_reward = 0
 
-    # Just reset agent stats - don't touch emulator
-    # The game will naturally respawn Player or restart level
-    mario_agent.reset()
-    episode_reward = 0
-
-    # Continue training loop
-    if is_training:
-        training_loop()
+        # Continue training loop
+        if self.is_training:
+            self.training_loop()
 
 
-def start_training():
-    """Start AI training - Player plays automatically."""
-    global is_training
+    def start_training(self):
+        """Start AI training - Mario plays automatically."""
+        print("🚀 Starting AI training...")
 
-    print("🚀 Starting AI training...")
+        emulator = window.nesEmulator
+        if not emulator:
+            print("❌ Emulator not found")
+            return
 
-    emulator = window.nesEmulator
-    if not emulator:
-        print("❌ Emulator not found")
-        return
+        # Disable keyboard (AI takes over)
+        emulator.disableKeyboard()
 
-    # Disable keyboard (AI takes over)
-    emulator.disableKeyboard()
+        # Start emulator if not running
+        if not emulator.isRunning():
+            print("▶️ Starting emulator for AI")
+            emulator.start()
+        else:
+            print("✅ Emulator already running")
 
-    # Start emulator if not running
-    if not emulator.isRunning():
-        print("▶️ Starting emulator for AI")
-        emulator.start()
-    else:
-        print("✅ Emulator already running")
+        # Reset agent stats
+        self.reset()
 
-    # Reset agent stats
-    mario_agent.reset()
+        # Start training loop
+        self.is_training = True
+        self.training_loop()
 
-    # Start training loop
-    is_training = True
-    training_loop()
+        # Update UI
+        window.updateRLStatus('training', 'AI is playing Mario! Watch and learn...')
 
-    # Update UI
-    window.updateRLStatus('training', 'AI is playing Player! Watch and learn...')
+        print("✅ AI training started")
 
-    print("✅ AI training started")
+    def stop_training(self):
+        """Stop AI training."""
+        print("⏹️ Stopping AI training...")
+        self.is_training = False
 
+        # Stop emulator
+        emulator = window.nesEmulator
+        if emulator:
+            emulator.stop()
 
-def stop_training():
-    """Stop AI training."""
-    global is_training
+        window.updateRLStatus('ready', 'AI training stopped. Ready for next action.')
+        print("✅ AI training stopped")
 
-    print("⏹️ Stopping AI training...")
-    is_training = False
+    def pause_training(self):
+        """Pause/resume AI training."""
+        if self.is_training:
+            print("⏸️ Pausing AI training...")
+            self.is_training = False
+            window.updateRLStatus('paused', 'AI training paused')
+        else:
+            print("▶️ Resuming AI training...")
+            self.is_training = True
+            self.training_loop()
+            window.updateRLStatus('training', 'AI training resumed')
 
-    # Stop emulator
-    emulator = window.nesEmulator
-    if emulator:
-        emulator.stop()
+    def reset_training(self):
+        """Reset AI and game."""
+        print("🔄 Resetting AI training...")
 
-    window.updateRLStatus('ready', 'AI training stopped. Ready for next action.')
-    print("✅ AI training stopped")
+        self.is_training = False
+        self.reset()
+        self.randomize_weights()
 
+        # Reset training stats
+        self.total_episodes = 0
+        self.best_distance = 0
+        self.episode_reward = 0
 
-def pause_training():
-    """Pause/resume AI training."""
-    global is_training
+        emulator = window.nesEmulator
+        if emulator:
+            emulator.stop()
+            emulator.reset()
 
-    if is_training:
-        print("⏸️ Pausing AI training...")
-        is_training = False
-        window.updateRLStatus('paused', 'AI training paused')
-    else:
-        print("▶️ Resuming AI training...")
-        is_training = True
-        training_loop()
-        window.updateRLStatus('training', 'AI training resumed')
-
-
-def reset_training():
-    """Reset AI and game."""
-    print("🔄 Resetting AI training...")
-
-    global is_training
-    is_training = False
-
-    mario_agent.reset()
-    mario_agent.randomize_weights()
-
-    emulator = window.nesEmulator
-    if emulator:
-        emulator.stop()
-        emulator.reset()
-
-    window.updateRLStatus('ready', 'AI reset. Click "Start Training" to begin.')
-    print("✅ AI reset complete")
+        window.updateRLStatus('ready', 'AI reset. Click "Start Training" to begin.')
+        print("✅ AI reset complete")
 
 
-# Expose functions to JavaScript
-window.startRLTraining = start_training
-window.pauseRLTraining = pause_training
-window.resetRLTraining = reset_training
-window.stopRLTraining = stop_training
+# Create global instance
+print("🐍 Initializing Mario Agent...")
+_mario_agent = MarioAgent()
+print("✅ Mario Agent ready")
 
-print("✅ Player Agent functions exposed to window")
+# Signal ready via PyScriptManager with exported functions
+# Module name must match the filename (player_agent) for script ID matching
+manager = PyScriptManager("player_agent")
+manager.signal_ready(extra_exports={
+    'startRLTraining': _mario_agent.start_training,
+    'pauseRLTraining': _mario_agent.pause_training,
+    'resetRLTraining': _mario_agent.reset_training,
+    'stopRLTraining': _mario_agent.stop_training
+})
+
+print("✅ Mario Agent functions exposed and signaled to JavaScript")
