@@ -179,7 +179,7 @@ with Diagram("Data Pipeline", show=False):
 	 */
 	async _initializePyScript() {
 		this.pyScriptRunner = RunPython();
-		const pyScriptUrl = getLink('python/diagram_creator.py');
+		const pyScriptUrl = getLink('python/diagrams/diagram_creator.py');
 		this.pyScriptRunner.runScript(pyScriptUrl, 'diagram-creator-script', false);
 
 		// Wait for Python to be ready

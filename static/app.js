@@ -16,6 +16,7 @@ export default class App {
     this.titleBar = null;
     this.closeBtn = null;
     this.clearBtn = null;
+    this.copyBtn = null;
     this.openBtn = null;
 
     this.isDragging = false;
@@ -36,6 +37,7 @@ export default class App {
     this.dragEnd = this.dragEnd.bind(this);
     this.handleCloseClick = this.handleCloseClick.bind(this);
     this.handleClearClick = this.handleClearClick.bind(this);
+    this.handleCopyClick = this.handleCopyClick.bind(this);
     this.handleOpenClick = this.handleOpenClick.bind(this);
   }
 
@@ -117,10 +119,11 @@ export default class App {
     this.consoleDialog = this.document.getElementById('console');
     this.titleBar = this.document.querySelector('.console-title-bar');
     this.closeBtn = this.document.querySelector('.console-close');
-    this.clearBtn = this.document.querySelector('.console-clear');
+    this.clearBtn = this.document.getElementById('console-clear-btn');
+    this.copyBtn = this.document.getElementById('console-copy-btn');
     this.openBtn = this.document.getElementById('open-console-btn');
 
-    if (!this.consoleDialog || !this.titleBar || !this.closeBtn || !this.clearBtn || !this.openBtn) {
+    if (!this.consoleDialog || !this.titleBar || !this.closeBtn || !this.clearBtn || !this.copyBtn || !this.openBtn) {
       return;
     }
 
@@ -129,6 +132,7 @@ export default class App {
     this.document.addEventListener('mouseup', this.dragEnd);
     this.closeBtn.addEventListener('click', this.handleCloseClick);
     this.clearBtn.addEventListener('click', this.handleClearClick);
+    this.copyBtn.addEventListener('click', this.handleCopyClick);
     this.openBtn.addEventListener('click', this.handleOpenClick);
 
     this.consoleInitialized = true;
@@ -206,6 +210,64 @@ export default class App {
     if (consoleOut && pyScript) {
       consoleOut.innerHTML = '';
       consoleOut.appendChild(pyScript);
+    }
+  }
+
+  /**
+   * Copies the console content to clipboard when the copy button is clicked.
+   * @returns {void}
+   */
+  handleCopyClick() {
+    const terminal = this.document.querySelector('#console-content py-terminal');
+
+    if (!terminal) {
+      console.warn('Terminal not found');
+      return;
+    }
+
+    // Try to get terminal buffer content
+    let text = '';
+
+    // Method 1: Try xterm.js buffer API
+    if (terminal._terminal && terminal._terminal.buffer) {
+      const buffer = terminal._terminal.buffer.active;
+      const lines = [];
+
+      for (let i = 0; i < buffer.length; i++) {
+        const line = buffer.getLine(i);
+        if (line) {
+          lines.push(line.translateToString(true));
+        }
+      }
+
+      text = lines.join('\n');
+    }
+
+    // Method 2: Fallback to visible text content
+    if (!text) {
+      const xtermScreen = terminal.querySelector('.xterm-screen');
+      if (xtermScreen) {
+        text = xtermScreen.textContent || '';
+      }
+    }
+
+    // Copy to clipboard
+    if (text) {
+      navigator.clipboard.writeText(text).then(() => {
+        // Show feedback
+        if (this.copyBtn) {
+          const originalText = this.copyBtn.innerHTML;
+          this.copyBtn.innerHTML = '✓ Copied!';
+          setTimeout(() => {
+            this.copyBtn.innerHTML = originalText;
+          }, 2000);
+        }
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+      });
+    } else {
+      console.warn('No content to copy');
     }
   }
 

@@ -114,7 +114,7 @@ export class DiagramGalleryController {
 		return new Promise((resolve) => {
 			this.pyScriptRunner = RunPython();
 			this.pyScriptRunner.runScript(
-				getLink('python/diagram_manager.py'),
+				getLink('python/diagrams/diagram_manager.py'),
 				'script_gutter',
 				false
 			);

@@ -16,7 +16,7 @@
     packages = ["bokeh", "pandas", "numpy", "networkx", "diagrams", "scikit-learn", "pillow", "matplotlib", "plotly"]
     [[fetch]]
     files = ["diagrams_base.py"]
-    from = "http://localhost:5173/python/"
+    from = "http://localhost:5173/python/diagrams/"
   </py-config>
   <!-- Bokeh JS -->
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.2.min.js"></script>
@@ -108,7 +108,7 @@
       align-items: center;
     }
 
-    .console-clear {
+    .console-btn {
       background: #666;
       color: #fff;
       border: none;
@@ -120,8 +120,14 @@
       transition: background 0.2s;
     }
 
-    .console-clear:hover {
+    .console-btn:hover {
       background: #888;
+    }
+
+    .console-btn:disabled {
+      background: #444;
+      cursor: not-allowed;
+      opacity: 0.5;
     }
 
     .console-close {
@@ -181,6 +187,21 @@
 
     #console-content py-terminal .xterm-rows {
       width: 100% !important;
+    }
+
+    /* Enable text selection in terminal */
+    #console-content py-terminal .xterm,
+    #console-content py-terminal .xterm-screen,
+    #console-content py-terminal .xterm-rows {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      cursor: text;
+    }
+
+    /* Selection styles */
+    #console-content py-terminal .xterm-selection div {
+      background: rgba(255, 255, 255, 0.3) !important;
     }
 
     .open-console-btn {
@@ -252,7 +273,8 @@
     <div class="console-title-bar">
       <h3 class="console-title">🐍 Python Console</h3>
       <div class="console-buttons">
-        <button class="console-clear">Clear</button>
+        <button id="console-copy-btn" class="console-btn" title="Copy console output">📋 Copy</button>
+        <button id="console-clear-btn" class="console-btn" title="Clear console">🗑️ Clear</button>
         <button class="console-close"></button>
       </div>
     </div>
