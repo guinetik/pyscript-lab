@@ -17,6 +17,16 @@
     [[fetch]]
     files = ["diagrams_base.py"]
     from = "%sveltekit.assets%/python/diagrams/"
+    [[fetch]]
+    files = ["pyscript_manager.py", "data.py"]
+    to_folder = "lib"
+    from = "%sveltekit.assets%/python/lib/"
+    [[fetch]]
+    files = ["bokeh_utils.py"]
+    from = "%sveltekit.assets%/python/bokeh/"
+    [[fetch]]
+    files = ["matplotlib_utils.py", "plotly_utils.py"]
+    from = "%sveltekit.assets%/python/matplotlib/"
   </py-config>
   <!-- Bokeh JS -->
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.2.min.js"></script>

@@ -22,18 +22,23 @@ const pages = [
     new Page("interop", "Interoperability", getLink("/examples/basics/interop"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/basics/repl")),
+      new PageProp("next_page", getLink("/examples/basics/encoder")),
+    ]),
+    new Page("encoder", "Advanced Interop", getLink("/examples/basics/encoder"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/basics/interop")),
       new PageProp("next_page", getLink("/examples/matplotlib/intro")),
     ]),
   ]),
   new Page("matplotlib", "Matplotlib", getLink("/examples/matplotlib/intro"), [
     new PageProp("show", "all"),
-    new PageProp("prev_page", getLink("/examples/basics/interop")),
+    new PageProp("prev_page", getLink("/examples/basics/encoder")),
     new PageProp("next_page", getLink("/examples/matplotlib/charts")),
   ], [
     // Matplotlib sub-pages
     new Page("matplotlib_intro", "Introduction", getLink("/examples/matplotlib/intro"), [
       new PageProp("show", "none"),
-      new PageProp("prev_page", getLink("/examples/basics/interop")),
+      new PageProp("prev_page", getLink("/examples/basics/encoder")),
       new PageProp("next_page", getLink("/examples/matplotlib/charts")),
     ]),
     new Page("matplotlib_charts", "COVID-19 Charts", getLink("/examples/matplotlib/charts"), [
@@ -53,6 +58,11 @@ const pages = [
     new PageProp("next_page", getLink("/examples/bokeh/pandas")),
   ], [
     // Bokeh sub-pages
+    new Page("bokeh_0", "Introduction", getLink("/examples/bokeh"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/matplotlib/maps")),
+      new PageProp("next_page", getLink("/examples/bokeh/pandas")),
+    ]),
     new Page("bokeh_1", "Bokeh + Pandas", getLink("/examples/bokeh/pandas"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/bokeh")),

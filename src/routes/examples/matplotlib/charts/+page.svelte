@@ -1,152 +1,137 @@
 <script>
-	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
-	import { createLogger } from '@guinetik/logger';
-	
-	let loading = $state(true);
-	const name = 'COVID-19 Data Charts';
-
-	const logger = createLogger({
-		prefix: 'CovidChartsPage',
-		level: 'debug'
-	});
-
-	onMount(() => {
-		// Wait for Python module to load, then generate charts individually
-		const checkAndGenerate = setInterval(() => {
-			if (typeof window !== 'undefined' && 
-			    window.generateTopDeathsChart && 
-			    window.generateRegionalDeathsPie &&
-			    window.generateCasesVsDeathsScatter &&
-			    window.generateCaseFatalityRateChart) {
-				
-				clearInterval(checkAndGenerate);
-				
-				// Call each chart generation function individually in Promise.all
-				Promise.all([
-					window.generateTopDeathsChart(),
-					window.generateRegionalDeathsPie(),
-					window.generateCasesVsDeathsScatter(),
-					window.generateCaseFatalityRateChart()
-				]).then(() => {
-					loading = false;
-					logger.log('✅ All COVID charts loaded');
-				}).catch((error) => {
-					console.error('❌ Error generating charts:', error);
-					loading = false;
-				});
-			}
-		}, 100);
-
-		// Cleanup
-		return () => clearInterval(checkAndGenerate);
-	});
+	export let name = 'COVID-19 Data Charts';
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/matplotlib/intro', nextPage: '/examples/matplotlib/maps' }}>
 	<div slot="py_slot">
-		<section class="pyscript p-5">
-			<h1>COVID-19 Global Data Analysis</h1>
-			<p class="mb-4 text-gray-600">Visualizing pandemic data from 187 countries/regions</p>
+		<section class="pyscript p-5 space-y-6">
+			<div class="mb-4 rounded-lg bg-slate-50 p-4">
+				<h1 class="text-2xl font-bold mb-2">COVID-19 Global Data Analysis</h1>
+				<p class="text-gray-600">Visualizing pandemic data from 187 countries/regions using Matplotlib and Pandas</p>
+			</div>
 
-			<PyExample title="Loading and analyzing COVID-19 data:" src="{base}/python/matplotlib/covid_charts.py">
-				<script type="py" src="{base}/python/matplotlib/covid_charts.py" id="covid-data"></script>
-			</PyExample>
-
-			{#if loading}
-				<div class="mt-6 flex items-center justify-center gap-3 rounded-lg border-2 border-blue-200 bg-blue-50 p-8">
-					<div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-					<p class="text-lg font-semibold text-blue-900">Generating charts...</p>
-				</div>
-			{/if}
-
-			<div class="space-y-8 mt-6" class:opacity-0={loading} class:opacity-100={!loading} style="transition: opacity 0.3s ease-in-out;">
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">📊 Chart 1: Top 20 Countries by Deaths</h3>
-					<div id="covid-chart1" class="flex justify-center"></div>
+			<div class="space-y-6">
+				<div class="rounded-lg border-2 border-blue-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-blue-900">📊 Chart 1: Top 20 Countries by Deaths</h3>
+					<p class="text-sm text-blue-800 mb-3">
+						A "heatmap-style" horizontal bar chart showing countries with the highest death tolls.
+						The color intensity increases with death count.
+					</p>
+					<PyExample title="Top 20 deaths with heatmap coloring:">
+						<script type="py" src="{base}/python/matplotlib/covid_chart_deaths.py" id="covid-deaths"></script>
+					</PyExample>
+					<div id="covid-chart1" class="flex justify-center mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">🌍 Chart 2: Deaths by WHO Region</h3>
-					<div id="covid-chart2" class="flex justify-center"></div>
+				<div class="rounded-lg border-2 border-green-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-green-900">🌍 Chart 2: Deaths by WHO Region</h3>
+					<p class="text-sm text-green-800 mb-3">
+						Pie chart showing how deaths are distributed across WHO regions (Americas, Europe,
+						Africa, etc.)
+					</p>
+					<PyExample title="Regional distribution using the SAME cached data:">
+						<script type="py" src="{base}/python/matplotlib/covid_chart_regions.py" id="covid-regions"></script>
+					</PyExample>
+					<div id="covid-chart2" class="flex justify-center mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">🔍 Chart 3: Confirmed Cases vs Deaths (Log Scale)</h3>
-					<div id="covid-chart3" class="flex justify-center"></div>
+				<div class="rounded-lg border-2 border-purple-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-purple-900">🔍 Chart 3: Confirmed Cases vs Deaths (Log Scale)</h3>
+					<p class="text-sm text-purple-800 mb-3">
+						Scatter plot revealing the relationship between confirmed cases and deaths.
+						Log scale makes patterns visible across countries of vastly different sizes.
+					</p>
+					<PyExample title="Scatter plot with log scale:">
+						<script type="py" src="{base}/python/matplotlib/covid_chart_scatter.py" id="covid-scatter"></script>
+					</PyExample>
+					<div id="covid-chart3" class="flex justify-center mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">⚠️ Chart 4: Case Fatality Rate Analysis</h3>
-					<div id="covid-chart4" class="flex justify-center"></div>
+				<div class="rounded-lg border-2 border-orange-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-orange-900">⚠️ Chart 4: Case Fatality Rate Analysis</h3>
+					<p class="text-sm text-orange-800 mb-3">
+						Case Fatality Rate analysis showing which countries had the highest death-to-case ratios
+						(filtered to countries with 1000+ cases for statistical significance)
+					</p>
+					<PyExample title="CFR analysis with filtering:">
+						<script type="py" src="{base}/python/matplotlib/covid_chart_cfr.py" id="covid-cfr"></script>
+					</PyExample>
+					<div id="covid-chart4" class="flex justify-center mt-3"></div>
 				</div>
 			</div>
 		</section>
 	</div>
+
 	<article slot="content_slot">
 		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
 
-		<div class="prose max-w-none">
-			<p class="mb-4">
-				This page demonstrates data visualization using real COVID-19 data from 187 countries.
-				Using pandas for data manipulation and matplotlib for visualization, we create multiple
-				perspectives on the global pandemic impact.
-			</p>
-
-			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-blue-900">📈 What You're Seeing:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-blue-800">
-					<li><strong>Chart 1:</strong> A "heatmap-style" horizontal bar chart showing countries with the highest death tolls. The color intensity increases with death count.</li>
-					<li><strong>Chart 2:</strong> Pie chart showing how deaths are distributed across WHO regions (Americas, Europe, Africa, etc.)</li>
-					<li><strong>Chart 3:</strong> Scatter plot revealing the relationship between confirmed cases and deaths. Log scale makes patterns visible across countries of vastly different sizes.</li>
-					<li><strong>Chart 4:</strong> Case Fatality Rate analysis showing which countries had the highest death-to-case ratios (filtered to countries with 1000+ cases for statistical significance)</li>
-				</ul>
-			</div>
-
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">🔬 Technical Implementation:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm">
-					<li><strong>Pandas:</strong> CSV loading, data filtering, grouping, and aggregation</li>
-					<li><strong>Matplotlib:</strong> Multiple chart types (horizontal bars, pie, scatter)</li>
-					<li><strong>Color Mapping:</strong> Using colormaps (Reds, Set3, tab10, YlOrRd) to enhance visual communication</li>
-					<li><strong>Log Scales:</strong> Handling data that spans multiple orders of magnitude</li>
-					<li><strong>Client-Side Processing:</strong> All data analysis happens in your browser!</li>
-				</ul>
-			</div>
-
-			<div class="mb-6 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-green-900">💡 Data Insights:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-green-800">
-					<li>The data includes confirmed cases, deaths, recoveries, and weekly changes</li>
-					<li>Countries are categorized by WHO regions for regional analysis</li>
-					<li>Case Fatality Rate (CFR) varies significantly based on healthcare capacity, testing rates, and population demographics</li>
-					<li>The scatter plot reveals that larger outbreaks don't always correlate linearly with deaths (different healthcare responses)</li>
-				</ul>
-			</div>
-
-			<div class="mb-4 rounded-lg bg-yellow-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-yellow-900">📊 Dataset Details:</h3>
-				<p class="text-sm text-yellow-800 mb-2">
-					<strong>Source:</strong> The covid_country.csv dataset contains:
+		<div class="space-y-4">
+			<div class="rounded-lg bg-blue-50 p-4">
+				<h3 class="mb-2 font-bold text-blue-900">📊 The Dataset</h3>
+				<p class="text-sm text-blue-800 mb-2">
+					The <strong>covid_country.csv</strong> dataset contains:
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-yellow-800">
-					<li>187 countries/regions</li>
-					<li>Columns: Confirmed, Deaths, Recovered, Active, New cases, Death rate, WHO Region</li>
-					<li>Snapshot data showing cumulative statistics and weekly trends</li>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-blue-800">
+					<li>187 countries/regions with cumulative statistics</li>
+					<li>Confirmed cases, deaths, recoveries, and active cases</li>
+					<li>Weekly new cases and changes</li>
+					<li>Case fatality rates (death rate)</li>
+					<li>WHO regional categorization (Americas, Europe, Africa, etc.)</li>
 				</ul>
 			</div>
 
-			<div class="mb-4 rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-purple-900">🎯 Key Takeaways:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-purple-800">
-					<li>Pandas and matplotlib work seamlessly in PyScript for data analysis</li>
-					<li>Complex visualizations can be generated entirely client-side</li>
-					<li>Multiple chart types can reveal different aspects of the same dataset</li>
-					<li>Real-world data often requires filtering and transformation before visualization</li>
+			<div class="rounded-lg bg-green-50 p-4">
+				<h3 class="mb-2 font-bold text-green-900">📈 What is Matplotlib?</h3>
+				<p class="text-sm text-green-800">
+					Matplotlib is Python's foundational plotting library. It provides complete control over
+					every aspect of your charts - from basic line plots to complex multi-panel visualizations.
+					Unlike Bokeh (which focuses on interactivity), Matplotlib excels at creating
+					publication-quality static figures with precise customization.
+				</p>
+			</div>
+
+			<div class="rounded-lg bg-purple-50 p-4">
+				<h3 class="mb-2 font-bold text-purple-900">🔬 Chart Types Used</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
+					<li><strong>Horizontal Bar Charts:</strong> Great for comparing categories when labels are long</li>
+					<li><strong>Pie Charts:</strong> Show proportions of a whole (regional distribution)</li>
+					<li><strong>Scatter Plots:</strong> Reveal correlations between two variables</li>
+					<li><strong>Log Scales:</strong> Handle data spanning multiple orders of magnitude</li>
+					<li><strong>Color Maps:</strong> Use color intensity to represent data values (heatmap effect)</li>
+				</ul>
+			</div>
+
+			<div class="rounded-lg bg-orange-50 p-4">
+				<h3 class="mb-2 font-bold text-orange-900">💡 Data Insights</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
+					<li>The Americas and Europe regions had the highest death tolls</li>
+					<li>Larger outbreaks don't always correlate linearly with deaths (different healthcare responses)</li>
+					<li>Case Fatality Rate varies significantly based on healthcare capacity, testing rates, and demographics</li>
+					<li>Countries with robust testing may show lower CFR due to detecting more mild cases</li>
+				</ul>
+			</div>
+
+			<div class="rounded-lg bg-amber-50 p-4">
+				<h3 class="mb-2 font-bold text-amber-900">🎯 Technical Techniques</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-amber-800">
+					<li><strong>Pandas Operations:</strong> nlargest(), groupby(), filtering with boolean indexing</li>
+					<li><strong>Color Mapping:</strong> plt.cm.Reds, plt.cm.Set3, plt.cm.YlOrRd for visual hierarchy</li>
+					<li><strong>Log Scales:</strong> set_xscale('log') for handling wide value ranges</li>
+					<li><strong>Data Caching:</strong> All 4 charts share the same loaded CSV (efficient!)</li>
+					<li><strong>Client-Side Processing:</strong> All analysis happens in your browser via WebAssembly</li>
 				</ul>
 			</div>
 		</div>
+
+		<p class="mt-6">
+			<a
+				class="text-sky-500"
+				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/matplotlib"
+				target="_blank">View source files</a
+			>
+		</p>
 	</article>
 </ExperimentCard>

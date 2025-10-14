@@ -1,106 +1,72 @@
 <script>
-	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
-	import { createLogger } from '@guinetik/logger';
-	
-	let loading = $state(true);
-	const name = 'COVID-19 World Map';
-
-	const logger = createLogger({
-		prefix: 'CovidMapsPage',
-		level: 'debug'
-	});
-
-	onMount(() => {
-		// Wait for Python module to load, then generate maps individually
-		const checkAndGenerate = setInterval(() => {
-			if (typeof window !== 'undefined' && 
-			    window.generateDeathsMap && 
-			    window.generateConfirmedCasesMap &&
-			    window.generateCaseFatalityRateMap &&
-			    window.generateNewCasesMap) {
-				
-				clearInterval(checkAndGenerate);
-				
-				// Call each map generation function individually in Promise.all
-				Promise.all([
-					window.generateDeathsMap(),
-					window.generateConfirmedCasesMap(),
-					window.generateCaseFatalityRateMap(),
-					window.generateNewCasesMap()
-				]).then(() => {
-					loading = false;
-					logger.log('✅ All COVID maps loaded');
-				}).catch((error) => {
-					console.error('❌ Error generating maps:', error);
-					loading = false;
-				});
-			}
-		}, 100);
-
-		// Cleanup
-		return () => clearInterval(checkAndGenerate);
-	});
+	export let name = 'COVID-19 World Map';
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/matplotlib/charts', nextPage: '/examples/bokeh' }}>
 	<div slot="py_slot">
-		<section class="pyscript p-5">
-			<h1>COVID-19 Interactive World Map</h1>
-			<p class="mb-4 text-gray-600">Geographic visualization of pandemic data using Plotly</p>
+		<section class="pyscript p-5 space-y-6">
+			<div class="mb-4 rounded-lg bg-slate-50 p-4">
+				<h1 class="text-2xl font-bold mb-2">COVID-19 Interactive World Map</h1>
+				<p class="text-gray-600">Geographic visualization of pandemic data using Plotly choropleth maps</p>
+			</div>
 
-			<PyExample title="Creating an interactive choropleth world map:" src="{base}/python/matplotlib/covid_world_maps.py">
-				<script type="py" src="{base}/python/matplotlib/covid_world_maps.py" id="covid-world-map"></script>
-			</PyExample>
-
-			{#if loading}
-				<div class="mt-6 flex items-center justify-center gap-3 rounded-lg border-2 border-blue-200 bg-blue-50 p-8">
-					<div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-					<p class="text-lg font-semibold text-blue-900">Generating world maps...</p>
-				</div>
-			{/if}
-
-			<div class="space-y-8 mt-6" class:opacity-0={loading} class:opacity-100={!loading} style="transition: opacity 0.3s ease-in-out;">
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">🗺️ Map 1: Total Deaths</h3>
-					<p class="text-sm text-gray-600 mb-3">Darker red indicates higher death toll. Hover over countries for details.</p>
-					<div id="map1" class="w-full"></div>
+			<div class="space-y-6">
+				<div class="rounded-lg border-2 border-red-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-red-900">🗺️ Map 1: Total Deaths</h3>
+					<p class="text-sm text-red-800 mb-3">
+						Darker red indicates higher death toll. Hover over countries for details.
+					</p>
+					<PyExample title="Deaths choropleth with red color scale:">
+						<script type="py" src="{base}/python/matplotlib/covid_map_deaths.py" id="covid-map-deaths"></script>
+					</PyExample>
+					<div id="map1" class="w-full mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">🌐 Map 2: Confirmed Cases</h3>
-					<p class="text-sm text-gray-600 mb-3">Darker blue indicates more confirmed cases. Shows total outbreak size.</p>
-					<div id="map2" class="w-full"></div>
+				<div class="rounded-lg border-2 border-blue-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-blue-900">🌐 Map 2: Confirmed Cases</h3>
+					<p class="text-sm text-blue-800 mb-3">
+						Darker blue indicates more confirmed cases. Shows total outbreak size using the SAME cached data.
+					</p>
+					<PyExample title="Confirmed cases choropleth with blue color scale:">
+						<script type="py" src="{base}/python/matplotlib/covid_map_cases.py" id="covid-map-cases"></script>
+					</PyExample>
+					<div id="map2" class="w-full mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">⚠️ Map 3: Case Fatality Rate</h3>
-					<p class="text-sm text-gray-600 mb-3">Shows death rate as percentage of confirmed cases (countries with 1000+ cases).</p>
-					<div id="map3" class="w-full"></div>
+				<div class="rounded-lg border-2 border-orange-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-orange-900">⚠️ Map 3: Case Fatality Rate</h3>
+					<p class="text-sm text-orange-800 mb-3">
+						Shows death rate as percentage of confirmed cases (countries with 1000+ cases for statistical significance).
+					</p>
+					<PyExample title="CFR choropleth with filtering and calculation:">
+						<script type="py" src="{base}/python/matplotlib/covid_map_cfr.py" id="covid-map-cfr"></script>
+					</PyExample>
+					<div id="map3" class="w-full mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-3">📈 Map 4: New Cases Activity</h3>
-					<p class="text-sm text-gray-600 mb-3">Recent new cases, showing areas of active transmission.</p>
-					<div id="map4" class="w-full"></div>
+				<div class="rounded-lg border-2 border-yellow-200 bg-white p-4">
+					<h3 class="text-lg font-bold mb-2 text-yellow-900">📈 Map 4: New Cases Activity</h3>
+					<p class="text-sm text-yellow-800 mb-3">
+						Recent new cases, showing areas of active transmission.
+					</p>
+					<PyExample title="New cases choropleth with orange color scale:">
+						<script type="py" src="{base}/python/matplotlib/covid_map_new.py" id="covid-map-new"></script>
+					</PyExample>
+					<div id="map4" class="w-full mt-3"></div>
 				</div>
 			</div>
 		</section>
 	</div>
+
 	<article slot="content_slot">
 		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
 
-		<div class="prose max-w-none">
-			<p class="mb-4">
-				This page demonstrates geographic data visualization using Plotly's interactive choropleth maps.
-				These are real world maps where countries are colored based on COVID-19 data metrics, allowing
-				you to visually identify patterns and hotspots across the globe.
-			</p>
-
-			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-blue-900">🗺️ What is a Choropleth Map?</h3>
+		<div class="space-y-4">
+			<div class="rounded-lg bg-blue-50 p-4">
+				<h3 class="mb-2 font-bold text-blue-900">🗺️ What is a Choropleth Map?</h3>
 				<p class="text-sm text-blue-800 mb-2">
 					A choropleth map is a thematic map where areas are colored or shaded according to a statistical variable.
 					In our case, we're coloring countries based on COVID-19 metrics.
@@ -108,63 +74,71 @@
 				<ul class="list-disc space-y-1 pl-5 text-sm text-blue-800">
 					<li><strong>Geographic Representation:</strong> Each country is a polygon with accurate boundaries</li>
 					<li><strong>Color Encoding:</strong> The color intensity represents data magnitude</li>
-					<li><strong>Interactive:</strong> Hover to see exact values and additional data</li>
+					<li><strong>Interactive:</strong> Hover to see exact values and country names</li>
 					<li><strong>Zoom & Pan:</strong> Click and drag to explore different regions</li>
 				</ul>
 			</div>
 
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">🎨 The Four Maps Explained:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm">
-					<li><strong>Deaths Map (Red):</strong> Shows the human toll of the pandemic. Countries like USA, Brazil, and India appear darkest due to high absolute numbers.</li>
-					<li><strong>Confirmed Cases Map (Blue):</strong> Visualizes total outbreak size. Useful for understanding scale of infection spread.</li>
-					<li><strong>Case Fatality Rate Map (Yellow-Red):</strong> Reveals which countries had higher death rates relative to their cases. This can indicate healthcare capacity, testing rates, and population vulnerability.</li>
-					<li><strong>New Cases Map (Orange):</strong> Shows areas with active transmission, helping identify current hotspots rather than historical totals.</li>
+			<div class="rounded-lg bg-green-50 p-4">
+				<h3 class="mb-2 font-bold text-green-900">📊 What is Plotly?</h3>
+				<p class="text-sm text-green-800">
+					Plotly is an interactive graphing library for Python. Unlike Matplotlib (which creates static images),
+					Plotly generates interactive HTML visualizations that users can explore. It excels at geographic
+					visualizations with built-in support for choropleth maps, and handles country matching automatically
+					using ISO-3 codes.
+				</p>
+			</div>
+
+			<div class="rounded-lg bg-purple-50 p-4">
+				<h3 class="mb-2 font-bold text-purple-900">🔬 The Four Maps Explained</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
+					<li><strong>Deaths Map (Red):</strong> Shows the human toll. Absolute numbers highlight heavily populated countries.</li>
+					<li><strong>Confirmed Cases (Blue):</strong> Visualizes total outbreak size. Useful for understanding scale of spread.</li>
+					<li><strong>Case Fatality Rate (Yellow-Red):</strong> Death rate relative to cases. Indicates healthcare capacity and population vulnerability.</li>
+					<li><strong>New Cases (Orange):</strong> Shows active transmission areas, identifying current hotspots.</li>
 				</ul>
 			</div>
 
-			<div class="mb-6 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-green-900">🔬 Technical Implementation:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-green-800">
-					<li><strong>Plotly Express:</strong> High-level plotting library with built-in geographic support</li>
-					<li><strong>Country Matching:</strong> Uses country names to match data with built-in country geometries</li>
+			<div class="rounded-lg bg-orange-50 p-4">
+				<h3 class="mb-2 font-bold text-orange-900">🔍 Technical Implementation</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
+					<li><strong>ISO-3 Country Codes:</strong> Uses standardized codes (USA, GBR, FRA) for reliable country matching</li>
 					<li><strong>Natural Earth Projection:</strong> A visually pleasing pseudo-cylindrical map projection</li>
-					<li><strong>Custom Hover Data:</strong> Formatted tooltips showing multiple metrics with proper formatting</li>
-					<li><strong>Color Scales:</strong> Different color schemes for different metrics (Reds for deaths, Blues for cases, etc.)</li>
+					<li><strong>Plotly Choropleth:</strong> Built-in geographic support with country geometries</li>
+					<li><strong>Data Caching:</strong> All 4 maps share the same loaded CSV (efficient!)</li>
+					<li><strong>Async Display:</strong> 0.5s delay ensures Plotly library fully initializes</li>
 				</ul>
 			</div>
 
-			<div class="mb-6 rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-purple-900">💡 Data Insights from Maps:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-purple-800">
-					<li><strong>Geographic Patterns:</strong> The maps reveal regional clusters and patterns not visible in tables</li>
-					<li><strong>Absolute vs Relative:</strong> Total deaths map shows countries with large populations prominent, while CFR map normalizes by case count</li>
-					<li><strong>Temporal Dimension:</strong> The "New Cases" map captures the dynamic nature of the pandemic</li>
-					<li><strong>Missing Data:</strong> Gray/white countries indicate missing data or no mapping match</li>
+			<div class="rounded-lg bg-amber-50 p-4">
+				<h3 class="mb-2 font-bold text-amber-900">💡 Geographic Insights</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm text-amber-800">
+					<li><strong>Spatial Patterns:</strong> Maps reveal regional clusters not visible in tables</li>
+					<li><strong>Absolute vs Relative:</strong> Deaths map shows population, CFR normalizes by cases</li>
+					<li><strong>Temporal Dimension:</strong> New cases map captures the dynamic nature of the pandemic</li>
+					<li><strong>Missing Data:</strong> Gray/white countries indicate no data or no ISO-3 match</li>
 				</ul>
 			</div>
 
-			<div class="mb-4 rounded-lg bg-yellow-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-yellow-900">🌍 Why Geographic Visualization Matters:</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-yellow-800">
-					<li>Humans are naturally good at understanding spatial information</li>
-					<li>Maps reveal patterns that tables and bar charts can hide</li>
-					<li>Geographic context helps in understanding relationships between neighboring regions</li>
-					<li>Essential for public health, logistics, and policy decisions</li>
-				</ul>
-			</div>
-
-			<div class="mb-4 rounded-lg bg-red-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-red-900">🎯 Interactive Features:</h3>
+			<div class="rounded-lg bg-red-50 p-4">
+				<h3 class="mb-2 font-bold text-red-900">🎯 Interactive Features</h3>
 				<p class="text-sm text-red-800 mb-2">Try these interactions with the maps:</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-red-800">
 					<li>Hover over any country to see detailed statistics</li>
 					<li>Click and drag to pan the map</li>
 					<li>Use scroll wheel to zoom in/out</li>
 					<li>Double-click to reset view</li>
-					<li>Click the camera icon (top-right) to download a map as PNG</li>
+					<li>Click the camera icon (top-right) to download as PNG</li>
 				</ul>
 			</div>
 		</div>
+
+		<p class="mt-6">
+			<a
+				class="text-sky-500"
+				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/matplotlib"
+				target="_blank">View source files</a
+			>
+		</p>
 	</article>
 </ExperimentCard>

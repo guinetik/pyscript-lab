@@ -1,30 +1,39 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
-	import { getLink } from '$lib/utils.js';
-	import RunPython from '$lib/RunPython.js';
+	import { BokehController } from '$lib/controller/BokehController.js';
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 
 	// Page metadata
 	let name = 'Bokeh';
 
-	// Python runner instance
-	let pyScriptRunner;
-	let loading = $state(true);
+	// Controller instance
+	let controller = browser ? new BokehController() : null;
 
-	onMount(() => {
-		if (!pyScriptRunner) {
-			pyScriptRunner = RunPython();
-			pyScriptRunner.runScript(getLink('python/bokeh_index.py'), 'script_gutter', false);
-			setTimeout(() => {
-				loading = false;
-			}, 1000);
-		}
+	// UI state
+	let loading = $state(true);
+	let errorMessage = $state('');
+
+	onMount(async () => {
+		if (!browser || !controller) return;
+
+		// Setup callbacks
+		controller.onReady(() => {
+			loading = false;
+		});
+
+		controller.onError((error) => {
+			loading = false;
+			errorMessage = `Error: ${error}`;
+		});
+
+		// Initialize controller
+		await controller.initialize('bokeh_index');
 	});
 
 	onDestroy(() => {
-		if (pyScriptRunner) {
-			pyScriptRunner.destroy();
-		}
+		if (!browser || !controller) return;
+		controller.destroy();
 	});
 </script>
 
@@ -38,6 +47,13 @@
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">
 				<div class="rounded-lg bg-white p-4 shadow-lg">
 					<p class="text-lg">🐍 Loading Python chart...</p>
+				</div>
+			</div>
+		{/if}
+		{#if errorMessage}
+			<div class="absolute inset-0 z-10 flex items-center justify-center bg-red-50/90">
+				<div class="rounded-lg bg-white p-4 shadow-lg border-2 border-red-500">
+					<p class="text-lg text-red-700">{errorMessage}</p>
 				</div>
 			</div>
 		{/if}
