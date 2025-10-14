@@ -94,12 +94,16 @@ class SimpleNeuralController(NeuralController):
         NeuralNetwork = builtins.NeuralNetwork
         
         self.network = NeuralNetwork(
-            [input_size, hidden_size, output_size], 
+            [input_size, hidden_size, output_size],
             seed=seed
         )
 
         console.log(f"🧠 SimpleNeuralController initialized")
         console.log(f"   Architecture: {input_size} → {hidden_size} → {output_size}")
+
+        # Debug: Check actual network layer sizes
+        console.log(f"   Weight shapes: {[w.shape for w in self.network.weights]}")
+        console.log(f"   Bias shapes: {[b.shape for b in self.network.biases]}")
 
     def forward(self, state: np.ndarray) -> np.ndarray:
         """
@@ -109,9 +113,31 @@ class SimpleNeuralController(NeuralController):
             state: Input state vector
 
         Returns:
-            np.ndarray: Network output activations
+            np.ndarray: Network output activations (1D array)
         """
-        return self.network.forward(state)
+        # Debug network architecture (log once)
+        if not hasattr(self, '_logged_arch'):
+            console.log(f"🔍 Network layer shapes:")
+            for i, (w, b) in enumerate(zip(self.network.weights, self.network.biases)):
+                console.log(f"   Layer {i}: weights={w.shape}, biases={b.shape}")
+            self._logged_arch = True
+
+        output = self.network.forward(state)
+
+        # Debug raw output shape
+        if not hasattr(self, '_logged_output'):
+            console.log(f"🔍 Raw network output shape: {output.shape}, expected: ({self.output_size},)")
+            self._logged_output = True
+
+        # Ensure output is 1D with shape (output_size,)
+        flattened = output.flatten()
+
+        # If wrong size, slice to correct size
+        if len(flattened) != self.output_size:
+            console.error(f"⚠️ Output size mismatch! Got {len(flattened)}, expected {self.output_size}. Taking first {self.output_size} values.")
+            return flattened[:self.output_size]
+
+        return flattened
 
     def mutate(self, mutation_rate: float = 0.1, mutation_scale: float = 0.5):
         """
@@ -153,6 +179,52 @@ class SimpleNeuralController(NeuralController):
         for i in range(len(self.network.weights)):
             self.network.weights[i] = np.random.randn(*self.network.weights[i].shape) * 0.5
             self.network.biases[i] = np.random.randn(*self.network.biases[i].shape) * 0.5
+
+    def randomize_with_bias(self):
+        """
+        Randomize weights with behavioral priors for Mario.
+
+        Biases the output layer to encourage:
+        - RIGHT button (index 3) = move right (good!)
+        - A button (index 4) = jump (good!)
+        - Discourage LEFT button (index 2) = move left (bad!)
+
+        Output button order: [UP, DOWN, LEFT, RIGHT, A, B]
+        """
+        console.log("🎯 Initializing with behavioral priors (RIGHT + JUMP bias)")
+
+        # Randomize all layers normally first
+        for i in range(len(self.network.weights)):
+            self.network.weights[i] = np.random.randn(*self.network.weights[i].shape) * 0.5
+            self.network.biases[i] = np.random.randn(*self.network.biases[i].shape) * 0.5
+
+        # Bias the OUTPUT layer (last layer)
+        output_layer_idx = len(self.network.biases) - 1
+        output_size = self.network.biases[output_layer_idx].shape[0]
+
+        console.log(f"   Output layer size: {output_size}")
+
+        # Ensure we have 6 outputs
+        if output_size != 6:
+            console.error(f"❌ Expected 6 outputs, got {output_size}")
+            return
+
+        # Bias output neurons to prefer certain buttons
+        # Output order: [UP, DOWN, LEFT, RIGHT, A, B]
+        # Using VERY strong biases to override random input weights
+        button_biases = np.array([
+            -3.0,  # UP - strongly discourage
+            -3.0,  # DOWN - strongly discourage (crouching is rarely useful)
+            -5.0,  # LEFT - VERY strongly discourage (moving backward is bad)
+            5.0,   # RIGHT - VERY strongly encourage (this is the goal!)
+            2.5,   # A (jump) - strongly encourage (needed to clear obstacles)
+            1.5    # B (run) - encourage (running is good)
+        ], dtype=np.float32)
+
+        # Set the output layer biases
+        self.network.biases[output_layer_idx] = button_biases
+
+        console.log("✅ Behavioral priors applied: RIGHT=+5.0, A(jump)=+2.5, B(run)=+1.5, LEFT=-5.0")
 
 
 class ActionDecoder:

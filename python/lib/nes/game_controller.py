@@ -168,6 +168,13 @@ class GameController:
             return
 
         try:
+            # Ensure button_states is a 1D array with 6 elements
+            buttons = np.array(button_states).flatten()
+
+            if len(buttons) != 6:
+                console.error(f"❌ Invalid button array size: {len(buttons)}, expected 6")
+                return
+
             # Map button indices to NES controller buttons
             button_map = [
                 self.BUTTON_UP,
@@ -183,8 +190,8 @@ class GameController:
                 emulator.buttonUp(1, button)
 
             # Press buttons that are active
-            for i, pressed in enumerate(button_states):
-                if pressed:
+            for i in range(6):
+                if buttons[i]:
                     emulator.buttonDown(1, button_map[i])
         except Exception as e:
             console.error(f"❌ Error executing buttons: {e}")

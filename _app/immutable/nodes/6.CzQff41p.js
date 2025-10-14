@@ -1,4 +1,4 @@
-import"../chunks/Bzak7iHL.js";import"../chunks/CqKFi85b.js";import{f as l,t as m,a as s,w as y,c as r,r as i,n as h}from"../chunks/B8RS0Crq.js";import{s as g}from"../chunks/CphpoF_9.js";import{p as u}from"../chunks/MXuBbIRx.js";import{E as b}from"../chunks/vEeHyvgo.js";var v=y(l(`<section slot="py_slot" class="pyscript p-5"><h1>Example 1: Pyodide REPL</h1> <script type="py-editor" id="py-editor">
+import"../chunks/Bzak7iHL.js";import"../chunks/CqKFi85b.js";import{f as l,t as m,a as s,w as y,c as r,r as i,n as h}from"../chunks/B8RS0Crq.js";import{s as g}from"../chunks/CphpoF_9.js";import{p as u}from"../chunks/MXuBbIRx.js";import{E as b}from"../chunks/DMWYVqIf.js";var v=y(l(`<section slot="py_slot" class="pyscript p-5"><h1>Example 1: Pyodide REPL</h1> <script type="py-editor" id="py-editor">
 import sys
 print(sys.version)
 a = 42

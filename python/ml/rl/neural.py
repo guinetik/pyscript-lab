@@ -34,7 +34,8 @@ class NeuralNetwork:
         for i in range(len(layer_sizes) - 1):
             # Xavier initialization for better starting weights
             w = np.random.randn(layer_sizes[i+1], layer_sizes[i]) * np.sqrt(2.0 / layer_sizes[i])
-            b = np.zeros((layer_sizes[i+1], 1))
+            # Bias should be 1D array, not 2D column vector
+            b = np.zeros(layer_sizes[i+1])
 
             self.weights.append(w)
             self.biases.append(b)
@@ -55,11 +56,10 @@ class NeuralNetwork:
             x: Input array (flattened game state)
 
         Returns:
-            Output array (button probabilities)
+            Output array (button probabilities) - 1D array
         """
-        # Ensure input is column vector
-        if x.ndim == 1:
-            x = x.reshape(-1, 1)
+        # Ensure input is 1D
+        x = x.flatten()
 
         activation = x
 
@@ -72,7 +72,8 @@ class NeuralNetwork:
         z = np.dot(self.weights[-1], activation) + self.biases[-1]
         output = self.sigmoid(z)
 
-        return output
+        # Return 1D array
+        return output.flatten()
 
     def set_weights(self, weights: List[np.ndarray], biases: List[np.ndarray]):
         """

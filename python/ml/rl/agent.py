@@ -54,6 +54,9 @@ class PlayerAgent:
             seed=None  # Random initialization
         )
 
+        # Initialize with behavioral priors (RIGHT + JUMP bias)
+        self.neural.randomize_with_bias()
+
         # Action decoder - converts neural outputs to buttons
         self.decoder = ActionDecoder(use_variable_threshold=True)
 
@@ -76,6 +79,9 @@ class PlayerAgent:
 
         # Death tracking
         self.death_cause = None  # 'enemy', 'timeout', 'stuck'
+
+        # Local minima detection
+        self.episodes_at_same_distance = 0
 
         # Current neural network type
         self.network_type = 'simple-feedforward'
@@ -103,12 +109,38 @@ class PlayerAgent:
         Returns:
             np.ndarray: Button states [UP, DOWN, LEFT, RIGHT, A, B]
         """
+        # Debug vision occasionally (every 100 decisions)
+        if not hasattr(self, '_decision_count'):
+            self._decision_count = 0
+
+        self._decision_count += 1
+
+        if self._decision_count % 100 == 0:
+            # Check if vision has any non-zero values (enemies/obstacles)
+            num_obstacles = np.sum(state != 0.0)
+            num_enemies = np.sum(state == -1.0)
+            num_solid = np.sum(state == 1.0)
+            console.log(f"👁️ Vision check (decision {self._decision_count}): {num_obstacles} non-empty tiles ({num_enemies} enemies, {num_solid} solid)")
+
         # Neural network forward pass
         output = self.neural.forward(state)
-        
+
+        # Debug: check output shape and values (only log once)
+        if not hasattr(self, '_logged_shapes'):
+            console.log(f"🔍 Debug - State shape: {state.shape}, Output shape: {output.shape}")
+            console.log(f"🔍 Sample state values: min={state.min():.2f}, max={state.max():.2f}, mean={state.mean():.2f}")
+            console.log(f"🔍 Raw output values (before threshold): {output}")
+            console.log(f"🔍 Output interpretation: UP={output[0]:.3f}, DOWN={output[1]:.3f}, LEFT={output[2]:.3f}, RIGHT={output[3]:.3f}, A={output[4]:.3f}, B={output[5]:.3f}")
+            self._logged_shapes = True
+
         # Decode to button presses
         buttons = self.decoder.decode(output)
-        
+
+        # Ensure we return exactly 6 buttons
+        if len(buttons) != 6:
+            console.error(f"❌ Decoder returned {len(buttons)} buttons, expected 6!")
+            return np.array([0, 0, 0, 1, 0, 0])  # Default: just press RIGHT
+
         return buttons
 
     def act(self, buttons: np.ndarray):
@@ -309,7 +341,21 @@ class PlayerAgent:
 
         # Adaptive mutation based on performance with elite preservation
         mutation_strategy = ""
-        if fitness < self.best_fitness * 0.3:
+
+        # Check if we're stuck in local minima (same distance for 5+ episodes)
+        episodes_stuck = getattr(self, 'episodes_at_same_distance', 0)
+        if distance == self.best_distance:
+            self.episodes_at_same_distance = episodes_stuck + 1
+        else:
+            self.episodes_at_same_distance = 0
+
+        # Escape local minima with random restart (with behavioral priors)
+        if self.episodes_at_same_distance >= 5:
+            console.log("⚠️ STUCK IN LOCAL MINIMA - Random restart with priors!")
+            mutation_strategy = "Escaping local minima..."
+            self.neural.randomize_with_bias()
+            self.episodes_at_same_distance = 0
+        elif fitness < self.best_fitness * 0.3:
             # Really bad - restore champion and try tiny variations
             if self.champion_weights:
                 console.log("🏆 Restoring champion and trying tiny mutation")
@@ -411,11 +457,11 @@ class PlayerAgent:
             # For now, we only have simple-feedforward
             if network_type == 'simple-feedforward':
                 console.log("✅ Using Simple Feedforward network")
-                self.neural.randomize()
+                self.neural.randomize_with_bias()
             else:
                 console.log(f"⚠️ Network type '{network_type}' not yet implemented, using simple-feedforward")
                 self.network_type = 'simple-feedforward'
-                self.neural.randomize()
+                self.neural.randomize_with_bias()
 
             window.updateRLStatus('training', f'🔄 Switched to {network_type}. Starting fresh...')
 
@@ -477,7 +523,7 @@ class PlayerAgent:
 
         self.is_training = False
         self.reset()
-        self.neural.randomize()
+        self.neural.randomize_with_bias()
 
         # Reset training stats
         self.total_episodes = 0
@@ -485,6 +531,7 @@ class PlayerAgent:
         self.best_fitness = 0
         self.episode_reward = 0
         self.champion_weights = None  # Clear saved champion
+        self.episodes_at_same_distance = 0
 
         self.game.stop_emulator()
         self.game.reset_emulator()
