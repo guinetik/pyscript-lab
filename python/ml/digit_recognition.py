@@ -25,6 +25,7 @@ from pyscript import document
 from js import console, window, alert, Object
 from pyodide.ffi import to_js
 from typing import Tuple, Optional, Dict
+from lib.pyscript_manager import PyScriptManager
 
 
 class DigitRecognizer:
@@ -563,21 +564,25 @@ class DigitRecognizer:
 
 
 # Create global instance
+print("🟡 Creating DigitRecognizer instance...")
 _recognizer = DigitRecognizer()
 
-# Expose methods to JavaScript
-window.showTrainingExamples = _recognizer.show_training_examples
-window.hideTrainingExamples = _recognizer.hide_training_examples
-window.retrainWithCorrection = _recognizer.retrain_with_correction
-window.resetTraining = _recognizer.reset_training
-window.handleCorrectPrediction = _recognizer.handle_correct_prediction
-window.clearAndReset = _recognizer.clear_and_reset
-
-# Make predict_digit accessible from window (for runCode to find it)
+# Make predict_digit accessible as global function
 def predict_digit(image_base64: str):
     """Global function to predict digit (called from JavaScript)."""
     print("🟡 [PY] Global predict_digit() called")
     _recognizer.predict_digit(image_base64)
 
-# Expose to window
-window.predict_digit = predict_digit
+# Create PyScriptManager and signal ready with all exported functions
+manager = PyScriptManager("digit_recognition")
+manager.signal_ready(extra_exports={
+    'predict_digit': predict_digit,
+    'showTrainingExamples': _recognizer.show_training_examples,
+    'hideTrainingExamples': _recognizer.hide_training_examples,
+    'retrainWithCorrection': _recognizer.retrain_with_correction,
+    'resetTraining': _recognizer.reset_training,
+    'handleCorrectPrediction': _recognizer.handle_correct_prediction,
+    'clearAndReset': _recognizer.clear_and_reset
+})
+
+print("✅ Digit Recognition module ready and signaled to JavaScript")
