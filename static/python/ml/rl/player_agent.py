@@ -1,5 +1,5 @@
 """
-Mario Agent - Neural Network Controller for Super Mario Bros
+Player Agent - Neural Network Controller for Super Player Bros
 Simplified single-agent version for real-time gameplay visualization
 """
 from js import console, window
@@ -11,23 +11,23 @@ import numpy as np
 
 class MarioAgent:
     """
-    Neural network agent that plays Super Mario Bros.
+    Neural network agent that plays Super Player Bros.
     Observes game state and outputs controller inputs.
     """
 
     def __init__(self, vision_width: int = 13, vision_height: int = 10):
         """
-        Initialize Mario agent.
+        Initialize Player agent.
 
         Args:
-            vision_width: How many tiles wide Mario can "see"
-            vision_height: How many tiles tall Mario can "see"
+            vision_width: How many tiles wide Player can "see"
+            vision_height: How many tiles tall Player can "see"
         """
         self.vision_width = vision_width
         self.vision_height = vision_height
 
         # Neural network architecture
-        input_size = vision_width * vision_height  # Tile grid around Mario
+        input_size = vision_width * vision_height  # Tile grid around Player
         hidden_size = 32  # Hidden layer
         output_size = 6  # [UP, DOWN, LEFT, RIGHT, A, B]
 
@@ -53,21 +53,21 @@ class MarioAgent:
         self.last_x = 0
         self.max_frames = 1200  # Maximum frames per episode (20 seconds at 60fps)
 
-        print("🧠 Mario Agent initialized")
+        print("🧠 Player Agent initialized")
         print(f"   Network: {input_size} → {hidden_size} → {output_size}")
 
     def get_game_state(self) -> np.ndarray:
         """
         Extract game state from emulator.
-        Returns a flattened array of tiles around Mario.
+        Returns a flattened array of tiles around Player.
 
         For now, returns random state as placeholder.
         TODO: Extract actual tile data from NES RAM.
         """
         # Placeholder: random vision grid
         # In real implementation, we'd read NES RAM to get:
-        # - Mario's position
-        # - Tiles around Mario (blocks, enemies, pipes, etc.)
+        # - Player's position
+        # - Tiles around Player (blocks, enemies, pipes, etc.)
         # - Encode as: 0 = empty, 1 = solid block, -1 = enemy
 
         state = np.random.randn(self.vision_width * self.vision_height)
@@ -75,8 +75,8 @@ class MarioAgent:
 
     def get_mario_position(self):
         """
-        Get Mario's X position from RAM.
-        Address 0x6D contains Mario's X position on screen.
+        Get Player's X position from RAM.
+        Address 0x6D contains Player's X position on screen.
         Address 0x86 contains page (screen) number.
         """
         emulator = window.nesEmulator
@@ -85,7 +85,7 @@ class MarioAgent:
 
         try:
             nes = emulator.controller.nes
-            # Mario's X position on screen (0-255)
+            # Player's X position on screen (0-255)
             x_position = nes.cpu.mem[0x6D]
             # Current page/screen (0-255)
             page = nes.cpu.mem[0x86]
@@ -97,9 +97,9 @@ class MarioAgent:
 
     def is_mario_alive(self):
         """
-        Check if Mario is alive.
+        Check if Player is alive.
         Address 0x0E contains player state (0x0B = dying, 0x06 = dead)
-        Address 0x770 contains Mario's Y position (> 240 means fallen)
+        Address 0x770 contains Player's Y position (> 240 means fallen)
         """
         emulator = window.nesEmulator
         if not emulator or not emulator.controller or not emulator.controller.nes:
@@ -244,9 +244,9 @@ class MarioAgent:
             print(f"⏰ Timeout! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
-        # Check if Mario is still alive
+        # Check if Player is still alive
         if not self.is_mario_alive():
-            print(f"💀 Mario died! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            print(f"💀 Player died! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Get current game state
@@ -269,7 +269,7 @@ class MarioAgent:
 
         # Check if stuck (no progress for 1 second)
         if self.stuck_frames > 60:  # 1 second at 60fps
-            print(f"🚫 Mario stuck! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            print(f"🚫 Player stuck! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Log progress occasionally
@@ -306,9 +306,9 @@ class MarioAgent:
 
 
 # Create global agent instance
-print("🐍 Initializing Mario Agent...")
+print("🐍 Initializing Player Agent...")
 mario_agent = MarioAgent()
-print("✅ Mario Agent ready")
+print("✅ Player Agent ready")
 
 # Training state
 is_training = False
@@ -329,16 +329,16 @@ def training_loop():
     if not is_training:
         return
 
-    # Make a decision (returns False if Mario died)
+    # Make a decision (returns False if Player died)
     alive = mario_agent.step()
 
     if not alive:
-        # Episode ended - Mario died
+        # Episode ended - Player died
         end_episode()
         return
 
     # Schedule next decision (every ~67ms = ~15 decisions per second)
-    # This gives Mario time to react to each action
+    # This gives Player time to react to each action
     from js import setTimeout
     from pyodide.ffi import create_proxy
 
@@ -351,7 +351,7 @@ def end_episode():
     """Handle end of episode - calculate reward and restart."""
     global current_episode, episode_reward, best_distance, total_episodes
 
-    # Calculate reward (how far Mario got)
+    # Calculate reward (how far Player got)
     distance = mario_agent.max_x
     episode_reward = distance
 
@@ -413,7 +413,7 @@ def start_new_episode():
     print(f"⏱️ Episode timeout set to {timeout_seconds:.1f} seconds ({new_timeout} frames)")
 
     # Just reset agent stats - don't touch emulator
-    # The game will naturally respawn Mario or restart level
+    # The game will naturally respawn Player or restart level
     mario_agent.reset()
     episode_reward = 0
 
@@ -423,7 +423,7 @@ def start_new_episode():
 
 
 def start_training():
-    """Start AI training - Mario plays automatically."""
+    """Start AI training - Player plays automatically."""
     global is_training
 
     print("🚀 Starting AI training...")
@@ -451,7 +451,7 @@ def start_training():
     training_loop()
 
     # Update UI
-    window.updateRLStatus('training', 'AI is playing Mario! Watch and learn...')
+    window.updateRLStatus('training', 'AI is playing Player! Watch and learn...')
 
     print("✅ AI training started")
 
@@ -512,4 +512,4 @@ window.pauseRLTraining = pause_training
 window.resetRLTraining = reset_training
 window.stopRLTraining = stop_training
 
-print("✅ Mario Agent functions exposed to window")
+print("✅ Player Agent functions exposed to window")

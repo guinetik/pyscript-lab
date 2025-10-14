@@ -192,7 +192,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/diagram_manager.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/diagrams/diagram_manager.py"
 				target="_blank">View Manager Source</a
 			>
 			|

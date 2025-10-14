@@ -222,5 +222,12 @@ with Diagram("My Architecture", show=False):
     web >> db  # web connects to database</code></pre>
 			</div>
 		</div>
+		<p class="mt-6">
+			<a
+				class="text-sky-500"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/diagrams/diagram_creator.py"
+				target="_blank">View Creator Source</a
+			>
+		</p>
 	</article>
 </ExperimentCard>

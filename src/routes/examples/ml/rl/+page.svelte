@@ -51,14 +51,14 @@
 		window.loadStateJS = loadState;
 
 		// Load Python neural network module first
-		const neuralUrl = getLink('python/ml/neural.py');
+		const neuralUrl = getLink('python/ml/rl/neural.py');
 		await pyScriptRunner.runScript(neuralUrl, 'neural-script', false);
 		logger.log('✅ [JS] Neural network module loaded');
 
 		// Load Python Mario agent script
-		const marioAgentUrl = getLink('python/ml/mario_agent.py');
-		await pyScriptRunner.runScript(marioAgentUrl, 'mario-script', false);
-		logger.log('✅ [JS] Mario agent loaded');
+		const playerAgentUrl = getLink('python/ml/rl/player_agent.py');
+		await pyScriptRunner.runScript(playerAgentUrl, 'player-script', false);
+		logger.log('✅ [JS] Player agent loaded');
 	});
 
 	onDestroy(() => {
@@ -192,7 +192,7 @@
 			emulator.start();
 
 			status = 'playing';
-			statusMessage = 'Manual play mode active! Use keyboard to control Mario.';
+			statusMessage = 'Manual play mode active! Use keyboard to control the Character.';
 		}
 	}
 
@@ -220,7 +220,7 @@
 					const url = URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
-					a.download = 'mario-state.json';
+					a.download = 'nes_state.json';
 					a.click();
 					URL.revokeObjectURL(url);
 					statusMessage = `State saved! (${(stateJson.length / 1024).toFixed(0)}KB) Check downloads.`;
@@ -298,7 +298,7 @@
 		<div class="flex justify-center">
 			{#key emulatorKey}
 				<NesEmulator
-					romPath={getLink('data/mario.nes')}
+					romPath={getLink('data/package.nes')}
 					scale={2}
 					onReady={handleEmulatorReady}
 					onError={handleEmulatorError}
@@ -417,7 +417,7 @@
 				<div class="grid grid-cols-2 gap-3 text-sm">
 					<div>
 						<div class="font-semibold">Arrow Keys</div>
-						<div class="opacity-90">Move Mario</div>
+						<div class="opacity-90">Move Character</div>
 					</div>
 					<div>
 						<div class="font-semibold">Z</div>
@@ -437,7 +437,7 @@
 
 		<!-- Hidden Python script containers -->
 		<div id="neural-script" style="display: none;"></div>
-		<div id="mario-script" style="display: none;"></div>
+		<div id="player-script" style="display: none;"></div>
 	</div>
 
 	<article slot="content_slot" class="mb-10">
@@ -525,7 +525,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/rl_agent.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/neural.py"
 				target="_blank">View source</a
 			>
 		</p>

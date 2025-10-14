@@ -73,7 +73,7 @@
                         href={getLink('/')}
                         class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"
                         ><img src={getLink('images/python.svg')} alt="PyScript L.A.B" />
-                        <span class="font-bold">PyScript L.A.B</span></a
+                        <span class="font-bold">PyScript <span class="text-green-600">L</span>.<span class="text-blue-600">A</span>.<span class="text-yellow-500">B</span></span></a
                     >
                 </div>
                 <div class="hidden items-center space-x-1 md:flex">
@@ -178,7 +178,7 @@
                     href={getLink('/')}
                     class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"
                     ><img src={getLink('images/python.svg')} alt="PyScript L.A.B" />
-                    <span class="font-bold">PyScript L.A.B</span></a
+                    <span class="font-bold">PyScript <span class="text-blue-600">L</span>.<span class="text-gray-900">A</span>.<span class="text-orange-600">B</span></span></a
                 >
             </div>
             {#each mobileLinks as link}

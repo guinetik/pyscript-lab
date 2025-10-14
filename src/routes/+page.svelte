@@ -14,7 +14,7 @@
 						alt="PyScript"
 					/>
 					<div class="space-y-4 border-slate-900 p-8 sm:border-t md:border-l">
-						<h1 class="text-4xl font-extrabold text-gray-900">PyScript Lab</h1>
+						<h1 class="text-4xl font-extrabold text-gray-900">PyScript <span class="text-green-600">L</span>.<span class="text-blue-600">A</span>.<span class="text-yellow-500">B</span></h1>
 						<p class="text-lg text-gray-600">
 							Python in the Browser. No Server Required.
 						</p>

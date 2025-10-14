@@ -120,7 +120,7 @@ Generate cloud architecture diagrams using Python's [diagrams](https://diagrams.
 ### 6. Machine Learning - Digit Recognition
 **Path**: `/examples/ml`
 
-**Most Complex Example** - Interactive digit recognition with active learning:
+Interactive digit recognition with active learning:
 
 **Features:**
 - **Canvas Drawing**: Draw digits 0-9 with mouse/touch support
@@ -190,17 +190,9 @@ PyScript requires modern browsers with WebAssembly support:
 4. **Console Access**: Use `console.log()` from Python to debug in browser DevTools
 5. **Package Loading**: Configure packages in `<script type="py" config='{...}'>` tag
 
-## Future Enhancements
-
-- [ ] Add more ML examples (regression, clustering)
-- [ ] Web Workers for heavy Python computations
-- [ ] IndexedDB for model persistence
-- [ ] Real-time collaborative features
-- [ ] Performance benchmarks
-
 ## License
 
-MIT
+Apache
 
 ## Author
 
