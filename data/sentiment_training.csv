@@ -1,0 +1,46 @@
+text,sentiment
+"I love this product, it's amazing!",positive
+"This is the best thing ever!",positive
+"Absolutely wonderful experience!",positive
+"I'm so happy with this purchase!",positive
+"Fantastic quality and great service!",positive
+"Exceeded my expectations completely!",positive
+"I would definitely recommend this!",positive
+"Outstanding performance and value!",positive
+"Perfect in every way!",positive
+"This made my day so much better!",positive
+"Brilliant! Simply brilliant!",positive
+"I'm extremely satisfied with this!",positive
+"This is exactly what I needed!",positive
+"Impressive quality and design!",positive
+"I couldn't be happier!",positive
+"This is terrible and disappointing.",negative
+"I hate this, complete waste of money.",negative
+"Worst purchase I've ever made.",negative
+"Absolutely awful experience.",negative
+"Poor quality and bad service.",negative
+"I'm very disappointed with this.",negative
+"This is not worth the price.",negative
+"Horrible, I want my money back!",negative
+"I do not recommend this at all.",negative
+"This is broken and useless.",negative
+"Total garbage, avoid at all costs!",negative
+"I'm extremely unhappy with this.",negative
+"This failed to meet expectations.",negative
+"Terrible quality and poor design.",negative
+"I regret buying this.",negative
+"This is okay, nothing special.",neutral
+"It works as expected.",neutral
+"Average product, does the job.",neutral
+"It's fine, no complaints.",neutral
+"Standard quality, decent price.",neutral
+"Mediocre experience overall.",neutral
+"Not great, not terrible.",neutral
+"It's acceptable for the price.",neutral
+"Nothing to write home about.",neutral
+"Meets basic requirements.",neutral
+"It's alright, I guess.",neutral
+"Average quality and service.",neutral
+"Could be better, could be worse.",neutral
+"It does what it says.",neutral
+"Neutral opinion on this.",neutral

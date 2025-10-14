@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="utf-8" />
+  <title>PyScript Examples</title>
+  <link rel="icon" href="../../favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- PyScript CSS -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.1/core.css">
+  <!-- This script tag bootstraps PyScript -->
+  <script type="module" src="https://pyscript.net/releases/2025.2.1/core.js"></script>
+  
+  <!-- PyScript Configuration -->
+  <py-config>
+    packages = ["bokeh", "pandas", "numpy", "networkx", "diagrams", "scikit-learn", "pillow", "matplotlib", "plotly"]
+    [[fetch]]
+    files = ["diagrams_base.py"]
+    from = "../../python/diagrams/"
+  </py-config>
+  <!-- Bokeh JS -->
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-3.6.2.min.js"></script>
+  <!-- Plotly JS -->
+  <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      outline: none;
+      transform: translate(-50%, -50%);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #ccc;
+      background: rgba(255, 255, 255, 0.9);
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+
+    #loading h1 {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    #loading::backdrop {
+      backdrop-filter: blur(5px);
+    }
+
+    /* Console Styles */
+    #console {
+      width: 80vw;
+      height: 60vh;
+      max-width: 1400px;
+      max-height: 800px;
+      min-width: 600px;
+      min-height: 400px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0;
+      margin: auto;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #console[open] {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #console:not([open]) {
+      display: none;
+    }
+
+    #console::backdrop {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+    }
+
+    .console-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #333;
+      padding: 8px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      cursor: move;
+      flex-shrink: 0;
+    }
+
+    .console-title {
+      color: #fff;
+      font-size: 14px;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+    }
+
+    .console-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .console-btn {
+      background: #666;
+      color: #fff;
+      border: none;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: background 0.2s;
+    }
+
+    .console-btn:hover {
+      background: #888;
+    }
+
+    .console-btn:disabled {
+      background: #444;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .console-close {
+      background: #ff5f57;
+      border: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .console-close:hover::before {
+      content: "×";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #660000;
+      font-size: 10px;
+    }
+
+    #console-content {
+      padding: 12px;
+      color: #fff;
+      font-family: 'Consolas', 'Monaco', monospace;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Fix py-terminal to fill container properly */
+    #console-content py-terminal {
+      display: flex !important;
+      flex: 1 1 auto !important;
+      width: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    #console-content py-terminal .xterm {
+      flex: 1 !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #console-content py-terminal .xterm-screen {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #console-content py-terminal .xterm-viewport {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #console-content py-terminal .xterm-rows {
+      width: 100% !important;
+    }
+
+    /* Enable text selection in terminal */
+    #console-content py-terminal .xterm,
+    #console-content py-terminal .xterm-screen,
+    #console-content py-terminal .xterm-rows {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      cursor: text;
+    }
+
+    /* Selection styles */
+    #console-content py-terminal .xterm-selection div {
+      background: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .open-console-btn {
+      background: #2d2d2d;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: all 0.2s;
+    }
+
+    .open-console-btn:hover {
+      background: #444;
+      border-color: #666;
+    }
+  </style>
+  <script type="module">
+    import App from '../../app.js';
+
+    const app = new App(document, window);
+    app.init();
+  </script>
+  
+		<link href="../../_app/immutable/assets/0.Ccc6jynn.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/CodeBlock.DSDKu4fA.css" rel="stylesheet">
+		<link rel="modulepreload" href="../../_app/immutable/entry/start.BqJ7FzN0.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DJBBFwsQ.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/BO_s36dd.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DH-y7u4P.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CWIO69zb.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/2ke4f92j.js">
+		<link rel="modulepreload" href="../../_app/immutable/entry/app.CsgQQKgI.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Dp1pzeXC.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Bzak7iHL.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CK0AsjDd.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/BsrACdR8.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/C7OzWLIK.js">
+		<link rel="modulepreload" href="../../_app/immutable/nodes/0.D2En8lNd.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CIFhvQNR.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Cz0J9wg6.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/D7V7D49h.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/6kQ2ecKh.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Cmk74TUz.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CVDufh-H.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/L0nthUhJ.js">
+		<link rel="modulepreload" href="../../_app/immutable/nodes/12.DeJblqWh.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CLYPCndG.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/x4hOrWek.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/BRfzTKz9.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/0ZWKmQHB.js">
+</head>
+
+<body data-sveltekit-preload-data="hover" class="flex h-full flex-col">
+  <dialog id="loading">
+    <h1>Loading...</h1>
+  </dialog>
+  <div class="flex-1">
+    <div style="display: contents"><!--[--><!--[--><!----><nav class="bg-gray-100"><div class="mx-auto max-w-screen-2xl px-4"><div class="flex justify-between"><div class="flex space-x-2"><div><a href="../../" class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"><img src="../../images/python.svg" alt="PyScript L.A.B"/> <span class="font-bold">PyScript L.A.B</span></a></div> <div class="hidden items-center space-x-1 md:flex"><!--[--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Basic Examples <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/basics/hello" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Hello World</a><a href="/examples/basics/repl" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">R.E.P.L</a><a href="/examples/basics/interop" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Interoperability</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Matplotlib <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/matplotlib/intro" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Introduction</a><a href="/examples/matplotlib/charts" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 bg-yellow-50 text-yellow-500 font-bold">COVID-19 Charts</a><a href="/examples/matplotlib/maps" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">COVID-19 World Map</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Bokeh <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/bokeh/pandas" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Bokeh + Pandas</a><a href="/examples/bokeh/networks" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Bokeh + NetworkX</a><a href="/examples/bokeh/communities" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Community Detection</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Diagrams as Code <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/diagrams/gallery" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Diagrams Gallery</a><a href="/examples/diagrams/create" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Create Diagrams</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Machine Learning <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/ml" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Digit Recognition</a><a href="/examples/sentiment" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Sentiment Analysis</a><a href="/examples/ml/rl" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Reinforcement Learning</a><!--]--></div></div></div><!--]--><!--]--></div></div> <div class="hidden items-center space-x-1 md:flex"><a href="https://github.com/guinetik/python-ds"><img src="https://img.shields.io/badge/-View Source-gray?style=flat-square&amp;logo=github&amp;logoColor=white&amp;link=https://github.com/guinetik" alt="Visits"/></a> <a href="https://guinetik.github.io/python-ds/"><img src="https://img.shields.io/static/v1?label=&amp;message=0 Visitors&amp;color=blueviolet&amp;style=flat-square" alt="Visits"/></a> <a href="https://linkedin.com/in/guinetik"><img src="https://img.shields.io/badge/-LinkedIn-blue?style=flat-square&amp;logo=Linkedin&amp;logoColor=white&amp;link=https://www.linkedin.com/in/guinetik/" alt="Linkedin"/></a></div> <div class="flex items-center justify-between md:hidden"><button class="h-6 w-6" aria-label="Toggle menu"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button></div></div></div> <nav id="mobile-navigation" class="invisible opacity-0 fixed top-0 right-0 bottom-0 left-0 z-10 backdrop-blur-sm transition-all duration-500"><ul class="translate-x-full absolute top-0 right-0 bottom-0 z-10 bg-white drop-shadow-2xl transition-all duration-500"><div><a href="../../" class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"><img src="../../images/python.svg" alt="PyScript L.A.B"/> <span class="font-bold">PyScript L.A.B</span></a></div> <!--[--><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Basic Examples</div> <!--[--><a href="/examples/basics/hello" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Hello World</a><a href="/examples/basics/repl" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">R.E.P.L</a><a href="/examples/basics/interop" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Interoperability</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Matplotlib</div> <!--[--><a href="/examples/matplotlib/intro" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Introduction</a><a href="/examples/matplotlib/charts" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 bg-yellow-50 text-yellow-500 font-bold">COVID-19 Charts</a><a href="/examples/matplotlib/maps" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">COVID-19 World Map</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Bokeh</div> <!--[--><a href="/examples/bokeh/pandas" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Bokeh + Pandas</a><a href="/examples/bokeh/networks" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Bokeh + NetworkX</a><a href="/examples/bokeh/communities" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Community Detection</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Diagrams as Code</div> <!--[--><a href="/examples/diagrams/gallery" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Diagrams Gallery</a><a href="/examples/diagrams/create" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Create Diagrams</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Machine Learning</div> <!--[--><a href="/examples/ml" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Digit Recognition</a><a href="/examples/sentiment" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Sentiment Analysis</a><a href="/examples/ml/rl" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Reinforcement Learning</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[!--><a href="https://github.com/guinetik" class=" block p-4 hover:text-white hover:bg-yellow-500">Github</a><!--]--></li><li class="border-b border-inherit"><!--[!--><a href="https://twitter.com/guinetik" class=" block p-4 hover:text-white hover:bg-yellow-500">Twitter</a><!--]--></li><!--]--></ul> <button aria-label="Close menu" class="absolute top-0 right-0 bottom-0 left-0 opacity-0"><svg xmlns="http://www.w3.org/2000/svg" class="absolute top-2 left-2 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></nav></nav><!----> <main class="flex h-[calc(100%-120px)] w-full flex-col justify-center"><!----><main class="w-full h-[calc(100%-120px)]"><div class="py-10 w-full flex items-center justify-center h-full"><div class="bg-white rounded-lg shadow-2xl overflow-hidden w-10/12"><div class="md:flex"><section class="bg-slate-300 lg:w-3/4 md:flex-grow md:w-full min-h-[380px] md:rounded-l-lg"><!--[--><div slot="py_slot"><section class="pyscript p-5"><h1>COVID-19 Global Data Analysis</h1> <p class="mb-4 text-gray-600">Visualizing pandemic data from 187 countries/regions</p> <div class="py-example"><!--[--><p class="mb-2">Loading and analyzing COVID-19 data:</p><!--]--> <button class="mb-3 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors" aria-expanded="false"><svg class="w-4 h-4 transition-transform duration-200 " fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg> See the code</button> <!--[!--><!--]--> <div id="" class="output mt-4"><!--[--><script type="py" src="../../python/matplotlib/covid_charts.py" id="covid-data"></script><!----><!--]--></div></div><!----> <!--[--><div class="mt-6 flex items-center justify-center gap-3 rounded-lg border-2 border-blue-200 bg-blue-50 p-8"><div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div> <p class="text-lg font-semibold text-blue-900">Generating charts...</p></div><!--]--> <div class="space-y-8 mt-6 opacity-0" style="transition: opacity 0.3s ease-in-out;"><div class="rounded-lg border-2 border-gray-200 bg-white p-4"><h3 class="text-lg font-bold mb-3">📊 Chart 1: Top 20 Countries by Deaths</h3> <div id="covid-chart1" class="flex justify-center"></div></div> <div class="rounded-lg border-2 border-gray-200 bg-white p-4"><h3 class="text-lg font-bold mb-3">🌍 Chart 2: Deaths by WHO Region</h3> <div id="covid-chart2" class="flex justify-center"></div></div> <div class="rounded-lg border-2 border-gray-200 bg-white p-4"><h3 class="text-lg font-bold mb-3">🔍 Chart 3: Confirmed Cases vs Deaths (Log Scale)</h3> <div id="covid-chart3" class="flex justify-center"></div></div> <div class="rounded-lg border-2 border-gray-200 bg-white p-4"><h3 class="text-lg font-bold mb-3">⚠️ Chart 4: Case Fatality Rate Analysis</h3> <div id="covid-chart4" class="flex justify-center"></div></div></div></section></div><!--]--></section> <section class="p-4 space-y-3 md:w-1/2 lg:w-4/12 border-t border-slate-900 md:border-l md:rounded-r-lg"><!--[--><article slot="content_slot"><h2 class="mb-5 text-xl font-extrabold">COVID-19 Data Charts</h2> <div class="prose max-w-none"><p class="mb-4">This page demonstrates data visualization using real COVID-19 data from 187 countries.
+				Using pandas for data manipulation and matplotlib for visualization, we create multiple
+				perspectives on the global pandemic impact.</p> <div class="mb-6 rounded-lg bg-blue-50 p-4"><h3 class="mb-2 text-lg font-bold text-blue-900">📈 What You're Seeing:</h3> <ul class="list-disc space-y-2 pl-5 text-sm text-blue-800"><li><strong>Chart 1:</strong> A "heatmap-style" horizontal bar chart showing countries with the highest death tolls. The color intensity increases with death count.</li> <li><strong>Chart 2:</strong> Pie chart showing how deaths are distributed across WHO regions (Americas, Europe, Africa, etc.)</li> <li><strong>Chart 3:</strong> Scatter plot revealing the relationship between confirmed cases and deaths. Log scale makes patterns visible across countries of vastly different sizes.</li> <li><strong>Chart 4:</strong> Case Fatality Rate analysis showing which countries had the highest death-to-case ratios (filtered to countries with 1000+ cases for statistical significance)</li></ul></div> <div class="mb-6 rounded-lg bg-gray-100 p-4"><h3 class="mb-2 text-lg font-bold">🔬 Technical Implementation:</h3> <ul class="list-disc space-y-2 pl-5 text-sm"><li><strong>Pandas:</strong> CSV loading, data filtering, grouping, and aggregation</li> <li><strong>Matplotlib:</strong> Multiple chart types (horizontal bars, pie, scatter)</li> <li><strong>Color Mapping:</strong> Using colormaps (Reds, Set3, tab10, YlOrRd) to enhance visual communication</li> <li><strong>Log Scales:</strong> Handling data that spans multiple orders of magnitude</li> <li><strong>Client-Side Processing:</strong> All data analysis happens in your browser!</li></ul></div> <div class="mb-6 rounded-lg bg-green-50 p-4"><h3 class="mb-2 text-lg font-bold text-green-900">💡 Data Insights:</h3> <ul class="list-disc space-y-2 pl-5 text-sm text-green-800"><li>The data includes confirmed cases, deaths, recoveries, and weekly changes</li> <li>Countries are categorized by WHO regions for regional analysis</li> <li>Case Fatality Rate (CFR) varies significantly based on healthcare capacity, testing rates, and population demographics</li> <li>The scatter plot reveals that larger outbreaks don't always correlate linearly with deaths (different healthcare responses)</li></ul></div> <div class="mb-4 rounded-lg bg-yellow-50 p-4"><h3 class="mb-2 text-lg font-bold text-yellow-900">📊 Dataset Details:</h3> <p class="text-sm text-yellow-800 mb-2"><strong>Source:</strong> The covid_country.csv dataset contains:</p> <ul class="list-disc space-y-1 pl-5 text-sm text-yellow-800"><li>187 countries/regions</li> <li>Columns: Confirmed, Deaths, Recovered, Active, New cases, Death rate, WHO Region</li> <li>Snapshot data showing cumulative statistics and weekly trends</li></ul></div> <div class="mb-4 rounded-lg bg-purple-50 p-4"><h3 class="mb-2 text-lg font-bold text-purple-900">🎯 Key Takeaways:</h3> <ul class="list-disc space-y-2 pl-5 text-sm text-purple-800"><li>Pandas and matplotlib work seamlessly in PyScript for data analysis</li> <li>Complex visualizations can be generated entirely client-side</li> <li>Multiple chart types can reveal different aspects of the same dataset</li> <li>Real-world data often requires filtering and transformation before visualization</li></ul></div></div></article><!--]--> <div class="flex"><a href="../../examples/matplotlib/intro" class="text-xs ml-0 py-2 px-3 bg-blue-400 hover:bg-slate-300 text-slate-900 hover:text-slate-800 rounded transition duration-300"><img class="inline h-4" src="../../images/arrow-left.svg" alt="Next"/>Previous</a> <a href="../../examples/matplotlib/maps" class="text-xs ml-auto py-2 px-3 bg-yellow-400 hover:bg-slate-300 text-slate-900 hover:text-slate-800 rounded transition duration-300">Next<img class="inline h-4" src="../../images/arrow-next.svg" alt="Next"/></a></div></section></div> <footer class="py-3 px-6 bg-slate-800 text-xs text-white font-mono"><div id="script_gutter"></div></footer></div></div></main><!----><!----></main><!----><!--]--> <!--[!--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_nft635 = {
+						base: new URL("../..", location).pathname.slice(0, -1)
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.BqJ7FzN0.js"),
+						import("../../_app/immutable/entry/app.CsgQQKgI.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 12],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+  </div>
+  <footer class="flex h-10 w-full items-center justify-between bg-slate-900 text-white">
+    <div class="flex items-center gap-4">
+      <button id="open-console-btn" class="open-console-btn">🖥️ Console</button>
+      <p>
+        Coded by
+        <a href="https://github.com/guinetik" target="_blank" style="
+            color: #facc15;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 2px solid #facc15;
+            transition: 
+              color 0.2s,
+              background 0.2s,
+              border-radius 0.2s,
+              box-shadow 0.2s;
+            padding: 2px 8px;
+            border-radius: 6px;
+          "
+          onmouseover="this.style.background='#facc15';this.style.color='#1e293b';this.style.boxShadow='0 2px 8px #facc1540';this.style.borderRadius='12px';"
+          onmouseout="this.style.background='';this.style.color='#facc15';this.style.boxShadow='';this.style.borderRadius='6px';">
+          Guinetik
+        </a>      
+      </p>
+      <div id="py-script-footer" class="py-script float-right">
+        <script type="py">
+          from pyscript import document
+          from datetime import datetime
+          now = datetime.now()
+          document.querySelector("#py-script-footer").innerText = "🐍 Hello from python. All systems go! " + now.strftime("%m/%d/%Y, %H:%M:%S")
+        </script>
+      </div>
+    </div>
+  </footer>
+  <dialog id="console">
+    <div class="console-title-bar">
+      <h3 class="console-title">🐍 Python Console</h3>
+      <div class="console-buttons">
+        <button id="console-copy-btn" class="console-btn" title="Copy console output">📋 Copy</button>
+        <button id="console-clear-btn" class="console-btn" title="Clear console">🗑️ Clear</button>
+        <button class="console-close"></button>
+      </div>
+    </div>
+    <div id="console-content">
+      <script type="py" terminal id="console-script"></script>
+    </div>
+  </dialog>
+</body>
+
+</html>
