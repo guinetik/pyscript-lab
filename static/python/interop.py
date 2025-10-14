@@ -2,7 +2,13 @@
 JavaScript-Python Interoperability Example
 
 This module demonstrates bidirectional communication between JavaScript and Python in PyScript.
-It shows how JavaScript can call Python functions and how Python can manipulate the DOM.
+It shows how JavaScript can call Python functions and how Python sends data back to JavaScript
+for rendering.
+
+IMPORTANT: This module follows the data-only communication pattern:
+- Python computes and processes data
+- Python sends plain data structures via window callbacks
+- JavaScript/Svelte handles all DOM rendering
 
 This example creates an interactive greeting system that responds to user input with
 personalized messages based on their name and age.
@@ -13,8 +19,8 @@ Author: Guinetik
 import json
 import random
 from typing import Optional, Dict, List
-from pyscript import document
-from js import console
+from js import window, console, Object
+from pyodide.ffi import to_js
 
 
 class InteropGreeter:
@@ -24,14 +30,13 @@ class InteropGreeter:
     This class provides an interactive greeting system that:
     - Validates user input from JavaScript
     - Generates personalized responses based on age groups
-    - Manipulates DOM elements to display results
-    - Demonstrates Python's ability to interact with browser APIs
+    - Sends data back to JavaScript via window callbacks (NO innerHTML)
+    - Demonstrates Python's ability to process data for browser display
 
     The greeter categorizes users into different developer experience levels
     based on their age and provides humorous, personalized responses.
 
     Attributes:
-        output_element_id (str): ID of the DOM element where output is displayed.
         greeting_variants (List[str]): Different greeting styles to randomize responses.
     """
 
@@ -45,42 +50,32 @@ class InteropGreeter:
         'legend': (56, 100)
     }
 
-    def __init__(self, output_element_id: str = "chart"):
+    def __init__(self):
         """
         Initialize the InteropGreeter with configuration.
-
-        Args:
-            output_element_id (str, optional): ID of the HTML element for output display.
-                                              Defaults to "chart".
-
-        Example:
-            >>> greeter = InteropGreeter()
-            >>> greeter = InteropGreeter(output_element_id="output")
         """
-        self.output_element_id = output_element_id
         self.greeting_variants = [
             "Hello", "Hi", "Hey", "Greetings", "Welcome",
             "What's up", "Howdy", "Yo", "Hola", "Salutations"
         ]
 
-        # Initialize the output element with a welcome message
-        self._initialize_display()
+        # Signal that Python is ready
+        self._signal_ready()
 
-    def _initialize_display(self):
+    def _signal_ready(self):
         """
-        Initialize the output display with a welcome message.
+        Signal to JavaScript that Python is initialized and ready.
 
-        Sets up the initial state of the output element when the script loads.
+        Sends data via window callback instead of manipulating DOM.
         """
-        chart = document.getElementById(self.output_element_id)
-        if chart:
-            chart.innerHTML = """
-                <div class="text-center p-4">
-                    <p class="text-2xl mb-2">🐍 Python is Ready!</p>
-                    <p class="text-gray-600">Fill out the form to see JavaScript calling Python in action</p>
-                </div>
-            """
-            print("✅ InteropGreeter initialized and ready")
+        data = {
+            'ready': True,
+            'message': 'Python is Ready!',
+            'subtitle': 'Fill out the form to see JavaScript calling Python in action'
+        }
+        # Convert Python dict to JavaScript object to avoid proxy destruction
+        window.onInteropReady(to_js(data, dict_converter=Object.fromEntries))
+        print("✅ InteropGreeter initialized and ready")
 
     def _get_greeting(self) -> str:
         """
@@ -115,7 +110,7 @@ class InteropGreeter:
             category (str): The age bracket category.
 
         Returns:
-            List[str]: A list of HTML-formatted response strings.
+            List[str]: A list of response strings (plain text, no HTML).
         """
         responses = {
             'student': [
@@ -178,13 +173,13 @@ class InteropGreeter:
         if not name or name.strip() == "":
             return {
                 'valid': False,
-                'error': "<p class='text-red-600'>❌ <i>Name</i> is required!</p>"
+                'message': 'Name is required!'
             }
 
         if age is None or age == "":
             return {
                 'valid': False,
-                'error': "<p class='text-red-600'>❌ <i>Age</i> is required!</p>"
+                'message': 'Age is required!'
             }
 
         try:
@@ -192,63 +187,51 @@ class InteropGreeter:
             if age_int < 0:
                 return {
                     'valid': False,
-                    'error': "<p class='text-red-600'>❌ Age can't be negative! Time travel not supported yet.</p>"
+                    'message': "Age can't be negative! Time travel not supported yet."
                 }
             if age_int > 150:
                 return {
                     'valid': False,
-                    'error': "<p class='text-red-600'>❌ Age seems a bit high! Are you a vampire? 🧛</p>"
+                    'message': "Age seems a bit high! Are you a vampire? 🧛"
                 }
         except ValueError:
             return {
                 'valid': False,
-                'error': "<p class='text-red-600'>❌ Age must be a valid number!</p>"
+                'message': 'Age must be a valid number!'
             }
 
-        return {'valid': True, 'error': None}
+        return {'valid': True, 'message': None}
 
-    def _generate_response_html(self, name: str, age: int) -> str:
+    def _generate_response_data(self, name: str, age: int) -> Dict:
         """
-        Generate the complete HTML response for a valid greeting.
+        Generate the complete response data for a valid greeting.
+
+        This returns a plain data structure (no HTML) that JavaScript will render.
 
         Args:
             name (str): The user's name.
             age (int): The user's age.
 
         Returns:
-            str: HTML-formatted response string.
+            Dict: Data structure containing all greeting information.
         """
         greeting = self._get_greeting()
         category = self._categorize_age(age)
         age_responses = self._get_age_specific_responses(age, category)
 
-        # Build the response HTML
-        html_parts = [
-            f"<div class='p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg'>",
-            f"<p class='text-2xl font-bold mb-3'>{greeting}, <span class='text-blue-600'>{name}</span>! 👋</p>",
-            f"<p class='text-gray-600 mb-2'>Age: {age} | Category: <span class='font-semibold capitalize'>{category}</span></p>",
-            "<div class='mt-4 space-y-2'>"
-        ]
-
-        # Add age-specific responses
-        for response in age_responses:
-            html_parts.append(f"<p class='text-lg'>{response}</p>")
-
-        # Add fun facts
+        # Calculate potential coding years
         years_coding = max(0, age - 18) if age >= 18 else 0
-        if years_coding > 0:
-            html_parts.append(
-                f"<p class='text-sm text-gray-500 mt-3'>🎂 Potential coding years: ~{years_coding}</p>"
-            )
 
-        # Add footer
-        html_parts.extend([
-            "</div>",
-            "<p class='text-xs text-gray-400 mt-4 italic'>💬 Just kidding around! All developers are awesome! 🚀</p>",
-            "</div>"
-        ])
-
-        return "".join(html_parts)
+        # Return plain data structure
+        return {
+            'greeting': greeting,
+            'name': name,
+            'age': age,
+            'category': category,
+            'responses': age_responses,
+            'years_coding': years_coding,
+            'disclaimer': "Just kidding around! All developers are awesome! 🚀"
+        }
 
     def run(self, name: Optional[str], age: Optional[int]) -> None:
         """
@@ -257,48 +240,46 @@ class InteropGreeter:
         This method:
         1. Validates the input parameters
         2. Generates an appropriate response
-        3. Updates the DOM with the result
+        3. Sends data to JavaScript via window callbacks
         4. Logs the interaction to the console
+
+        NO DOM MANIPULATION - only sends data!
 
         Args:
             name (Optional[str]): The user's name from the form input.
             age (Optional[int]): The user's age from the form input.
 
         Example (called from JavaScript):
-            >>> run('Alice', 28)
-            # Displays personalized greeting in the output element
-
-        Note:
-            This function is exposed to JavaScript and called via PyScript's
-            interoperability features. See the Svelte component for the JS side.
+            >>> runGreeting('Alice', 28)
+            # Sends data via window.onGreetingResult()
         """
         print(f"🐍 Python function called with: name='{name}', age={age}")
-
-        # Get the output element
-        chart = document.getElementById(self.output_element_id)
-        if not chart:
-            console.error(f"❌ Output element '#{self.output_element_id}' not found!")
-            return
 
         # Validate input
         validation = self._validate_input(name, age)
         if not validation['valid']:
-            chart.innerHTML = validation['error']
-            console.warn(f"⚠️ Validation failed: {validation['error']}")
+            # Send validation error to JavaScript
+            # Convert Python dict to JavaScript object to avoid proxy destruction
+            error_data = {'message': validation['message']}
+            window.onValidationError(to_js(error_data, dict_converter=Object.fromEntries))
+            console.warn(f"⚠️ Validation failed: {validation['message']}")
             return
 
-        # Generate and display response
-        response_html = self._generate_response_html(name, int(age))
-        chart.innerHTML = response_html
+        # Generate response data
+        response_data = self._generate_response_data(name, int(age))
 
-        print(f"✅ Greeting generated successfully for {name}, age {age}")
+        # Send data to JavaScript for rendering
+        # Convert Python dict to JavaScript object to avoid proxy destruction
+        window.onGreetingResult(to_js(response_data, dict_converter=Object.fromEntries))
+
+        print(f"✅ Greeting data generated successfully for {name}, age {age}")
 
 
 # Create a global instance of the greeter
 _greeter_instance = InteropGreeter()
 
 
-def run(name: Optional[str], age: Optional[int]) -> None:
+def runGreeting(name: Optional[str], age: Optional[int]) -> None:
     """
     Global function that exposes the greeter to JavaScript.
 
@@ -310,10 +291,14 @@ def run(name: Optional[str], age: Optional[int]) -> None:
         age (Optional[int]): The user's age.
 
     Example (from JavaScript):
-        run('Bob', 35)
+        window.runGreeting('Bob', 35)
     """
     _greeter_instance.run(name, age)
 
 
+# Expose the function to window object so JavaScript can call it
+window.runGreeting = runGreeting
+
 # Log initialization
 print("🐍 Interop module loaded successfully")
+console.log("🐍 Interop module loaded - window.runGreeting is available")

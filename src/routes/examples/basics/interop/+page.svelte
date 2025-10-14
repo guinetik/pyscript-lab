@@ -1,57 +1,146 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
-	import { getLink } from '$lib/utils.js';
-	import RunPython from '$lib/RunPython.js';
+	import { InteropController } from '$lib/controller/InteropController.js';
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 
 	// Page metadata
 	let name = 'Interoperability (JS to Python)';
+
+	// Controller instance
+	let controller = browser ? new InteropController() : null;
 
 	// Form inputs using Svelte 5 $state rune
 	let inputName = $state('');
 	let inputAge = $state('');
 
-	// Python script URL
-	const pyScriptUrl = getLink('python/interop.py');
+	// Reactive state for UI
+	let readyState = $state(null);
+	let greetingData = $state(null);
+	let errorMessage = $state(null);
 
-	/*
-	 * BELOW WE CREATE 2 INSTANCES OF THE PYTHON RUNNER.
-	 * ONE TO LOAD THE PYTHON SCRIPT WE WANT TO USE
-	 * THE OTHER IS TO EXECUTING PYTHON CODE ON DEMAND.
-	 * INITIALLY, I USED ONLY ONE RUNPYTHON OBJECT FOR BOTH LOADING SCRIPTS AND EXECUTING CODE,
-	 * BUT MY TESTING SHOWED THAT SCOPING THESE SEPARATELY IS MORE STABLE AND EASIER TO CLEAN UP
-	 * SPECIALLY WHEN DEALING WITH COMPONENT-BASED UIS
-	 */
+	// Sentiment display configuration for visual feedback
+	const categoryConfig = {
+		student: { color: 'bg-purple-50 border-purple-200', emoji: '🎓', textColor: 'text-purple-900' },
+		junior: { color: 'bg-blue-50 border-blue-200', emoji: '🚀', textColor: 'text-blue-900' },
+		mid: { color: 'bg-green-50 border-green-200', emoji: '⚡', textColor: 'text-green-900' },
+		senior: { color: 'bg-orange-50 border-orange-200', emoji: '👨‍💻', textColor: 'text-orange-900' },
+		veteran: { color: 'bg-red-50 border-red-200', emoji: '🦕', textColor: 'text-red-900' },
+		legend: { color: 'bg-yellow-50 border-yellow-200', emoji: '👴', textColor: 'text-yellow-900' }
+	};
 
-	// Define a RunPython instance to attach our script to
-	let pyScriptRunner = RunPython();
+	onMount(async () => {
+		if (!browser || !controller) return;
 
-	// When the screen loads, we want to load our script
-	onMount(() => {
-		pyScriptRunner.runScript(pyScriptUrl, 'script_gutter', false);
+		// Expose UIHandler for Python to call
+		window.interopUIHandler = {
+			// Called when Python is ready
+			onReady: (data) => {
+				readyState = data;
+				greetingData = null;
+				errorMessage = null;
+			},
+
+			// Called when greeting is generated
+			onGreeting: (data) => {
+				greetingData = data;
+				errorMessage = null;
+			},
+
+			// Called on validation errors
+			onError: (data) => {
+				errorMessage = data.message;
+				greetingData = null;
+			}
+		};
+
+		// Initialize controller
+		await controller.initialize();
 	});
 
-	// when the screen is destroyed we want to destroy all python tags
 	onDestroy(() => {
-		if (pyScriptRunner) pyScriptRunner.destroy();
+		if (!browser || !controller) return;
+		controller.destroy();
 	});
 
-	// when the user clicks the button, execute py code via our pyCodeRunner
+	// Call Python via controller
 	const callPython = () => {
-		try {
-			// Define a RunPython instance to attach the code we want to execute to
-			let pyCodeRunner = RunPython();
-			const pyCode = `run('${inputName}', ${inputAge})`;
-			pyCodeRunner.runCode(pyCode, 'chart', false);
-			pyCodeRunner.destroy(false);
-		} catch (e) {
-			alert('Python died. Try refreshing I guess :(');
-		}
+		if (!browser || !controller) return;
+
+		// Clear previous state
+		errorMessage = null;
+		greetingData = null;
+
+		// Call controller method
+		controller.greetUser(inputName, inputAge);
 	};
 </script>
 
-<ExperimentCard props={{ previousPage: '/examples/basics/repl', nextPage: '/examples/matplotlib/intro' }}>
-	<div slot="py_slot" id="chart" class="h-full w-full p-5" />
+<ExperimentCard
+	props={{ previousPage: '/examples/basics/repl', nextPage: '/examples/matplotlib/intro' }}
+>
+	<div slot="py_slot" class="flex h-full w-full flex-col items-center justify-start p-6 overflow-auto">
+		<!-- Ready State -->
+		{#if readyState && !greetingData && !errorMessage}
+			<div class="w-full rounded-lg bg-blue-100 p-6 text-center border-2 border-blue-300">
+				<p class="text-4xl mb-3">🐍</p>
+				<p class="text-2xl font-bold mb-2 text-blue-900">{readyState.message}</p>
+				<p class="text-sm text-blue-700">{readyState.subtitle}</p>
+			</div>
+		{/if}
+
+		<!-- Error State -->
+		{#if errorMessage}
+			<div class="w-full rounded-lg bg-red-100 p-6 text-center border-2 border-red-300">
+				<p class="text-4xl mb-3">❌</p>
+				<p class="text-xl font-bold text-red-900">{errorMessage}</p>
+			</div>
+		{/if}
+
+		<!-- Greeting Result -->
+		{#if greetingData}
+			{@const config = categoryConfig[greetingData.category]}
+			<div class="w-full rounded-lg {config.color} p-6 border-2">
+				<div class="text-center mb-4">
+					<div class="text-6xl mb-3">{config.emoji}</div>
+					<p class="text-3xl font-bold {config.textColor} mb-2">
+						{greetingData.greeting}, <span class="text-blue-600">{greetingData.name}</span>! 👋
+					</p>
+					<p class="text-gray-600 mb-4">
+						Age: {greetingData.age} | Category: <span class="font-semibold capitalize"
+							>{greetingData.category}</span
+						>
+					</p>
+				</div>
+
+				<div class="mt-4 space-y-3">
+					{#each greetingData.responses as response}
+						<p class="text-lg {config.textColor}">{response}</p>
+					{/each}
+
+					{#if greetingData.years_coding > 0}
+						<p class="text-sm text-gray-500 mt-4">
+							🎂 Potential coding years: ~{greetingData.years_coding}
+						</p>
+					{/if}
+
+					<p class="text-xs text-gray-400 mt-4 italic border-t pt-3">
+						💬 {greetingData.disclaimer}
+					</p>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Loading/Empty State -->
+		{#if !readyState && !greetingData && !errorMessage}
+			<div class="w-full rounded-lg bg-gray-100 p-6 text-center border-2 border-gray-300">
+				<p class="text-3xl mb-2 animate-pulse">⏳</p>
+				<p class="font-bold mb-1">Loading Python...</p>
+				<p class="text-sm text-gray-600">Initializing interoperability demo</p>
+			</div>
+		{/if}
+	</div>
+
 	<article slot="content_slot" class="mb-10">
 		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
 
@@ -62,8 +151,8 @@
 		</p>
 
 		<p class="mb-4 text-sm text-gray-600">
-			<strong>Try it:</strong> Enter your name and age below. The form data will be sent to a Python function
-			that processes it and generates a personalized chart.
+			<strong>Try it:</strong> Enter your name and age below. The form data will be sent to a Python
+			function that processes it and generates a personalized greeting.
 		</p>
 
 		<div class="mb-8 flex items-center justify-center bg-white">
@@ -99,11 +188,31 @@
 		<button class="mt-2 w-full flex-grow bg-green-400 px-3 py-2" type="button" onclick={callPython}
 			>Run</button
 		>
+
+		<div class="mt-6 rounded-lg bg-orange-50 p-4">
+			<h3 class="mb-2 font-bold text-orange-900">🏗️ Architecture Highlights</h3>
+			<p class="text-sm text-orange-800 mb-2">
+				This example demonstrates proper separation of concerns:
+			</p>
+			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
+				<li>
+					<strong>Python</strong> - Pure business logic, sends only data via window callbacks (no
+					innerHTML!)
+				</li>
+				<li>
+					<strong>InteropController</strong> - Manages Python lifecycle and communication layer
+				</li>
+				<li>
+					<strong>Svelte UIHandler</strong> - Pure UI rendering with reactive state based on data received
+				</li>
+			</ul>
+		</div>
+
 		<p class="mt-4">
 			<a
 				class="text-sky-500"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/interop.py"
-				target="_blank">View source</a
+				target="_blank">View Python source</a
 			>
 		</p>
 
@@ -111,10 +220,16 @@
 			<div class="mb-6 rounded-lg bg-gray-100 p-4">
 				<h3 class="mb-2 text-lg font-bold">How It Works:</h3>
 				<ul class="list-disc space-y-2 pl-5">
-					<li><strong>Expose Python Functions:</strong> Make Python functions available to JavaScript via the <code class="rounded bg-white px-1">window</code> object</li>
-					<li><strong>Access JavaScript from Python:</strong> Use the <code class="rounded bg-white px-1">js</code> module to interact with DOM and browser APIs</li>
-					<li><strong>Data Conversion:</strong> Automatic conversion between Python and JavaScript data types</li>
-					<li><strong>Event-Driven:</strong> Trigger Python functions from user interactions</li>
+					<li>
+						<strong>Controller Pattern:</strong> InteropController manages Python setup and callbacks
+					</li>
+					<li>
+						<strong>Data-Only Communication:</strong> Python sends plain objects, Svelte renders the UI
+					</li>
+					<li>
+						<strong>Reactive UI:</strong> Svelte automatically updates when data changes
+					</li>
+					<li><strong>Event-Driven:</strong> User interactions trigger Python functions</li>
 				</ul>
 			</div>
 
