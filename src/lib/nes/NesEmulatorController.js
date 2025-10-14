@@ -290,32 +290,40 @@ export class NesEmulatorController {
 
 	/**
 	 * Save current emulator state
-	 * @returns {string} JSON string of emulator state
+	 * @returns {object|null} State object (to be stringified by caller)
 	 */
 	saveState() {
 		if (this.nes && this.isLoaded) {
-			const state = this.nes.toJSON();
-			this.logger.log('💾 State saved');
-			return state;
+			try {
+				const state = this.nes.toJSON(); // Returns an object, not a string
+				this.logger.log('💾 State saved (object)');
+				return state;
+			} catch (error) {
+				console.error('❌ Failed to save state:', error);
+				return null;
+			}
 		}
 		return null;
 	}
 
 	/**
-	 * Load emulator state from JSON
-	 * @param {string} stateJson - JSON string of emulator state
+	 * Load emulator state from object
+	 * @param {object} stateObj - State object (parsed from JSON)
+	 * @returns {boolean} True if loaded successfully
 	 */
-	loadState(stateJson) {
-		if (this.nes && this.isLoaded && stateJson) {
+	loadState(stateObj) {
+		if (this.nes && this.isLoaded && stateObj) {
 			try {
-				this.nes.fromJSON(stateJson);
-				this.logger.log('📂 State loaded');
+				this.nes.fromJSON(stateObj);
+				this.logger.log('📂 State loaded successfully');
 				return true;
 			} catch (error) {
 				console.error('❌ Failed to load state:', error);
+				console.error('Error details:', error.message);
 				return false;
 			}
 		}
+		console.warn('⚠️ Cannot load state: emulator not ready or invalid state');
 		return false;
 	}
 

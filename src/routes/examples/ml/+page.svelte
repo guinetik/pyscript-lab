@@ -1,12 +1,12 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
-	import { getLink } from '$lib/utils.js';
-	import RunPython from '$lib/RunPython.js';
+	import { DigitRecognitionController } from '$lib/controller/DigitRecognitionController.js';
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import PredictionResult from '$lib/ml/PredictionResult.svelte';
 	import ModelVisualization from '$lib/ml/ModelVisualization.svelte';
 	import UIStatus from '$lib/ml/UIStatus.svelte';
-	import { createLogger } from '@guinetik/logger';
+	import TrainingExamples from '$lib/ml/TrainingExamples.svelte';
 	import {
 		predictionResult,
 		modelState,
@@ -17,74 +17,66 @@
 	// Page metadata
 	let name = 'Machine Learning - Digit Recognition';
 
-	const logger = createLogger({
-		prefix: 'DigitRecognitionPage',
-		level: 'debug'
-	});
+	// Controller instance
+	let controller = browser ? new DigitRecognitionController() : null;
 
-	// Canvas reference
+	// Canvas state
 	let canvas;
 	let ctx;
 	let isDrawing = false;
 
-	// Python script URL
-	const pyScriptUrl = getLink('python/ml/digit_recognition.py');
+	// Training examples state
+	let trainingExamplesData = $state(null);
 
-	// Define a RunPython instance to attach our script to
-	let pyScriptRunner = RunPython();
+	onMount(async () => {
+		if (!browser || !controller) return;
 
-	// When the screen loads, we want to load our script
-	onMount(() => {
-		// Expose store update functions to window for Python to call
-		// Convert Pyodide proxies to plain JavaScript objects to avoid proxy destruction errors
-		window.updatePredictionResult = (data) => {
-			logger.log('🟢 [JS] updatePredictionResult called with:', data);
-			if (data === null || data === undefined) {
-				logger.log('🟢 [JS] Clearing prediction result');
+		// Expose UIHandler for Python to call
+		window.digitRecognitionUIHandler = {
+			// Prediction results
+			onPredictionResult: (data) => {
+				if (data === null || data === undefined) {
+					predictionResult.set(null);
+				} else {
+					// Data is already a plain JS object from to_js()
+					predictionResult.set(data);
+				}
+			},
+
+			// Model state updates
+			onModelState: (data) => {
+				modelState.set(data);
+			},
+
+			// UI status messages
+			onUIState: (status, message) => {
+				uiState.set({ status: String(status), message: String(message) });
+			},
+
+			// Training examples data
+			onTrainingExamples: (data) => {
+				trainingExamplesData = data;
+			},
+
+			// Clear and reset
+			onClearAndReset: () => {
+				clearCanvas();
 				predictionResult.set(null);
-			} else {
-				// Convert proxy to plain JS object
-				const plainData = {
-					prediction: data.prediction,
-					confidence: data.confidence,
-					probabilities: Array.from(data.probabilities || []),
-					imageData: Array.from(data.imageData || []),
-					imageData2D: Array.from(data.imageData2D || []).map(row => Array.from(row))
-				};
-				logger.log('🟢 [JS] Setting prediction result:', plainData);
-				predictionResult.set(plainData);
 			}
 		};
 
-		window.updateModelState = (data) => {
-			logger.log('🟢 [JS] updateModelState called with:', data);
-			// Convert proxy to plain JS object
-			const plainData = {
-				accuracy: data.accuracy,
-				trainingExamples: data.trainingExamples
-			};
-			logger.log('🟢 [JS] Setting model state:', plainData);
-			modelState.set(plainData);
-		};
-
-		window.updateUIState = (status, message) => {
-			logger.log('🟢 [JS] updateUIState called:', status, message);
-			// Primitives don't need conversion
-			uiState.set({ status: String(status), message: String(message) });
-		};
-
-		// Expose clearAndReset for Python and components to call
-		window.clearAndReset = clearAndResetUI;
+		// Initialize controller
+		await controller.initialize();
 
 		// Initialize model state
 		modelState.set({ accuracy: 0, trainingExamples: 0 });
 		uiState.set({ status: 'ready', message: 'Draw a digit and click Predict' });
 
-		pyScriptRunner.runScript(pyScriptUrl, 'script_gutter', false);
-
 		// Setup canvas
 		canvas = document.getElementById('drawCanvas');
 		if (canvas) {
+			controller.setCanvas(canvas);
+
 			ctx = canvas.getContext('2d');
 			ctx.fillStyle = 'white';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -106,14 +98,12 @@
 		}
 	});
 
-	// when the screen is destroyed we want to destroy all python tags
 	onDestroy(() => {
-		if (pyScriptRunner) pyScriptRunner.destroy();
+		if (!browser || !controller) return;
+		controller.destroy();
 	});
 
-	/**
-	 * Start drawing on canvas
-	 */
+	// Canvas drawing functions
 	function startDrawing(e) {
 		isDrawing = true;
 		const rect = canvas.getBoundingClientRect();
@@ -121,9 +111,6 @@
 		ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 	}
 
-	/**
-	 * Draw on canvas
-	 */
 	function draw(e) {
 		if (!isDrawing) return;
 		const rect = canvas.getBoundingClientRect();
@@ -131,16 +118,10 @@
 		ctx.stroke();
 	}
 
-	/**
-	 * Stop drawing
-	 */
 	function stopDrawing() {
 		isDrawing = false;
 	}
 
-	/**
-	 * Handle touch start for mobile
-	 */
 	function handleTouchStart(e) {
 		e.preventDefault();
 		const touch = e.touches[0];
@@ -150,9 +131,6 @@
 		ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
 	}
 
-	/**
-	 * Handle touch move for mobile
-	 */
 	function handleTouchMove(e) {
 		e.preventDefault();
 		if (!isDrawing) return;
@@ -162,47 +140,40 @@
 		ctx.stroke();
 	}
 
-	/**
-	 * Clear the canvas
-	 */
 	function clearCanvas() {
+		if (!ctx || !canvas) return;
 		ctx.fillStyle = 'white';
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		resetStores();
 	}
 
-	/**
-	 * Clear canvas and reset UI (called from Python and components)
-	 */
-	function clearAndResetUI() {
-		clearCanvas();
-		// Also clear model viz
-		predictionResult.set(null);
+	// Auto-clear canvas after feedback is submitted
+	$effect(() => {
+		if ($uiState.status === 'reinforced' || $uiState.status === 'retrained' || $uiState.status === 'reset') {
+			// Clear canvas automatically after a brief delay so user can see the message
+			setTimeout(() => {
+				if (ctx && canvas) {
+					ctx.fillStyle = 'white';
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+				}
+			}, 100);
+		}
+	});
+
+	// Controller method wrappers
+	function predictDigit() {
+		if (!browser || !controller) return;
+		controller.predictDigit();
 	}
 
-	/**
-	 * Predict the drawn digit by calling Python
-	 */
-	function predictDigit() {
-		logger.log('🔵 [JS] predictDigit() called');
-		try {
-			// Get canvas data as base64
-			const imageData = canvas.toDataURL('image/png');
-			logger.log('🔵 [JS] Got canvas data, length:', imageData.length);
+	function showTrainingExamples() {
+		if (!browser || !controller) return;
+		controller.showTrainingExamples();
+	}
 
-			// Call Python function directly through window
-			if (window.predict_digit) {
-				logger.log('🔵 [JS] Calling window.predict_digit()');
-				window.predict_digit(imageData);
-				logger.log('🔵 [JS] Python call completed');
-			} else {
-				console.error('🔴 [JS] window.predict_digit not found! Python may not be ready.');
-				alert('Python is not ready yet. Please wait a moment and try again.');
-			}
-		} catch (e) {
-			console.error('🔴 [JS] Error in predictDigit:', e);
-			alert('Error: ' + e.message);
-		}
+	function hideTrainingExamples() {
+		if (!browser || !controller) return;
+		controller.hideTrainingExamples();
 	}
 </script>
 
@@ -260,12 +231,14 @@
 		<!-- Training examples toggle -->
 		<div class="my-6 text-center">
 			<button
-				onclick={() => window.showTrainingExamples()}
+				onclick={showTrainingExamples}
 				class="rounded bg-purple-400 px-4 py-2 text-white hover:bg-purple-500 font-medium">
 				📚 Show Training Examples
 			</button>
 		</div>
-		<div id="training-examples" class="my-6"></div>
+
+		<!-- Training examples component -->
+		<TrainingExamples data={trainingExamplesData} onHide={hideTrainingExamples} />
 
 		<div class="mt-6 rounded-lg bg-blue-50 p-4">
 			<h3 class="mb-2 font-bold text-blue-900">How it works:</h3>
@@ -294,6 +267,24 @@
 			</p>
 		</div>
 
+		<div class="mt-4 rounded-lg bg-orange-50 p-4">
+			<h3 class="mb-2 font-bold text-orange-900">🏗️ Architecture</h3>
+			<p class="text-sm text-orange-800">
+				This example demonstrates proper separation of concerns:
+			</p>
+			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
+				<li>
+					<strong>Python</strong> - Pure ML logic, sends only data via window callbacks (no innerHTML!)
+				</li>
+				<li>
+					<strong>DigitRecognitionController</strong> - Manages Python lifecycle and communication layer
+				</li>
+				<li>
+					<strong>Svelte Components</strong> - Pure UI rendering with reactive state
+				</li>
+			</ul>
+		</div>
+
 		<p class="mt-4">
 			<a
 				class="text-sky-500"
@@ -303,4 +294,3 @@
 		</p>
 	</article>
 </ExperimentCard>
-

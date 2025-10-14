@@ -18,7 +18,7 @@
 	let pyScriptRunner = RunPython();
 
 	// UI State
-	let status = $state('initializing'); // 'initializing' | 'ready' | 'training' | 'playing' | 'paused'
+	let status = $state('initializing'); // 'initializing' | 'ready' | 'training' | 'playing' | 'paused' | 'error'
 	let statusMessage = $state('Initializing emulator...');
 	let episode = $state(0);
 	let totalReward = $state(0);
@@ -28,6 +28,7 @@
 	let emulatorReady = false;
 	let savedState = $state(null); // Store saved state in memory
 	let hasState = $state(false);
+	let emulatorKey = $state(0); // Key to force emulator remount
 
 	onMount(async () => {
 		logger.log('🎮 RL Page mounted');
@@ -74,6 +75,15 @@
 
 		statusMessage = 'Emulator ready. Click "Play Game" to test or "Start Training" to begin AI learning.';
 		status = 'ready';
+
+		// Check if we should auto-start playing after restart
+		const autoplay = sessionStorage.getItem('rl_autoplay');
+		if (autoplay === 'true') {
+			sessionStorage.removeItem('rl_autoplay');
+			logger.log('🎮 Auto-starting manual play after restart');
+			// Small delay to ensure everything is ready
+			setTimeout(() => playManual(), 100);
+		}
 	}
 
 	function handleEmulatorError(error) {
@@ -90,6 +100,19 @@
 			return;
 		}
 
+		// If already running (playing or training), nuke and recreate emulator
+		const emulator = window.nesEmulator;
+		if (emulator && emulator.isRunning()) {
+			logger.log('🔄 Full restart: destroying and recreating emulator');
+			status = 'initializing';
+			statusMessage = 'Restarting emulator...';
+			emulatorReady = false;
+			emulatorKey++; // Force NesEmulator component to remount
+			// Wait for emulator to be ready again before starting training
+			// The handleEmulatorReady will be called when new instance is ready
+			return;
+		}
+
 		if (window.startRLTraining) {
 			logger.log('🔵 [JS] Calling window.startRLTraining()');
 			window.startRLTraining();
@@ -100,9 +123,26 @@
 		}
 	}
 
-	function pauseTraining() {
-		if (window.pauseRLTraining) {
-			window.pauseRLTraining();
+	function pauseGame() {
+		logger.log('⏸️ [JS] pauseGame() called');
+
+		const emulator = window.nesEmulator;
+		if (emulator && emulator.isRunning()) {
+			emulator.stop();
+
+			// If training was running, notify Python
+			if (status === 'training' && window.pauseRLTraining) {
+				window.pauseRLTraining();
+			}
+
+			// Update status
+			if (status === 'playing') {
+				status = 'ready';
+				statusMessage = 'Manual play paused. Click Play Game to resume.';
+			} else if (status === 'training') {
+				status = 'paused';
+				statusMessage = 'Training paused. Click Start Training to resume.';
+			}
 		}
 	}
 
@@ -126,37 +166,33 @@
 			return;
 		}
 
-		// Stop any training
-		if (status === 'training') {
-			pauseTraining();
-		}
-
-		// Enable keyboard controls
 		const emulator = window.nesEmulator;
 		if (emulator) {
-			emulator.enableKeyboard();
-
-			// Start emulator
-			if (!emulator.isRunning()) {
-				logger.log('▶️ Starting emulator for manual play');
-				emulator.start();
+			// If already playing, nuke and recreate emulator
+			if (status === 'playing') {
+				logger.log('🔄 Full restart: destroying and recreating emulator');
+				status = 'initializing';
+				statusMessage = 'Restarting emulator...';
+				emulatorReady = false;
+				emulatorKey++; // Force NesEmulator component to remount
+				// After remount, handleEmulatorReady will be called and we'll auto-start playing
+				// We'll use a flag to remember we want to play
+				sessionStorage.setItem('rl_autoplay', 'true');
+				return;
 			}
+
+			// Stop any training
+			if (status === 'training' && window.pauseRLTraining) {
+				window.pauseRLTraining();
+			}
+
+			// Enable keyboard controls and start
+			emulator.enableKeyboard();
+			logger.log('▶️ Starting emulator for manual play');
+			emulator.start();
 
 			status = 'playing';
 			statusMessage = 'Manual play mode active! Use keyboard to control Mario.';
-		}
-	}
-
-	function stopManual() {
-		logger.log('🔵 [JS] stopManual() called');
-
-		const emulator = window.nesEmulator;
-		if (emulator) {
-			emulator.disableKeyboard();
-			emulator.stop();
-
-			status = 'ready';
-			statusMessage = 'Manual play stopped. Ready for next action.';
 		}
 	}
 
@@ -165,32 +201,32 @@
 
 		const emulator = window.nesEmulator;
 		if (emulator && emulator.controller) {
-			const state = emulator.controller.saveState();
-			if (state) {
-				// Convert to JSON string
-				const stateJson = JSON.stringify(state, null, 2);
+			const stateObj = emulator.controller.saveState();
+			if (stateObj) {
+				// nes.toJSON() returns an object, we need to stringify it
+				const stateJson = JSON.stringify(stateObj, null, 2);
 
-				// Save to memory
+				// Save stringified version to memory
 				savedState = stateJson;
 				hasState = true;
 
-				// Print JSON to console for copying to data/state.json
-				logger.log('📋 Copy this JSON and save it to static/data/state.json:');
-				logger.log(stateJson);
+				// Print JSON to console for copying
+				logger.log('📋 State saved! Size:', stateJson.length, 'bytes');
+				logger.log('First 500 chars:', stateJson.substring(0, 500));
 
-				// Try to download as file
+				// Download as file
 				try {
 					const blob = new Blob([stateJson], { type: 'application/json' });
 					const url = URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
-					a.download = 'state.json';
+					a.download = 'mario-state.json';
 					a.click();
 					URL.revokeObjectURL(url);
-					statusMessage = 'State saved! Check your downloads for state.json';
+					statusMessage = `State saved! (${(stateJson.length / 1024).toFixed(0)}KB) Check downloads.`;
 				} catch (error) {
 					console.error('Could not download file:', error);
-					statusMessage = 'State JSON printed to console - copy it to static/data/state.json';
+					statusMessage = 'State JSON printed to console';
 				}
 			}
 		}
@@ -212,29 +248,37 @@
 			}
 
 			try {
-				// Read file contents
+				// Read file contents as text
 				const text = await file.text();
-				const stateJson = JSON.parse(text); // Validate JSON
 
-				// Save to memory
+				// Parse JSON to validate and get object
+				const stateObj = JSON.parse(text);
+
+				// Save stringified version to memory
 				savedState = text;
 				hasState = true;
 
-				logger.log('✅ State file loaded into memory');
-				statusMessage = `State loaded from ${file.name}! Click Play or Start Training to use it.`;
+				logger.log('✅ State file parsed:', (text.length / 1024).toFixed(0), 'KB');
+				statusMessage = `State loaded from ${file.name}! Applying...`;
 
 				// Immediately apply the state to the emulator if it's ready
 				const emulator = window.nesEmulator;
-				if (emulator && emulator.controller) {
-					const loaded = emulator.controller.loadState(text);
+				if (emulator && emulator.controller && emulator.controller.isLoaded) {
+					// fromJSON expects an object, not a string
+					const loaded = emulator.controller.loadState(stateObj);
 					if (loaded) {
 						logger.log('✅ State applied to emulator');
-						statusMessage = `State from ${file.name} applied! Game is now at saved position.`;
+						statusMessage = `State from ${file.name} applied! Game resumed.`;
+					} else {
+						logger.log('⚠️ Failed to apply state to emulator');
+						statusMessage = `State loaded but couldn't be applied. Emulator may not be ready.`;
 					}
+				} else {
+					statusMessage = `State loaded. Start the game to apply it.`;
 				}
 			} catch (error) {
 				console.error('❌ Failed to load state file:', error);
-				statusMessage = 'Error loading state file. Make sure it\'s a valid state.json file.';
+				statusMessage = `Error loading state: ${error.message}`;
 			}
 		};
 
@@ -252,12 +296,14 @@
 	<div slot="py_slot" class="flex h-full flex-col p-5 space-y-4">
 		<!-- Emulator Display -->
 		<div class="flex justify-center">
-			<NesEmulator
-				romPath={getLink('data/mario.nes')}
-				scale={2}
-				onReady={handleEmulatorReady}
-				onError={handleEmulatorError}
-			/>
+			{#key emulatorKey}
+				<NesEmulator
+					romPath={getLink('data/mario.nes')}
+					scale={2}
+					onReady={handleEmulatorReady}
+					onError={handleEmulatorError}
+				/>
+			{/key}
 		</div>
 
 		<!-- Control Buttons -->
@@ -265,15 +311,15 @@
 			<!-- Row 1: Play Game and Pause -->
 			<div class="grid grid-cols-2 gap-3">
 				<button
-					onclick={status === 'playing' ? stopManual : playManual}
+					onclick={playManual}
 					disabled={status === 'training' || status === 'initializing'}
 					class="rounded bg-purple-500 px-6 py-3 font-bold text-white hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'playing' ? '⏹️ Stop Playing' : '🎮 Play Game'}
+					{status === 'playing' ? '🔄 Restart Game' : '🎮 Play Game'}
 				</button>
 				<button
-					onclick={pauseTraining}
-					disabled={status !== 'training'}
+					onclick={pauseGame}
+					disabled={status !== 'training' && status !== 'playing'}
 					class="rounded bg-yellow-500 px-6 py-3 font-bold text-white hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
 					⏸️ Pause
@@ -284,14 +330,14 @@
 			<div class="grid grid-cols-2 gap-3">
 				<button
 					onclick={startTraining}
-					disabled={status === 'training' || status === 'initializing'}
+					disabled={status === 'initializing'}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'training' ? '🏃 Training...' : '▶️ Start Training'}
+					{status === 'training' ? '🔄 Restart Training' : '▶️ Start Training'}
 				</button>
 				<button
 					onclick={resetTraining}
-					disabled={status === 'training'}
+					disabled={status === 'initializing'}
 					class="rounded bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
 					🔄 Reset
@@ -341,9 +387,11 @@
 					? 'bg-green-50 border-green-200'
 					: status === 'playing'
 						? 'bg-purple-50 border-purple-200'
-						: status === 'ready'
-							? 'bg-blue-50 border-blue-200'
-							: 'bg-gray-50 border-gray-200'}"
+						: status === 'paused'
+							? 'bg-yellow-50 border-yellow-200'
+							: status === 'ready'
+								? 'bg-blue-50 border-blue-200'
+								: 'bg-gray-50 border-gray-200'}"
 		>
 			<p
 				class="text-sm font-mono {status === 'error'
@@ -352,9 +400,11 @@
 						? 'text-green-700'
 						: status === 'playing'
 							? 'text-purple-700'
-							: status === 'ready'
-								? 'text-blue-700'
-								: 'text-gray-600'}"
+							: status === 'paused'
+								? 'text-yellow-700'
+								: status === 'ready'
+									? 'text-blue-700'
+									: 'text-gray-600'}"
 			>
 				{statusMessage}
 			</p>

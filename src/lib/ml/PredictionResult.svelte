@@ -46,8 +46,19 @@
 	 * Submit correction and retrain model
 	 */
 	function submitCorrection() {
+		if (!correctDigit || correctDigit === '') {
+			alert('Please enter the correct digit (0-9)');
+			return;
+		}
+
+		const digit = parseInt(correctDigit);
+		if (isNaN(digit) || digit < 0 || digit > 9) {
+			alert('Please enter a valid digit between 0 and 9');
+			return;
+		}
+
 		if (window.retrainWithCorrection) {
-			window.retrainWithCorrection();
+			window.retrainWithCorrection(digit);
 		}
 	}
 
