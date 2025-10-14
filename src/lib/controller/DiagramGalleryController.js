@@ -14,6 +14,7 @@
 import { DiagramRenderer } from '$lib/DiagramRenderer.js';
 import RunPython from '$lib/RunPython.js';
 import { getLink } from '$lib/utils.js';
+import { createLogger } from '@guinetik/logger';
 
 /**
  * @typedef {Object} DiagramExample
@@ -46,8 +47,11 @@ export class DiagramGalleryController {
 	 * @returns {Promise<void>}
 	 */
 	async initialize() {
+		this.logger = createLogger(
+			{prefix: 'DiagramGalleryController',
+			level: 'debug'});
 		if (this.isInitialized) {
-			console.warn('⚠️ DiagramGalleryController already initialized');
+			this.logger.warn('⚠️ DiagramGalleryController already initialized');
 			return;
 		}
 
@@ -65,9 +69,9 @@ export class DiagramGalleryController {
 			this._generateAllDiagrams();
 
 			this.isInitialized = true;
-			console.log('✅ DiagramGalleryController initialized');
+			this.logger.log('✅ DiagramGalleryController initialized');
 		} catch (error) {
-			console.error('❌ Failed to initialize DiagramGalleryController:', error);
+			this.logger.error('❌ Failed to initialize DiagramGalleryController:', error);
 			throw error;
 		}
 	}
@@ -82,11 +86,11 @@ export class DiagramGalleryController {
 		// Load viz.js dynamically
 		const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.2.0/+esm');
 		const viz = await instance();
-		console.log('✅ Viz.js loaded and ready!');
+		this.logger.log('✅ Viz.js loaded and ready!');
 
 		// Create DiagramRenderer instance
 		this.diagramRenderer = new DiagramRenderer(viz);
-		console.log('✅ DiagramRenderer created!');
+		this.logger.log('✅ DiagramRenderer created!');
 
 		// Expose to window for Python to call
 		window.diagramRenderer = this.diagramRenderer;
@@ -97,7 +101,7 @@ export class DiagramGalleryController {
 			this.diagramRenderer.renderSimple(chartId, dotContent);
 		};
 
-		console.log('✅ DiagramRenderer exposed to window');
+		this.logger.log('✅ DiagramRenderer exposed to window');
 	}
 
 	/**
@@ -118,10 +122,10 @@ export class DiagramGalleryController {
 			// Wait for Python manager to be ready
 			const checkManager = () => {
 				if (window.manager) {
-					console.log('✅ PyScript runner initialized, manager ready');
+					this.logger.log('✅ PyScript runner initialized, manager ready');
 					resolve();
 				} else {
-					console.log('⏳ Waiting for Python manager...');
+					this.logger.log('⏳ Waiting for Python manager...');
 					setTimeout(checkManager, 500);
 				}
 			};
@@ -170,7 +174,7 @@ export class DiagramGalleryController {
 			window.manager.addExample(example.name, example.id, fullPath);
 		});
 
-		console.log(`✅ Registered ${this.examples.length} diagram examples`);
+		this.logger.log(`✅ Registered ${this.examples.length} diagram examples`);
 	}
 
 	/**
@@ -181,7 +185,7 @@ export class DiagramGalleryController {
 	_generateAllDiagrams() {
 		// Give a moment for everything to settle, then generate all diagrams
 		setTimeout(() => {
-			console.log('🚀 Generating all diagrams...');
+			this.logger.log('🚀 Generating all diagrams...');
 			window.manager.generateAll();
 		}, 1000);
 	}
@@ -193,11 +197,11 @@ export class DiagramGalleryController {
 	 */
 	regenerateDiagram(exampleId) {
 		if (!this.isInitialized) {
-			console.error('❌ Controller not initialized');
+			this.logger.error('❌ Controller not initialized');
 			return;
 		}
 
-		console.log(`🔄 Regenerating diagram: ${exampleId}`);
+		this.logger.log(`🔄 Regenerating diagram: ${exampleId}`);
 		window.generateExample(exampleId);
 	}
 
@@ -235,7 +239,7 @@ export class DiagramGalleryController {
 		delete window.renderDiagram;
 
 		this.isInitialized = false;
-		console.log('✅ DiagramGalleryController destroyed');
+		this.logger.log('✅ DiagramGalleryController destroyed');
 	}
 }
 

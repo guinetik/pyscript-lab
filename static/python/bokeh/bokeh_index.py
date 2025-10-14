@@ -96,7 +96,7 @@ class BokehScatterPlot:
         # Validate data
         self._validate_data()
 
-        console.log("✅ BokehScatterPlot initialized")
+        print("✅ BokehScatterPlot initialized")
 
     def _validate_data(self):
         """
@@ -142,7 +142,7 @@ class BokehScatterPlot:
         p.title.text_font_size = "16pt"
         p.title.align = "center"
 
-        console.log("✅ Bokeh figure created with interactive tools")
+        print("✅ Bokeh figure created with interactive tools")
         return p
 
     def _add_scatter_points(
@@ -176,7 +176,7 @@ class BokehScatterPlot:
             fill_alpha=fill_alpha
         )
 
-        console.log(f"✅ Added {len(self.x_data)} scatter points to plot")
+        print(f"✅ Added {len(self.x_data)} scatter points to plot")
 
     def _embed_plot(self, plot: figure):
         """
@@ -201,7 +201,7 @@ class BokehScatterPlot:
             # Embed the plot using Bokeh's JavaScript API
             Bokeh.embed.embed_item(JSON.parse(p_json))
 
-            console.log(f"✅ Plot embedded successfully in #{self.container_id}")
+            print(f"✅ Plot embedded successfully in #{self.container_id}")
         except Exception as e:
             error_msg = f"Failed to embed plot: {str(e)}"
             console.error(f"❌ {error_msg}")
@@ -235,7 +235,7 @@ class BokehScatterPlot:
             >>> plotter.run(size=20, fill_color="red")  # Custom styling
         """
         print("🐍 Starting Bokeh scatter plot creation...")
-        console.log("🐍 Starting Bokeh scatter plot creation...")
+        print("🐍 Starting Bokeh scatter plot creation...")
 
         # Create the figure
         plot = self._create_figure()
@@ -254,13 +254,13 @@ class BokehScatterPlot:
         self._embed_plot(plot)
 
         print("🐍 Scatter plot rendered successfully!")
-        console.log("🐍 Scatter plot rendered successfully!")
+        print("🐍 Scatter plot rendered successfully!")
 
 
 # Entry point: Create instance and run the example
 if __name__ == "__main__":
     print("🐍 Starting basic Bokeh scatter example...")
-    console.log("🐍 Starting basic Bokeh scatter example...")
+    print("🐍 Starting basic Bokeh scatter example...")
 
     # Create and run the scatter plot
     plotter = BokehScatterPlot(
@@ -271,4 +271,4 @@ if __name__ == "__main__":
     plotter.run()
 
     print("🐍 Basic Bokeh scatter example complete!")
-    console.log("🐍 Basic Bokeh scatter example complete!")
+    print("🐍 Basic Bokeh scatter example complete!")

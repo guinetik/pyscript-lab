@@ -42,7 +42,7 @@ class DiagramManager:
         self.examples: Dict[str, Dict] = {}
         self.base = get_diagrams_base()
         
-        console.log("🐍 DiagramManager initialized")
+        print("🐍 DiagramManager initialized")
     
     def addExample(self, name: str, example_id: str, file_path: str):
         """
@@ -58,7 +58,7 @@ class DiagramManager:
             "file_path": file_path,
             "id": example_id
         }
-        console.log(f"📝 Registered example: {name} ({example_id})")
+        print(f"📝 Registered example: {name} ({example_id})")
     
     def generateExample(self, example_id: str):
         """
@@ -75,7 +75,7 @@ class DiagramManager:
             return
         
         example = self.examples[example_id]
-        console.log(f"🔄 Generating: {example['name']}")
+        print(f"🔄 Generating: {example['name']}")
         
         try:
             # Set current chart ID on the base
@@ -83,25 +83,25 @@ class DiagramManager:
             
             # Load and execute the Python file
             file_path = example["file_path"]
-            console.log(f"📂 Loading file: {file_path}")
+            print(f"📂 Loading file: {file_path}")
             
             # Read the Python file
             with open_url(file_path) as f:
                 code = f.read()
             
-            console.log(f"✅ File loaded: {len(code)} bytes")
+            print(f"✅ File loaded: {len(code)} bytes")
             
             # Execute the diagram code
             exec(code, {"__name__": "__main__"})
             
-            console.log(f"✅ Generated: {example['name']}")
+            print(f"✅ Generated: {example['name']}")
             
         except FileNotFoundError as e:
             # Suppress FileNotFoundError (errno 44) - this is expected!
             # The patched render() returns a fake filename but doesn't create the file
             # because we use viz.js for rendering instead
-            console.log(f"ℹ️ Suppressing expected FileNotFoundError for {example_id}: {str(e)}")
-            console.log(f"✅ Generated: {example['name']}")
+            print(f"ℹ️ Suppressing expected FileNotFoundError for {example_id}: {str(e)}")
+            print(f"✅ Generated: {example['name']}")
             
         except Exception as e:
             console.error(f"❌ Error generating {example_id}: {e}")
@@ -115,7 +115,7 @@ class DiagramManager:
         
         Useful for initial page load to render all diagrams at once.
         """
-        console.log(f"🚀 Generating all {len(self.examples)} examples...")
+        print(f"🚀 Generating all {len(self.examples)} examples...")
         
         for example_id in self.examples.keys():
             try:
@@ -123,7 +123,7 @@ class DiagramManager:
             except Exception as e:
                 console.error(f"❌ Failed to generate {example_id}: {e}")
         
-        console.log("✅ All examples generated!")
+        print("✅ All examples generated!")
 
 
 # Create global instance
@@ -132,6 +132,6 @@ manager = DiagramManager()
 # Expose to JavaScript
 window.manager = manager
 window.generateExample = manager.generateExample
-console.log("✅ window.manager and window.generateExample() exposed to JavaScript")
+print("✅ window.manager and window.generateExample() exposed to JavaScript")
 
 print("✅ Diagram Manager ready!")

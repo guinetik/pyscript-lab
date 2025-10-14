@@ -8,6 +8,7 @@ import { FrameTimer } from './FrameTimer.js';
 import { Speakers } from './Speakers.js';
 import { Screen } from './Screen.js';
 import { GamepadController } from './GamepadController.js';
+import { createLogger } from '@guinetik/logger';
 
 export class NesEmulatorController {
 	/**
@@ -15,6 +16,9 @@ export class NesEmulatorController {
 	 * @param {HTMLCanvasElement} canvasElement - Canvas element for rendering
 	 */
 	constructor(canvasElement) {
+		this.logger = createLogger(
+			{prefix: 'NesEmulatorController',
+			level: 'debug'});
 		// Core components
 		this.canvas = canvasElement;
 		this.screen = null;
@@ -32,7 +36,7 @@ export class NesEmulatorController {
 		this.onReadyCallback = null;
 		this.onErrorCallback = null;
 		
-		console.log('🎮 NesEmulatorController created');
+		this.logger.log('🎮 NesEmulatorController created');
 	}
 
 	/**
@@ -54,7 +58,7 @@ export class NesEmulatorController {
 				throw new Error('JSNes failed to load');
 			}
 
-			console.log('✅ JSNes loaded');
+			this.logger.log('✅ JSNes loaded');
 
 			// Create screen
 			this.screen = new Screen(this.canvas);
@@ -64,13 +68,13 @@ export class NesEmulatorController {
 				onBufferUnderrun: (/** @type {number} */ actualSize, /** @type {number} */ desiredSize) => {
 					// Generate extra frame to catch up on audio
 					if (this.frameTimer && this.isRunning) {
-						console.log('🔊 Audio buffer underrun, generating extra frame');
+						this.logger.log('🔊 Audio buffer underrun, generating extra frame');
 						this.frameTimer.generateFrame();
 						
 						// Check if we need a second frame
 						// @ts-ignore - speakers exists here
 						if (this.speakers.getBufferSize() / 2 < desiredSize) {
-							console.log('🔊 Still underrun, generating second frame');
+							this.logger.log('🔊 Still underrun, generating second frame');
 							this.frameTimer.generateFrame();
 						}
 					}
@@ -119,7 +123,7 @@ export class NesEmulatorController {
 				}
 			}
 
-			console.log('✅ NesEmulatorController initialized');
+			this.logger.log('✅ NesEmulatorController initialized');
 
 			if (this.onReadyCallback) {
 				this.onReadyCallback(this);
@@ -149,7 +153,7 @@ export class NesEmulatorController {
 				this.speakers.writeSample(left, right);
 			},
 			onStatusUpdate: (/** @type {string} */ status) => {
-				console.log('🎮 JSNes status:', status);
+				this.logger.log('🎮 JSNes status:', status);
 			}
 		});
 
@@ -166,10 +170,10 @@ export class NesEmulatorController {
 		};
 
 		this.nes.start = () => {
-			console.log('▶️ JSNes called start()');
+			this.logger.log('▶️ JSNes called start()');
 		};
 
-		console.log('✅ NES instance created');
+		this.logger.log('✅ NES instance created');
 	}
 
 	/**
@@ -179,7 +183,7 @@ export class NesEmulatorController {
 	 */
 	async loadROM(path) {
 		try {
-			console.log(`🎮 Loading ROM: ${path}`);
+			this.logger.log(`🎮 Loading ROM: ${path}`);
 
 			if (!this.nes) {
 				throw new Error('NES instance not created yet');
@@ -193,7 +197,7 @@ export class NesEmulatorController {
 			const arrayBuffer = await response.arrayBuffer();
 			const romData = new Uint8Array(arrayBuffer);
 
-			console.log(`📦 ROM data received: ${romData.length} bytes`);
+			this.logger.log(`📦 ROM data received: ${romData.length} bytes`);
 
 			// Convert to binary string (JSNes expects this format)
 			let binaryString = '';
@@ -211,7 +215,7 @@ export class NesEmulatorController {
 			}
 
 			this.isLoaded = true;
-			console.log('✅ ROM loaded successfully');
+			this.logger.log('✅ ROM loaded successfully');
 			return true;
 		} catch (error) {
 			console.error('❌ ROM loading failed:', error);
@@ -237,7 +241,7 @@ export class NesEmulatorController {
 			return;
 		}
 
-		console.log('▶️ Starting emulation');
+		this.logger.log('▶️ Starting emulation');
 		
 		this.isRunning = true;
 		
@@ -248,7 +252,7 @@ export class NesEmulatorController {
 			this.speakers.start();
 		}
 		
-		console.log('✅ Emulation started');
+		this.logger.log('✅ Emulation started');
 	}
 
 	/**
@@ -259,7 +263,7 @@ export class NesEmulatorController {
 			return;
 		}
 
-		console.log('⏹️ Stopping emulation');
+		this.logger.log('⏹️ Stopping emulation');
 		
 		this.isRunning = false;
 		
@@ -271,7 +275,7 @@ export class NesEmulatorController {
 			this.speakers.stop();
 		}
 		
-		console.log('✅ Emulation stopped');
+		this.logger.log('✅ Emulation stopped');
 	}
 
 	/**
@@ -280,7 +284,7 @@ export class NesEmulatorController {
 	reset() {
 		if (this.nes && this.isLoaded) {
 			this.nes.reset();
-			console.log('🔄 Emulator reset');
+			this.logger.log('🔄 Emulator reset');
 		}
 	}
 
@@ -291,7 +295,7 @@ export class NesEmulatorController {
 	saveState() {
 		if (this.nes && this.isLoaded) {
 			const state = this.nes.toJSON();
-			console.log('💾 State saved');
+			this.logger.log('💾 State saved');
 			return state;
 		}
 		return null;
@@ -305,7 +309,7 @@ export class NesEmulatorController {
 		if (this.nes && this.isLoaded && stateJson) {
 			try {
 				this.nes.fromJSON(stateJson);
-				console.log('📂 State loaded');
+				this.logger.log('📂 State loaded');
 				return true;
 			} catch (error) {
 				console.error('❌ Failed to load state:', error);
@@ -370,7 +374,7 @@ export class NesEmulatorController {
 		this.gamepadController = null;
 		this.gamepadPolling = null;
 
-		console.log('🗑️ NesEmulatorController destroyed');
+		this.logger.log('🗑️ NesEmulatorController destroyed');
 	}
 
 	/**

@@ -76,7 +76,7 @@ class DigitRecognizer:
         trains a K-Nearest Neighbors classifier, and prepares the UI.
         """
         print("🔢 Initializing DigitRecognizer...")
-        console.log("🔢 Initializing DigitRecognizer...")
+        print("🔢 Initializing DigitRecognizer...")
 
         # Load dataset
         digits = datasets.load_digits()
@@ -103,7 +103,7 @@ class DigitRecognizer:
         self._initialize_ui()
 
         print("✅ DigitRecognizer ready!")
-        console.log("✅ DigitRecognizer ready!")
+        print("✅ DigitRecognizer ready!")
 
     def _train_model(self):
         """
@@ -113,7 +113,7 @@ class DigitRecognizer:
         Calculates and logs the model accuracy on the test set.
         """
         print(f"🤖 Training K-Nearest Neighbors classifier (k={self.N_NEIGHBORS})...")
-        console.log(f"🤖 Training K-Nearest Neighbors classifier (k={self.N_NEIGHBORS})...")
+        print(f"🤖 Training K-Nearest Neighbors classifier (k={self.N_NEIGHBORS})...")
 
         self.classifier = KNeighborsClassifier(
             n_neighbors=self.N_NEIGHBORS,
@@ -125,7 +125,7 @@ class DigitRecognizer:
         self.accuracy = self.classifier.score(self.X_test, self.y_test)
 
         print(f"✅ Model trained! Accuracy: {self.accuracy * 100:.2f}%")
-        console.log(f"✅ Model trained! Accuracy: {self.accuracy * 100:.2f}%")
+        print(f"✅ Model trained! Accuracy: {self.accuracy * 100:.2f}%")
 
     def _initialize_ui(self):
         """
@@ -183,18 +183,18 @@ class DigitRecognizer:
         img_array = 255 - img_array  # Invert
 
         print(f"📐 Original image shape: {img_array.shape}")
-        console.log(f"📐 Original image shape: {img_array.shape}")
+        print(f"📐 Original image shape: {img_array.shape}")
 
         # Find bounding box using adaptive thresholding
         threshold = max(self.MIN_THRESHOLD, img_array.max() * self.THRESHOLD_RATIO)
         print(f"🎯 Using threshold: {threshold:.1f} (max pixel: {img_array.max()})")
-        console.log(f"🎯 Using threshold: {threshold:.1f} (max pixel: {img_array.max()})")
+        print(f"🎯 Using threshold: {threshold:.1f} (max pixel: {img_array.max()})")
 
         rows = np.any(img_array > threshold, axis=1)
         cols = np.any(img_array > threshold, axis=0)
 
         if not rows.any() or not cols.any():
-            console.log("⚠️ No digit detected - canvas might be empty")
+            print("⚠️ No digit detected - canvas might be empty")
             empty = np.zeros((self.TARGET_SIZE, self.TARGET_SIZE))
             return empty.flatten(), empty
 
@@ -204,7 +204,7 @@ class DigitRecognizer:
         cropped = img_array[rmin:rmax+1, cmin:cmax+1]
 
         print(f"✂️ Cropping to bounding box: rows {rmin}-{rmax}, cols {cmin}-{cmax}")
-        console.log(f"✂️ Cropping to bounding box: rows {rmin}-{rmax}, cols {cmin}-{cmax}")
+        print(f"✂️ Cropping to bounding box: rows {rmin}-{rmax}, cols {cmin}-{cmax}")
 
         # Make square by adding padding
         cropped_img = Image.fromarray(cropped.astype('uint8'))
@@ -217,7 +217,7 @@ class DigitRecognizer:
         square_img.paste(cropped_img, (paste_x, paste_y))
 
         print(f"📦 Squared and centered: {size}×{size}")
-        console.log(f"📦 Squared and centered: {size}×{size}")
+        print(f"📦 Squared and centered: {size}×{size}")
 
         # Add border padding (matches training data)
         border = max(4, int(size * self.BORDER_RATIO))
@@ -226,7 +226,7 @@ class DigitRecognizer:
         padded_img.paste(square_img, (border, border))
 
         print(f"📦 Added {int(self.BORDER_RATIO * 100)}% border: {border}px, final size: {padded_size}×{padded_size}")
-        console.log(f"📦 Added {int(self.BORDER_RATIO * 100)}% border: {border}px, final size: {padded_size}×{padded_size}")
+        print(f"📦 Added {int(self.BORDER_RATIO * 100)}% border: {border}px, final size: {padded_size}×{padded_size}")
 
         # Resize to 8x8 using high-quality resampling
         final_img = padded_img.resize((self.TARGET_SIZE, self.TARGET_SIZE), Image.Resampling.LANCZOS)
@@ -236,7 +236,7 @@ class DigitRecognizer:
         image_array = (image_array / 255.0 * self.PIXEL_RANGE)
 
         print(f"🔍 Before intensity correction - min: {image_array.min():.2f}, max: {image_array.max():.2f}, mean: {image_array.mean():.2f}")
-        console.log(f"🔍 Before intensity correction - min: {image_array.min():.2f}, max: {image_array.max():.2f}, mean: {image_array.mean():.2f}")
+        print(f"🔍 Before intensity correction - min: {image_array.min():.2f}, max: {image_array.max():.2f}, mean: {image_array.mean():.2f}")
 
         # Apply intensity scaling to match training data
         if image_array.max() > 0:
@@ -245,20 +245,20 @@ class DigitRecognizer:
                 scale_factor = self.INTENSITY_TARGET_MAX / current_max
                 image_array = np.clip(image_array * scale_factor, 0, self.PIXEL_RANGE)
                 print(f"⚡ Applied intensity scaling factor: {scale_factor:.2f}")
-                console.log(f"⚡ Applied intensity scaling factor: {scale_factor:.2f}")
+                print(f"⚡ Applied intensity scaling factor: {scale_factor:.2f}")
 
         # Log final array for debugging
         print("🔍 Final 8x8 array:")
-        console.log("🔍 Final 8x8 array:")
+        print("🔍 Final 8x8 array:")
         for row in image_array:
             row_str = " ".join([f"{val:4.1f}" for val in row])
             print(f"   {row_str}")
-            console.log(f"   {row_str}")
+            print(f"   {row_str}")
 
         print(f"🔍 Final stats - min: {image_array.min():.2f}, max: {image_array.max():.2f}, mean: {image_array.mean():.2f}")
-        console.log(f"🔍 Final stats - min: {image_array.min():.2f}, max: {image_array.max():.2f}, mean: {image_array.mean():.2f}")
+        print(f"🔍 Final stats - min: {image_array.min():.2f}, max: {image_array.max():.2f}, mean: {image_array.mean():.2f}")
         print(f"🔍 Training data stats - min: {self.X_full.min():.2f}, max: {self.X_full.max():.2f}, mean: {self.X_full.mean():.2f}")
-        console.log(f"🔍 Training data stats - min: {self.X_full.min():.2f}, max: {self.X_full.max():.2f}, mean: {self.X_full.mean():.2f}")
+        print(f"🔍 Training data stats - min: {self.X_full.min():.2f}, max: {self.X_full.max():.2f}, mean: {self.X_full.mean():.2f}")
 
         return image_array.flatten(), image_array
 
@@ -304,7 +304,7 @@ class DigitRecognizer:
             'imageData2D': image_2d_list
         })
         print(f"🟡 [PY] Calling window.updatePredictionResult with prediction={prediction}, confidence={confidence}")
-        console.log(f"🟡 [PY] Calling window.updatePredictionResult with prediction={prediction}, confidence={confidence}")
+        print(f"🟡 [PY] Calling window.updatePredictionResult with prediction={prediction}, confidence={confidence}")
         window.updatePredictionResult(prediction_data)
 
         # Update model state - convert to JS object
@@ -313,7 +313,7 @@ class DigitRecognizer:
             'trainingExamples': len(self.X_train)
         })
         print(f"🟡 [PY] Calling window.updateModelState")
-        console.log(f"🟡 [PY] Calling window.updateModelState")
+        print(f"🟡 [PY] Calling window.updateModelState")
         window.updateModelState(model_data)
 
     def predict_digit(self, image_base64: str):
@@ -328,9 +328,9 @@ class DigitRecognizer:
         """
         try:
             print("🟡 [PY] predict_digit() called")
-            console.log("🟡 [PY] predict_digit() called")
+            print("🟡 [PY] predict_digit() called")
             print("🎨 Processing image...")
-            console.log("🎨 Processing image...")
+            print("🎨 Processing image...")
 
             # Preprocess image
             processed_flat, processed_2d = self._preprocess_image(image_base64)
@@ -348,7 +348,7 @@ class DigitRecognizer:
             confidence = probabilities[prediction] * 100
 
             print(f"✅ Predicted: {prediction} (confidence: {confidence:.1f}%)")
-            console.log(f"✅ Predicted: {prediction} (confidence: {confidence:.1f}%)")
+            print(f"✅ Predicted: {prediction} (confidence: {confidence:.1f}%)")
 
             # Log all predictions
             print("📊 All predictions:")
@@ -400,14 +400,14 @@ class DigitRecognizer:
             correct_digit = self.last_prediction_data['prediction']
 
             print(f"✅ Reinforcing correct prediction: {correct_digit}")
-            console.log(f"✅ Reinforcing correct prediction: {correct_digit}")
+            print(f"✅ Reinforcing correct prediction: {correct_digit}")
 
             # Add to training data
             self.X_train = np.vstack([self.X_train, self.last_prediction_data['image'].reshape(1, -1)])
             self.y_train = np.append(self.y_train, correct_digit)
 
             print(f"📊 Training set size increased to: {len(self.X_train)}")
-            console.log(f"📊 Training set size increased to: {len(self.X_train)}")
+            print(f"📊 Training set size increased to: {len(self.X_train)}")
 
             # Retrain
             self._train_model()
@@ -457,14 +457,14 @@ class DigitRecognizer:
                 return
 
             print(f"🎓 Retraining with correction: {self.last_prediction_data['prediction']} → {correct_digit}")
-            console.log(f"🎓 Retraining with correction: {self.last_prediction_data['prediction']} → {correct_digit}")
+            print(f"🎓 Retraining with correction: {self.last_prediction_data['prediction']} → {correct_digit}")
 
             # Add corrected example to training data
             self.X_train = np.vstack([self.X_train, self.last_prediction_data['image'].reshape(1, -1)])
             self.y_train = np.append(self.y_train, correct_digit)
 
             print(f"📊 Training set size increased to: {len(self.X_train)}")
-            console.log(f"📊 Training set size increased to: {len(self.X_train)}")
+            print(f"📊 Training set size increased to: {len(self.X_train)}")
 
             # Retrain
             self._train_model()
@@ -499,7 +499,7 @@ class DigitRecognizer:
         """
         try:
             print("🔄 Resetting training data to original dataset...")
-            console.log("🔄 Resetting training data to original dataset...")
+            print("🔄 Resetting training data to original dataset...")
 
             # Reset to original split
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
@@ -509,7 +509,7 @@ class DigitRecognizer:
             )
 
             print(f"📊 Training set reset to original size: {len(self.X_train)}")
-            console.log(f"📊 Training set reset to original size: {len(self.X_train)}")
+            print(f"📊 Training set reset to original size: {len(self.X_train)}")
 
             # Retrain
             self._train_model()
@@ -621,7 +621,7 @@ window.clearAndReset = _recognizer.clear_and_reset
 def predict_digit(image_base64: str):
     """Global function to predict digit (called from JavaScript)."""
     print("🟡 [PY] Global predict_digit() called")
-    console.log("🟡 [PY] Global predict_digit() called")
+    print("🟡 [PY] Global predict_digit() called")
     _recognizer.predict_digit(image_base64)
 
 # Expose to window

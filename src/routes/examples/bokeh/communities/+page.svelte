@@ -14,12 +14,10 @@
 	onMount(() => {
 		if (!pyScriptRunner) {
 			pyScriptRunner = RunPython();
-			pyScriptRunner.runScript(getLink('python/bokeh_communities.py'), 'script_gutter', false);
-
-			// Hide loading after a delay (3 charts take time to render)
+			pyScriptRunner.runScript(getLink('python/bokeh/bokeh_communities.py'), 'script_gutter', false);
 			setTimeout(() => {
 				loading = false;
-			}, 10000);
+			}, 1000);
 		}
 	});
 
@@ -117,7 +115,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh_communities.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh/bokeh_communities.py"
 				target="_blank">View source</a
 			>
 		</p>

@@ -3,6 +3,8 @@
  * Based on jsnes-react implementation
  */
 
+import { createLogger } from "@guinetik/logger";
+
 const FPS = 60;
 
 export class FrameTimer {
@@ -13,6 +15,9 @@ export class FrameTimer {
 	 * @param {Function} options.onWriteFrame - Called to write frame to screen
 	 */
 	constructor({ onGenerateFrame, onWriteFrame }) {
+		this.logger = createLogger(
+			{prefix: 'FrameTimer',
+			level: 'debug'});
 		this.onGenerateFrame = onGenerateFrame;
 		this.onWriteFrame = onWriteFrame;
 		this.running = false;
@@ -33,7 +38,7 @@ export class FrameTimer {
 			return;
 		}
 		
-		console.log('▶️ FrameTimer started');
+		this.logger.log('▶️ FrameTimer started');
 		this.running = true;
 		this.lastFrameTime = 0;
 		this.requestAnimationFrame();
@@ -43,7 +48,7 @@ export class FrameTimer {
 	 * Stop the frame timer
 	 */
 	stop() {
-		console.log('⏹️ FrameTimer stopped');
+		this.logger.log('⏹️ FrameTimer stopped');
 		this.running = false;
 		
 		if (this.requestId) {
@@ -110,7 +115,7 @@ export class FrameTimer {
 		// Generate additional frames if needed (for timing correction)
 		// but don't display them until next RAF call
 		if (numFrames > 1) {
-			console.log('⏩ Skipping', numFrames - 1, 'frame(s)');
+			this.logger.log('⏩ Skipping', numFrames - 1, 'frame(s)');
 			const timeToNextFrame = this.interval - excess;
 			for (let i = 1; i < numFrames; i++) {
 				setTimeout(

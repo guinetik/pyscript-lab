@@ -79,7 +79,7 @@ class BokehAirbnbPandas:
         self.tools = self.TOOLS
 
         print("🐍 BokehAirbnbPandas initialized")
-        console.log("🐍 BokehAirbnbPandas initialized")
+        print("🐍 BokehAirbnbPandas initialized")
 
     def _load_data(self):
         """
@@ -96,7 +96,7 @@ class BokehAirbnbPandas:
         """
         try:
             print("🐍 Loading Airbnb data from CSV...")
-            console.log(f"🐍 Loading data from: {self.data_url}")
+            print(f"🐍 Loading data from: {self.data_url}")
 
             url_content = open_url(self.data_url)
             self.airbnb = pd.read_csv(url_content)
@@ -105,7 +105,7 @@ class BokehAirbnbPandas:
                 raise ValueError("Loaded DataFrame is empty")
 
             print(f"🐍 Successfully loaded {len(self.airbnb)} rows of data")
-            console.log(f"✅ Loaded {len(self.airbnb)} rows, {len(self.airbnb.columns)} columns")
+            print(f"✅ Loaded {len(self.airbnb)} rows, {len(self.airbnb.columns)} columns")
 
         except Exception as e:
             error_msg = f"Failed to load data: {str(e)}"
@@ -130,7 +130,7 @@ class BokehAirbnbPandas:
             The chart is embedded in the element with ID "chart"
         """
         print("🐍 Creating correlation heatmap...")
-        console.log("🐍 Creating correlation heatmap...")
+        print("🐍 Creating correlation heatmap...")
 
         # Select only numeric columns for correlation
         numeric_cols = self.airbnb.select_dtypes(include=[np.number])
@@ -188,7 +188,7 @@ class BokehAirbnbPandas:
         Bokeh.embed.embed_item(JSON.parse(p_json))
 
         print("✅ Correlation heatmap rendered")
-        console.log("✅ Chart 1 (heatmap) rendered")
+        print("✅ Chart 1 (heatmap) rendered")
 
     def _create_room_type_pie_chart(self):
         """
@@ -207,7 +207,7 @@ class BokehAirbnbPandas:
             The chart is embedded in the element with ID "chart2"
         """
         print("🐍 Creating room type pie chart...")
-        console.log("🐍 Creating room type pie chart...")
+        print("🐍 Creating room type pie chart...")
 
         # Prepare data for pie chart
         room = pd.DataFrame(self.airbnb.room_type.value_counts())
@@ -260,7 +260,7 @@ class BokehAirbnbPandas:
         Bokeh.embed.embed_item(JSON.parse(p_json))
 
         print("✅ Pie chart rendered")
-        console.log("✅ Chart 2 (pie chart) rendered")
+        print("✅ Chart 2 (pie chart) rendered")
 
     def _create_price_jitter_plot(self):
         """
@@ -280,15 +280,15 @@ class BokehAirbnbPandas:
             The chart is embedded in the element with ID "chart3"
         """
         print("🐍 Creating price jitter plot...")
-        console.log("🐍 Creating price jitter plot...")
+        print("🐍 Creating price jitter plot...")
 
         # Prepare data
         data = self.airbnb[['room_type', 'price']].copy()
         cats = list(self.airbnb.room_type.unique())
         source = ColumnDataSource(data)
 
-        console.log(f"🐍 Jitter plot - Found {len(cats)} room type categories")
-        console.log(f"🐍 Jitter plot - Data shape: {len(data)} rows")
+        print(f"🐍 Jitter plot - Found {len(cats)} room type categories")
+        print(f"🐍 Jitter plot - Data shape: {len(data)} rows")
 
         # Create figure with tooltips
         p = figure(
@@ -326,7 +326,7 @@ class BokehAirbnbPandas:
         Bokeh.embed.embed_item(JSON.parse(p_json))
 
         print("✅ Price jitter plot rendered")
-        console.log("✅ Chart 3 (jitter plot) rendered")
+        print("✅ Chart 3 (jitter plot) rendered")
 
     def _create_top_hosts_bar_chart(self):
         """
@@ -345,7 +345,7 @@ class BokehAirbnbPandas:
             The chart is embedded in the element with ID "chart4"
         """
         print("🐍 Creating top hosts bar chart...")
-        console.log("🐍 Creating top hosts bar chart...")
+        print("🐍 Creating top hosts bar chart...")
 
         # Prepare data for bar chart
         host = pd.DataFrame(self.airbnb.host_id.value_counts()[:10])
@@ -403,7 +403,7 @@ class BokehAirbnbPandas:
         Bokeh.embed.embed_item(JSON.parse(p_json))
 
         print("✅ Bar chart rendered")
-        console.log("✅ Chart 4 (bar chart) rendered")
+        print("✅ Chart 4 (bar chart) rendered")
 
     def _create_neighbourhood_lollipop_chart(self):
         """
@@ -423,7 +423,7 @@ class BokehAirbnbPandas:
             The chart is embedded in the element with ID "chart5"
         """
         print("🐍 Creating neighbourhood lollipop chart...")
-        console.log("🐍 Creating neighbourhood lollipop chart...")
+        print("🐍 Creating neighbourhood lollipop chart...")
 
         # Prepare data for lollipop chart
         nbh = pd.DataFrame(self.airbnb.neighbourhood_group.value_counts())
@@ -486,7 +486,7 @@ class BokehAirbnbPandas:
         Bokeh.embed.embed_item(JSON.parse(p_json))
 
         print("✅ Lollipop chart rendered")
-        console.log("✅ Chart 5 (lollipop chart) rendered")
+        print("✅ Chart 5 (lollipop chart) rendered")
 
     def run(self):
         """
@@ -508,7 +508,7 @@ class BokehAirbnbPandas:
             >>> visualizer.run()
         """
         print("🐍 Starting Bokeh + Pandas Airbnb visualization...")
-        console.log("🐍 Starting Bokeh + Pandas example...")
+        print("🐍 Starting Bokeh + Pandas example...")
 
         try:
             # Load data
@@ -522,7 +522,7 @@ class BokehAirbnbPandas:
             self._create_neighbourhood_lollipop_chart()
 
             print("✅ All visualizations completed successfully!")
-            console.log("✅ All 5 charts rendered successfully!")
+            print("✅ All 5 charts rendered successfully!")
 
         except Exception as e:
             error_msg = f"Visualization failed: {str(e)}"

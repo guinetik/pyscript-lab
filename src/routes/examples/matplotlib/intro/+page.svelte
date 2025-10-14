@@ -8,91 +8,24 @@
 	<div slot="py_slot">
 		<section class="pyscript p-5">
 			<h1>Example 1: Simple Line Plot</h1>
-			<PyExample title="A basic line chart with matplotlib:">
-				<script type="py" id="matplotlib-line">
-from pyscript import display
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Create sample data
-x = np.linspace(0, 10, 100)
-y = np.sin(x)
-
-# Create the plot
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.plot(x, y, linewidth=2, color='blue')
-ax.set_title('Sine Wave', fontsize=16, fontweight='bold')
-ax.set_xlabel('X axis', fontsize=12)
-ax.set_ylabel('Y axis', fontsize=12)
-ax.grid(True, alpha=0.3)
-
-# Display the plot
-display(fig, target="matplotlib-line-output")
-				</script>
+			<PyExample title="A basic line chart with matplotlib:" src="/python/matplotlib/line_plot.py">
+				<script type="py" src="/python/matplotlib/line_plot.py" id="matplotlib-line"></script>
 			</PyExample>
 			<div id="matplotlib-line-output"></div>
 
 			<hr class="my-4" />
 
 			<h1>Example 2: Bar Chart</h1>
-			<PyExample title="A colorful bar chart:">
-				<script type="py" id="matplotlib-bar">
-from pyscript import display
-import matplotlib.pyplot as plt
-
-# Sample data
-categories = ['Python', 'JavaScript', 'Java', 'C++', 'Go']
-values = [85, 72, 68, 55, 48]
-colors = ['#3776ab', '#f7df1e', '#007396', '#00599c', '#00add8']
-
-# Create bar chart
-fig, ax = plt.subplots(figsize=(8, 5))
-bars = ax.bar(categories, values, color=colors, alpha=0.8)
-ax.set_title('Programming Language Popularity', fontsize=16, fontweight='bold')
-ax.set_ylabel('Popularity Score', fontsize=12)
-ax.set_ylim(0, 100)
-
-# Add value labels on bars
-for bar in bars:
-    height = bar.get_height()
-    ax.text(bar.get_x() + bar.get_width()/2., height,
-            f'{int(height)}',
-            ha='center', va='bottom', fontsize=10, fontweight='bold')
-
-# Display the plot
-display(fig, target="matplotlib-bar-output")
-				</script>
+			<PyExample title="A colorful bar chart:" src="/python/matplotlib/bar_chart.py">
+				<script type="py" src="/python/matplotlib/bar_chart.py" id="matplotlib-bar"></script>
 			</PyExample>
 			<div id="matplotlib-bar-output"></div>
 
 			<hr class="my-4" />
 
 			<h1>Example 3: Scatter Plot</h1>
-			<PyExample title="Data correlation visualization:">
-				<script type="py" id="matplotlib-scatter">
-from pyscript import display
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Generate random data
-np.random.seed(42)
-x = np.random.randn(100)
-y = 2 * x + np.random.randn(100) * 0.5
-
-# Create scatter plot
-fig, ax = plt.subplots(figsize=(8, 5))
-scatter = ax.scatter(x, y, c=y, cmap='viridis', alpha=0.6, s=50, edgecolors='black', linewidth=0.5)
-ax.set_title('Scatter Plot with Correlation', fontsize=16, fontweight='bold')
-ax.set_xlabel('X values', fontsize=12)
-ax.set_ylabel('Y values', fontsize=12)
-ax.grid(True, alpha=0.3)
-
-# Add colorbar
-plt.colorbar(scatter, ax=ax, label='Y value')
-
-# Display the plot
-display(fig, target="matplotlib-scatter-output")
-				</script>
+			<PyExample title="Data correlation visualization:" src="/python/matplotlib/scatter_plot.py">
+				<script type="py" src="/python/matplotlib/scatter_plot.py" id="matplotlib-scatter"></script>
 			</PyExample>
 			<div id="matplotlib-scatter-output"></div>
 		</section>

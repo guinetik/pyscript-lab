@@ -53,8 +53,8 @@ class MarioAgent:
         self.last_x = 0
         self.max_frames = 1200  # Maximum frames per episode (20 seconds at 60fps)
 
-        console.log("🧠 Mario Agent initialized")
-        console.log(f"   Network: {input_size} → {hidden_size} → {output_size}")
+        print("🧠 Mario Agent initialized")
+        print(f"   Network: {input_size} → {hidden_size} → {output_size}")
 
     def get_game_state(self) -> np.ndarray:
         """
@@ -187,16 +187,16 @@ class MarioAgent:
         emulator = window.nesEmulator
 
         if not emulator:
-            console.log("⚠️ Emulator not found")
+            print("⚠️ Emulator not found")
             return
 
         # Check if emulator is ready and running
         if not emulator.controller or not emulator.controller.nes:
-            console.log("⚠️ Emulator not fully initialized")
+            print("⚠️ Emulator not fully initialized")
             return
 
         if not emulator.isRunning():
-            console.log("⚠️ Emulator not running")
+            print("⚠️ Emulator not running")
             return
 
         try:
@@ -219,7 +219,7 @@ class MarioAgent:
                 if pressed:
                     emulator.buttonDown(1, button_map[i])
         except Exception as e:
-            console.log(f"❌ Error executing action: {e}")
+            print(f"❌ Error executing action: {e}")
 
     def step(self):
         """
@@ -234,19 +234,19 @@ class MarioAgent:
         if not self.is_in_gameplay():
             # Press START to get into gameplay
             self.press_start()
-            console.log("📱 Not in gameplay, pressing START...")
+            print("📱 Not in gameplay, pressing START...")
             return True  # Continue waiting for gameplay to start
 
         self.frames += 1
 
         # Check timeout - episode too long
         if self.frames >= self.max_frames:
-            console.log(f"⏰ Timeout! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            print(f"⏰ Timeout! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Check if Mario is still alive
         if not self.is_mario_alive():
-            console.log(f"💀 Mario died! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            print(f"💀 Mario died! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Get current game state
@@ -269,12 +269,12 @@ class MarioAgent:
 
         # Check if stuck (no progress for 1 second)
         if self.stuck_frames > 60:  # 1 second at 60fps
-            console.log(f"🚫 Mario stuck! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            print(f"🚫 Mario stuck! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Log progress occasionally
         if self.frames % 60 == 0:
-            console.log(f"🎮 Frame {self.frames}/{self.max_frames}, X: {current_x}, Max X: {self.max_x}, Stuck: {self.stuck_frames}")
+            print(f"🎮 Frame {self.frames}/{self.max_frames}, X: {current_x}, Max X: {self.max_x}, Stuck: {self.stuck_frames}")
 
         self.last_x = current_x
         return True  # Episode continues
@@ -285,7 +285,7 @@ class MarioAgent:
         self.max_x = 0
         self.stuck_frames = 0
         self.last_x = 0
-        console.log("🔄 Agent reset")
+        print("🔄 Agent reset")
 
     def load_weights(self, weights_data):
         """
@@ -295,20 +295,20 @@ class MarioAgent:
             weights_data: Dictionary with 'weights' and 'biases' arrays
         """
         self.network.set_weights(weights_data['weights'], weights_data['biases'])
-        console.log("✅ Loaded pre-trained weights")
+        print("✅ Loaded pre-trained weights")
 
     def randomize_weights(self):
         """Randomize network weights (for exploration)."""
         for i in range(len(self.network.weights)):
             self.network.weights[i] = np.random.randn(*self.network.weights[i].shape) * 0.5
             self.network.biases[i] = np.random.randn(*self.network.biases[i].shape) * 0.5
-        console.log("🎲 Weights randomized")
+        print("🎲 Weights randomized")
 
 
 # Create global agent instance
-console.log("🐍 Initializing Mario Agent...")
+print("🐍 Initializing Mario Agent...")
 mario_agent = MarioAgent()
-console.log("✅ Mario Agent ready")
+print("✅ Mario Agent ready")
 
 # Training state
 is_training = False
@@ -361,24 +361,24 @@ def end_episode():
     # Update best distance
     if improved:
         best_distance = distance
-        console.log(f"🎉 New best distance: {best_distance}!")
+        print(f"🎉 New best distance: {best_distance}!")
 
     total_episodes += 1
 
-    console.log(f"📊 Episode {total_episodes} complete: Distance = {distance}, Best = {best_distance}")
+    print(f"📊 Episode {total_episodes} complete: Distance = {distance}, Best = {best_distance}")
 
     # Update UI metrics
     window.updateRLMetrics(total_episodes, episode_reward, best_distance)
 
     # Mutation strategy: if doing poorly, mutate more aggressively
     if distance < best_distance * 0.5:  # Less than 50% of best
-        console.log("🎲 Poor performance - large mutation")
+        print("🎲 Poor performance - large mutation")
         mario_agent.network.mutate(mutation_rate=0.3, mutation_scale=1.0)
     elif improved:
-        console.log("✨ Improved - small mutation")
+        print("✨ Improved - small mutation")
         mario_agent.network.mutate(mutation_rate=0.05, mutation_scale=0.2)
     else:
-        console.log("🔄 Normal mutation")
+        print("🔄 Normal mutation")
         mario_agent.network.mutate(mutation_rate=0.15, mutation_scale=0.5)
 
     # Wait for game to restart naturally, then continue
@@ -397,7 +397,7 @@ def start_new_episode():
     """Start a new training episode - just reset stats, game continues."""
     global episode_reward
 
-    console.log(f"🔄 Starting new episode {total_episodes + 1}")
+    print(f"🔄 Starting new episode {total_episodes + 1}")
 
     # Calculate timeout based on episode number
     # Start at 20 seconds (1200 frames), increase by 10 seconds per episode
@@ -410,7 +410,7 @@ def start_new_episode():
     mario_agent.max_frames = new_timeout
 
     timeout_seconds = new_timeout / 60
-    console.log(f"⏱️ Episode timeout set to {timeout_seconds:.1f} seconds ({new_timeout} frames)")
+    print(f"⏱️ Episode timeout set to {timeout_seconds:.1f} seconds ({new_timeout} frames)")
 
     # Just reset agent stats - don't touch emulator
     # The game will naturally respawn Mario or restart level
@@ -426,11 +426,11 @@ def start_training():
     """Start AI training - Mario plays automatically."""
     global is_training
 
-    console.log("🚀 Starting AI training...")
+    print("🚀 Starting AI training...")
 
     emulator = window.nesEmulator
     if not emulator:
-        console.log("❌ Emulator not found")
+        print("❌ Emulator not found")
         return
 
     # Disable keyboard (AI takes over)
@@ -438,10 +438,10 @@ def start_training():
 
     # Start emulator if not running
     if not emulator.isRunning():
-        console.log("▶️ Starting emulator for AI")
+        print("▶️ Starting emulator for AI")
         emulator.start()
     else:
-        console.log("✅ Emulator already running")
+        print("✅ Emulator already running")
 
     # Reset agent stats
     mario_agent.reset()
@@ -453,14 +453,14 @@ def start_training():
     # Update UI
     window.updateRLStatus('training', 'AI is playing Mario! Watch and learn...')
 
-    console.log("✅ AI training started")
+    print("✅ AI training started")
 
 
 def stop_training():
     """Stop AI training."""
     global is_training
 
-    console.log("⏹️ Stopping AI training...")
+    print("⏹️ Stopping AI training...")
     is_training = False
 
     # Stop emulator
@@ -469,7 +469,7 @@ def stop_training():
         emulator.stop()
 
     window.updateRLStatus('ready', 'AI training stopped. Ready for next action.')
-    console.log("✅ AI training stopped")
+    print("✅ AI training stopped")
 
 
 def pause_training():
@@ -477,11 +477,11 @@ def pause_training():
     global is_training
 
     if is_training:
-        console.log("⏸️ Pausing AI training...")
+        print("⏸️ Pausing AI training...")
         is_training = False
         window.updateRLStatus('paused', 'AI training paused')
     else:
-        console.log("▶️ Resuming AI training...")
+        print("▶️ Resuming AI training...")
         is_training = True
         training_loop()
         window.updateRLStatus('training', 'AI training resumed')
@@ -489,7 +489,7 @@ def pause_training():
 
 def reset_training():
     """Reset AI and game."""
-    console.log("🔄 Resetting AI training...")
+    print("🔄 Resetting AI training...")
 
     global is_training
     is_training = False
@@ -503,7 +503,7 @@ def reset_training():
         emulator.reset()
 
     window.updateRLStatus('ready', 'AI reset. Click "Start Training" to begin.')
-    console.log("✅ AI reset complete")
+    print("✅ AI reset complete")
 
 
 # Expose functions to JavaScript
@@ -512,4 +512,4 @@ window.pauseRLTraining = pause_training
 window.resetRLTraining = reset_training
 window.stopRLTraining = stop_training
 
-console.log("✅ Mario Agent functions exposed to window")
+print("✅ Mario Agent functions exposed to window")

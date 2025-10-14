@@ -14,12 +14,10 @@
 	onMount(() => {
 		if (!pyScriptRunner) {
 			pyScriptRunner = RunPython();
-			pyScriptRunner.runScript(getLink('python/bokeh_pandas_v2.py'), 'script_gutter', false);
-
-			// Hide loading after a delay (5 charts take time to render)
+			pyScriptRunner.runScript(getLink('python/bokeh/bokeh_pandas_v2.py'), 'script_gutter', false);
 			setTimeout(() => {
 				loading = false;
-			}, 8000);
+			}, 1000);
 		}
 	});
 
@@ -103,7 +101,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh_pandas_v2.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh/bokeh_pandas_v2.py"
 				target="_blank">View source</a
 			>
 		</p>

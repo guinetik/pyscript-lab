@@ -100,7 +100,7 @@ class BokehNetworkGraphs:
         self.max_group = None
 
         print("🐍 BokehNetworkGraphs initialized")
-        console.log("🐍 BokehNetworkGraphs initialized")
+        print("🐍 BokehNetworkGraphs initialized")
 
     def _load_data(self):
         """
@@ -117,8 +117,8 @@ class BokehNetworkGraphs:
         """
         try:
             print("🐍 Loading StackOverflow network data...")
-            console.log(f"🐍 Loading nodes from: {self.nodes_url}")
-            console.log(f"🐍 Loading edges from: {self.edges_url}")
+            print(f"🐍 Loading nodes from: {self.nodes_url}")
+            print(f"🐍 Loading edges from: {self.edges_url}")
 
             self.nodes_df = pd.read_csv(open_url(self.nodes_url))
             self.edges_df = pd.read_csv(open_url(self.edges_url))
@@ -127,14 +127,14 @@ class BokehNetworkGraphs:
                 raise ValueError("Loaded DataFrames are empty")
 
             print(f"🐍 Loaded {len(self.nodes_df)} nodes and {len(self.edges_df)} edges")
-            console.log(f"✅ Data loaded: {len(self.nodes_df)} nodes, {len(self.edges_df)} edges")
+            print(f"✅ Data loaded: {len(self.nodes_df)} nodes, {len(self.edges_df)} edges")
 
             # Determine the range of group values for color mapping
             self.min_group = int(self.nodes_df['group'].min())
             self.max_group = int(self.nodes_df['group'].max())
             group_count = self.max_group - self.min_group + 1
             print(f"🐍 Found {group_count} groups (range: {self.min_group}-{self.max_group})")
-            console.log(f"🐍 Groups: {group_count} unique groups detected")
+            print(f"🐍 Groups: {group_count} unique groups detected")
 
         except Exception as e:
             error_msg = f"Failed to load network data: {str(e)}"
@@ -158,7 +158,7 @@ class BokehNetworkGraphs:
             all nodes, edges, and computed attributes.
         """
         print("🐍 Building NetworkX graph...")
-        console.log("🐍 Building graph structure...")
+        print("🐍 Building graph structure...")
 
         # Create empty graph
         self.G = nx.Graph()
@@ -189,7 +189,7 @@ class BokehNetworkGraphs:
         nx.set_node_attributes(self.G, name='node_size', values=adjusted_node_size)
 
         print(f"✅ Graph built: {len(self.G.nodes())} nodes, {len(self.G.edges())} edges")
-        console.log(f"✅ Graph: {len(self.G.nodes())} nodes, {len(self.G.edges())} edges")
+        print(f"✅ Graph: {len(self.G.nodes())} nodes, {len(self.G.edges())} edges")
 
     def _compute_node_radii(self, graph: nx.Graph, min_radius: float = 0.005, max_radius: float = 0.03):
         """
@@ -220,7 +220,7 @@ class BokehNetworkGraphs:
             radii[node] = min_radius + (normalized * (max_radius - min_radius))
 
         nx.set_node_attributes(graph, radii, 'radius')
-        console.log(f"🐍 Node radii: {min_radius:.4f} to {max_radius:.4f}")
+        print(f"🐍 Node radii: {min_radius:.4f} to {max_radius:.4f}")
 
     def _create_bokeh_graph(
         self,
@@ -264,7 +264,7 @@ class BokehNetworkGraphs:
         self._compute_node_radii(graph)
 
         # Compute layout positions based on selected algorithm
-        console.log(f"🐍 Using {layout} layout algorithm...")
+        print(f"🐍 Using {layout} layout algorithm...")
 
         if layout == 'kamada_kawai':
             pos = nx.kamada_kawai_layout(graph)
@@ -326,7 +326,7 @@ class BokehNetworkGraphs:
         try:
             p_json = json.dumps(json_item(plot, container_id))
             Bokeh.embed.embed_item(JSON.parse(p_json))
-            console.log(f"✅ Plot embedded in #{container_id}")
+            print(f"✅ Plot embedded in #{container_id}")
         except Exception as e:
             error_msg = f"Failed to embed plot: {str(e)}"
             console.error(f"❌ {error_msg}")
@@ -347,7 +347,7 @@ class BokehNetworkGraphs:
         The graph is embedded in the element with ID "chart".
         """
         print("🐍 Creating full network graph...")
-        console.log("🐍 Rendering full network visualization...")
+        print("🐍 Rendering full network visualization...")
 
         plot, network_graph = self._create_bokeh_graph(
             self.G,
@@ -358,7 +358,7 @@ class BokehNetworkGraphs:
         print("🐍 Rendering network graph 1...")
         self._embed_plot(plot, "chart")
         print("✅ Graph 1 (full network) rendered!")
-        console.log("✅ Chart 1 (full network) complete")
+        print("✅ Chart 1 (full network) complete")
 
     def _create_cliques_graph(self):
         """
@@ -377,13 +377,13 @@ class BokehNetworkGraphs:
         The graph is embedded in the element with ID "chart2".
         """
         print("🐍 Analyzing cliques...")
-        console.log("🐍 Finding cliques in network...")
+        print("🐍 Finding cliques in network...")
 
         # Find all cliques
         cliques = list(nx.find_cliques(self.G))
         clique_count = len(cliques)
         print(f"🐍 This network has {clique_count} cliques!")
-        console.log(f"🐍 Found {clique_count} cliques")
+        print(f"🐍 Found {clique_count} cliques")
 
         # Sort cliques by size and get the largest ones
         sorted_cliques = sorted(cliques, key=len)
@@ -397,7 +397,7 @@ class BokehNetworkGraphs:
         # Create subgraph
         max_clique = self.G.subgraph(max_clique_nodes)
         print(f"🐍 Clique subgraph: {len(max_clique.nodes())} nodes, {len(max_clique.edges())} edges")
-        console.log(f"🐍 Clique subgraph: {len(max_clique.nodes())} nodes")
+        print(f"🐍 Clique subgraph: {len(max_clique.nodes())} nodes")
 
         # Compute node attributes for subgraph
         degrees = dict(nx.degree(max_clique))
@@ -419,7 +419,7 @@ class BokehNetworkGraphs:
         print("🐍 Rendering clique graph...")
         self._embed_plot(plot, "chart2")
         print("✅ Graph 2 (cliques) rendered!")
-        console.log("✅ Chart 2 (cliques) complete")
+        print("✅ Chart 2 (cliques) complete")
 
     def _create_eigenvector_centrality_graph(self):
         """
@@ -444,7 +444,7 @@ class BokehNetworkGraphs:
         The graph is embedded in the element with ID "chart3".
         """
         print("🐍 Computing eigenvector centrality...")
-        console.log("🐍 Analyzing node influence with eigenvector centrality...")
+        print("🐍 Analyzing node influence with eigenvector centrality...")
 
         # Compute eigenvector centrality
         try:
@@ -460,7 +460,7 @@ class BokehNetworkGraphs:
         min_cent = min(centrality_values)
         max_cent = max(centrality_values)
         print(f"🐍 Centrality range: {min_cent:.4f} to {max_cent:.4f}")
-        console.log(f"🐍 Centrality: min={min_cent:.4f}, max={max_cent:.4f}")
+        print(f"🐍 Centrality: min={min_cent:.4f}, max={max_cent:.4f}")
 
         # Create a copy of the graph for this visualization
         centrality_graph = self.G.copy()
@@ -492,7 +492,7 @@ class BokehNetworkGraphs:
         print("🐍 Rendering eigenvector centrality graph...")
         self._embed_plot(plot, "chart3")
         print("✅ Graph 3 (eigenvector centrality) rendered!")
-        console.log("✅ Chart 3 (eigenvector centrality) complete")
+        print("✅ Chart 3 (eigenvector centrality) complete")
 
     def _create_programming_languages_graph(self):
         """
@@ -512,7 +512,7 @@ class BokehNetworkGraphs:
         The graph is embedded in the element with ID "chart4".
         """
         print("🐍 Building programming languages subgraph...")
-        console.log("🐍 Extracting programming language network...")
+        print("🐍 Extracting programming language network...")
 
         # Define major programming languages to analyze
         major_languages = [
@@ -529,7 +529,7 @@ class BokehNetworkGraphs:
 
         # Create subgraph
         programming_language_graph = self.G.subgraph(set(p_language_nodes))
-        console.log(f"🐍 Language subgraph: {len(programming_language_graph.nodes())} nodes")
+        print(f"🐍 Language subgraph: {len(programming_language_graph.nodes())} nodes")
 
         # Compute node attributes for subgraph
         degrees = dict(nx.degree(programming_language_graph))
@@ -555,7 +555,7 @@ class BokehNetworkGraphs:
         print("🐍 Rendering programming languages network...")
         self._embed_plot(plot, "chart4")
         print("✅ Graph 4 (programming languages) rendered!")
-        console.log("✅ Chart 4 (languages) complete")
+        print("✅ Chart 4 (languages) complete")
 
     def run(self):
         """
@@ -585,7 +585,7 @@ class BokehNetworkGraphs:
             - Eigenvector centrality computation
         """
         print("🐍 Starting NetworkX + Bokeh network visualization...")
-        console.log("🐍 Starting network analysis...")
+        print("🐍 Starting network analysis...")
 
         try:
             # Load data
@@ -601,7 +601,7 @@ class BokehNetworkGraphs:
             self._create_programming_languages_graph()
 
             print("✅ All network graphs complete!")
-            console.log("✅ All 4 network visualizations rendered successfully!")
+            print("✅ All 4 network visualizations rendered successfully!")
 
         except Exception as e:
             error_msg = f"Network visualization failed: {str(e)}"

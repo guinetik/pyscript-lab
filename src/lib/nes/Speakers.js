@@ -3,6 +3,8 @@
  * Based on jsnes-react implementation
  */
 
+import { createLogger } from "@guinetik/logger";
+
 export class Speakers {
 	/**
 	 * Creates Speakers instance
@@ -10,6 +12,9 @@ export class Speakers {
 	 * @param {Function} [options.onBufferUnderrun] - Called when audio buffer is too low
 	 */
 	constructor({ onBufferUnderrun } = { onBufferUnderrun: undefined }) {
+		this.logger = createLogger(
+			{prefix: 'Speakers',
+			level: 'debug'});
 		this.onBufferUnderrun = onBufferUnderrun;
 		
 		// Audio context and node
@@ -23,7 +28,7 @@ export class Speakers {
 		this.writeIndex = 0;
 		this.readIndex = 0;
 		
-		console.log('🔊 Speakers created');
+		this.logger.log('🔊 Speakers created');
 	}
 
 	/**
@@ -53,7 +58,7 @@ export class Speakers {
 		try {
 			// Only create audio context once
 			if (!this.audioContext) {
-				console.log('🔊 Creating new audio context');
+				this.logger.log('🔊 Creating new audio context');
 				this.audioContext = new window.AudioContext();
 				this.scriptNode = this.audioContext.createScriptProcessor(1024, 0, 2);
 				this.scriptNode.onaudioprocess = this.onAudioProcess.bind(this);
@@ -63,11 +68,11 @@ export class Speakers {
 			// Resume if suspended (requires user gesture)
 			if (this.audioContext.state === 'suspended') {
 				this.audioContext.resume().then(() => {
-					console.log('✅ Audio context resumed');
+					this.logger.log('✅ Audio context resumed');
 				});
 			}
 
-			console.log('✅ Speakers started');
+			this.logger.log('✅ Speakers started');
 		} catch (error) {
 			console.error('❌ Failed to start speakers:', error);
 		}
@@ -80,7 +85,7 @@ export class Speakers {
 		// Suspend audio context but don't close it (can be resumed later)
 		if (this.audioContext && this.audioContext.state === 'running') {
 			this.audioContext.suspend().then(() => {
-				console.log('🔇 Audio context suspended');
+				this.logger.log('🔇 Audio context suspended');
 			});
 		}
 
@@ -89,7 +94,7 @@ export class Speakers {
 		this.writeIndex = 0;
 		this.buffer = [];
 
-		console.log('🔇 Speakers stopped');
+		this.logger.log('🔇 Speakers stopped');
 	}
 
 	/**
@@ -109,7 +114,7 @@ export class Speakers {
 			this.audioContext = null;
 		}
 
-		console.log('🗑️ Speakers destroyed');
+		this.logger.log('🗑️ Speakers destroyed');
 	}
 
 	/**

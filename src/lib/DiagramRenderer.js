@@ -1,3 +1,4 @@
+import { createLogger } from '@guinetik/logger';
 /**
  * DiagramRenderer - Client-side diagram rendering with viz.js and icon injection
  *
@@ -19,7 +20,10 @@ export class DiagramRenderer {
 	constructor(vizInstance) {
 		this.viz = vizInstance;
 		this.imageCache = {};
-		//console.log('🎨 DiagramRenderer initialized');
+		this.logger = createLogger(
+			{prefix: 'DiagramRenderer',
+			level: 'debug'});
+		this.logger.log('🎨 DiagramRenderer initialized');
 	}
 
 	/**
@@ -47,7 +51,7 @@ export class DiagramRenderer {
 
 				// Exponential backoff: 1s, 2s, 4s
 				const delay = baseDelay * Math.pow(2, i);
-				//console.log(`⏳ Waiting ${delay}ms before retry...`);
+				this.logger.log(`⏳ Waiting ${delay}ms before retry...`);
 				await new Promise(resolve => setTimeout(resolve, delay));
 			}
 		}
@@ -81,18 +85,18 @@ export class DiagramRenderer {
 			try {
 				// Check global cache first
 				if (this.imageCache[githubUrl]) {
-					//console.log('💾 Using cached image:', githubUrl);
+					this.logger.log('💾 Using cached image:', githubUrl);
 					dataUriCache[localPath] = this.imageCache[githubUrl];
 					return { success: true, localPath, cached: true };
 				}
 
-				//console.log('📥 Fetching:', githubUrl);
+				this.logger.log('📥 Fetching:', githubUrl);
 				const blob = await this.fetchWithRetry(githubUrl);
 				const dataUri = await this.blobToDataUri(blob);
 
 				dataUriCache[localPath] = dataUri;
 				this.imageCache[githubUrl] = dataUri; // Store in global cache
-				//console.log('✅ Fetched and cached:', localPath);
+				this.logger.log('✅ Fetched and cached:', localPath);
 				return { success: true, localPath, cached: false };
 			} catch (err) {
 				console.error('❌ Failed to fetch after retries:', githubUrl, err);
@@ -108,7 +112,7 @@ export class DiagramRenderer {
 		if (failed.length > 0) {
 			console.warn(`⚠️ Failed to fetch ${failed.length} images:`, failed.map(f => f.localPath));
 		}
-		//console.log(`🎉 Images ready: ${Object.keys(dataUriCache).length} total (${fetched} fetched, ${cached} from cache)`);
+		this.logger.log(`🎉 Images ready: ${Object.keys(dataUriCache).length} total (${fetched} fetched, ${cached} from cache)`);
 
 		return { dataUriCache, failed, cached, fetched };
 	}
@@ -124,14 +128,14 @@ export class DiagramRenderer {
 		const nodeImageMap = {}; // node ID -> dataUri
 		const labelImageMap = {}; // label text -> dataUri
 
-		//console.log('🔍 Parsing DOT for node-to-image mapping...');
+		this.logger.log('🔍 Parsing DOT for node-to-image mapping...');
 		const lines = dotContent.split('\n');
 
 		for (const line of lines) {
 			// Skip lines without image attribute
 			if (!line.includes('image=')) continue;
 
-			//console.log('📝 Processing line:', line.trim());
+			this.logger.log('📝 Processing line:', line.trim());
 
 			// Find which image path is in this line
 			for (const [localPath, dataUri] of Object.entries(dataUriCache)) {
@@ -152,7 +156,7 @@ export class DiagramRenderer {
 						const nodeId = nodeMatch[1];
 						if (!nodeImageMap[nodeId]) {
 							nodeImageMap[nodeId] = dataUri;
-							//console.log('🗺️ Mapped node ID', nodeId, '→ image');
+							this.logger.log('🗺️ Mapped node ID', nodeId, '→ image');
 						}
 					}
 
@@ -160,7 +164,7 @@ export class DiagramRenderer {
 						const labelText = labelMatch[1];
 						if (!labelImageMap[labelText]) {
 							labelImageMap[labelText] = dataUri;
-							//console.log('🗺️ Mapped label', labelText, '→ image');
+							this.logger.log('🗺️ Mapped label', labelText, '→ image');
 						}
 					}
 
@@ -172,10 +176,10 @@ export class DiagramRenderer {
 			}
 		}
 
-		//console.log('🗺️ Node ID map:', nodeImageMap);
-		//console.log('🗺️ Label map:', labelImageMap);
-		//console.log('🗺️ Total nodes mapped:', Object.keys(nodeImageMap).length);
-		//console.log('🗺️ Total labels mapped:', Object.keys(labelImageMap).length);
+		this.logger.log('🗺️ Node ID map:', nodeImageMap);
+		this.logger.log('🗺️ Label map:', labelImageMap);
+		this.logger.log('🗺️ Total nodes mapped:', Object.keys(nodeImageMap).length);
+		this.logger.log('🗺️ Total labels mapped:', Object.keys(labelImageMap).length);
 
 		if (Object.keys(nodeImageMap).length === 0 && Object.keys(labelImageMap).length === 0) {
 			console.error('❌ NO MAPPINGS CREATED! Check DOT format');
@@ -197,14 +201,14 @@ export class DiagramRenderer {
 	 */
 	injectImages(svg, nodeImageMap, labelImageMap) {
 		const nodes = svg.querySelectorAll('g.node');
-		//console.log(`🎨 Found ${nodes.length} nodes to process`);
+		this.logger.log(`🎨 Found ${nodes.length} nodes to process`);
 
 		// First, log all SVG node IDs for debugging
-		//console.log('🔍 SVG nodes found:');
+		this.logger.log('🔍 SVG nodes found:');
 		nodes.forEach((node, idx) => {
 			const title = node.querySelector('title');
 			if (title) {
-				//console.log(`  [${idx}] Title: "${title.textContent.trim()}"`);
+				this.logger.log(`  [${idx}] Title: "${title.textContent.trim()}"`);
 			}
 		});
 
@@ -213,12 +217,12 @@ export class DiagramRenderer {
 		nodes.forEach((node) => {
 			const title = node.querySelector('title');
 			if (!title) {
-				//console.log('⚠️ Node has no title element');
+				this.logger.log('⚠️ Node has no title element');
 				return;
 			}
 
 			const nodeId = title.textContent.trim();
-			//console.log(`🔍 Processing SVG node: "${nodeId}"`);
+			this.logger.log(`🔍 Processing SVG node: "${nodeId}"`);
 
 			// Try node ID first, then fall back to label
 			let imageDataUri = nodeImageMap[nodeId];
@@ -230,31 +234,31 @@ export class DiagramRenderer {
 					const labelText = textElement.textContent.trim();
 					imageDataUri = labelImageMap[labelText];
 					if (imageDataUri) {
-						//console.log(`🖼️ Matched by label "${labelText}" ✅`);
+						this.logger.log(`🖼️ Matched by label "${labelText}" ✅`);
 					}
 				}
 			} else {
-				//console.log(`🖼️ Matched by node ID "${nodeId}" ✅`);
+				this.logger.log(`🖼️ Matched by node ID "${nodeId}" ✅`);
 			}
 
 			if (!imageDataUri) {
-				//console.log('🖼️ No match found ❌');
-				//console.log('🔍 Available node IDs:', Object.keys(nodeImageMap));
-				//console.log('🔍 Available labels:', Object.keys(labelImageMap));
+				this.logger.log('🖼️ No match found ❌');
+				this.logger.log('🔍 Available node IDs:', Object.keys(nodeImageMap));
+				this.logger.log('🔍 Available labels:', Object.keys(labelImageMap));
 				return;
 			}
 
 			// Get position from text element
 			const textElement = node.querySelector('text');
 			if (!textElement) {
-				//console.log('⚠️ No text element found for', nodeId);
+				this.logger.log('⚠️ No text element found for', nodeId);
 				return;
 			}
 
 			const x = parseFloat(textElement.getAttribute('x') || 0);
 			const y = parseFloat(textElement.getAttribute('y') || 0);
 
-			//console.log(`📍 Node ${nodeId} at text position x=${x}, y=${y}`);
+			this.logger.log(`📍 Node ${nodeId} at text position x=${x}, y=${y}`);
 
 			// Create and inject image element
 			const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
@@ -267,10 +271,10 @@ export class DiagramRenderer {
 			// Insert the image before other elements
 			node.insertBefore(img, node.firstChild);
 			injectedCount++;
-			//console.log('✅ Injected image for', nodeId, 'at', x, y);
+			this.logger.log('✅ Injected image for', nodeId, 'at', x, y);
 		});
 
-		//console.log(`🎉 Manually injected ${injectedCount} images into SVG`);
+		this.logger.log(`🎉 Manually injected ${injectedCount} images into SVG`);
 		return injectedCount;
 	}
 
@@ -285,7 +289,7 @@ export class DiagramRenderer {
 	 * @param {string} imageMappingJson - JSON string mapping local paths to GitHub URLs
 	 */
 	async render(chartId, dotContent, imageMappingJson) {
-		//console.log('🎨 Rendering diagram for', chartId);
+		this.logger.log('🎨 Rendering diagram for', chartId);
 
 		try {
 			const imageMapping = JSON.parse(imageMappingJson);
@@ -295,11 +299,11 @@ export class DiagramRenderer {
 
 			// Remove image attributes for viz.js compatibility
 			const cleanDot = dotContent.replace(/image="[^"]*"/g, '');
-			//console.log('🔧 Removed image attributes for viz.js compatibility');
+			this.logger.log('🔧 Removed image attributes for viz.js compatibility');
 
 			// Render base SVG with viz.js
 			const svg = this.viz.renderSVGElement(cleanDot);
-			//console.log('✅ Base SVG rendered');
+			this.logger.log('✅ Base SVG rendered');
 
 			// Create image mappings
 			const { nodeImageMap, labelImageMap } = this.createImageMappings(dotContent, dataUriCache);
@@ -336,7 +340,7 @@ export class DiagramRenderer {
 			const summary = failed.length > 0
 				? `⚠️ ${chartId} rendered with ${injectedCount} images (${failed.length} failed)`
 				: `✅ ${chartId} rendered with ${injectedCount} images!`;
-			//console.log(summary);
+			this.logger.log(summary);
 
 		} catch (error) {
 			console.error('Error in render:', error);
@@ -354,7 +358,7 @@ export class DiagramRenderer {
 	 * @param {string} dotContent - Graphviz DOT source code
 	 */
 	renderSimple(chartId, dotContent) {
-		//console.log('⚠️ Using legacy renderSimple, images will not load');
+		this.logger.log('⚠️ Using legacy renderSimple, images will not load');
 		const svg = this.viz.renderSVGElement(dotContent);
 		const container = document.getElementById(chartId);
 		if (container) {

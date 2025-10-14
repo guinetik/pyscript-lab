@@ -1,7 +1,47 @@
 <script>
+	import { onMount } from 'svelte';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
-	export let name = 'COVID-19 World Map';
+	import { createLogger } from '@guinetik/logger';
+	
+	let loading = $state(true);
+	const name = 'COVID-19 World Map';
+
+	const logger = createLogger({
+		prefix: 'CovidMapsPage',
+		level: 'debug'
+	});
+
+	onMount(() => {
+		// Wait for Python module to load, then generate maps individually
+		const checkAndGenerate = setInterval(() => {
+			if (typeof window !== 'undefined' && 
+			    window.generateDeathsMap && 
+			    window.generateConfirmedCasesMap &&
+			    window.generateCaseFatalityRateMap &&
+			    window.generateNewCasesMap) {
+				
+				clearInterval(checkAndGenerate);
+				
+				// Call each map generation function individually in Promise.all
+				Promise.all([
+					window.generateDeathsMap(),
+					window.generateConfirmedCasesMap(),
+					window.generateCaseFatalityRateMap(),
+					window.generateNewCasesMap()
+				]).then(() => {
+					loading = false;
+					logger.log('✅ All COVID maps loaded');
+				}).catch((error) => {
+					console.error('❌ Error generating maps:', error);
+					loading = false;
+				});
+			}
+		}, 100);
+
+		// Cleanup
+		return () => clearInterval(checkAndGenerate);
+	});
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/matplotlib/charts', nextPage: '/examples/bokeh' }}>
@@ -10,129 +50,18 @@
 			<h1>COVID-19 Interactive World Map</h1>
 			<p class="mb-4 text-gray-600">Geographic visualization of pandemic data using Plotly</p>
 
-			<PyExample title="Creating an interactive choropleth world map:">
-				<script type="py" id="covid-world-map">
-from pyscript import display
-import plotly.graph_objects as go
-import pandas as pd
-from pyodide.http import open_url
-
-# Load the COVID data
-df = pd.read_csv(open_url('/data/covid_country.csv'))
-
-print(f"🌍 Loaded data for {len(df)} countries/regions")
-
-# 1. WORLD MAP - TOTAL DEATHS using graph_objects
-fig1 = go.Figure(data=go.Choropleth(
-    locations = df['Country/Region'],
-    z = df['Deaths'],
-    locationmode = 'country names',
-    colorscale = 'Reds',
-    text = df['Country/Region'],
-    colorbar_title = "Deaths",
-))
-
-fig1.update_layout(
-    title_text='COVID-19 Deaths by Country',
-    geo=dict(
-        showframe=False,
-        showcoastlines=True,
-        projection_type='natural earth'
-    ),
-    height=500,
-    width=None,
-    autosize=True,
-    margin={"r":10,"t":50,"l":10,"b":10}
-)
-
-display(fig1, target="map1")
-
-# 2. WORLD MAP - CONFIRMED CASES
-fig2 = go.Figure(data=go.Choropleth(
-    locations = df['Country/Region'],
-    z = df['Confirmed'],
-    locationmode = 'country names',
-    colorscale = 'Blues',
-    text = df['Country/Region'],
-    colorbar_title = "Confirmed",
-))
-
-fig2.update_layout(
-    title_text='COVID-19 Confirmed Cases by Country',
-    geo=dict(
-        showframe=False,
-        showcoastlines=True,
-        projection_type='natural earth'
-    ),
-    height=500,
-    width=None,
-    autosize=True,
-    margin={"r":10,"t":50,"l":10,"b":10}
-)
-
-display(fig2, target="map2")
-
-# 3. WORLD MAP - CASE FATALITY RATE (for countries with 1000+ cases)
-df_filtered = df[df['Confirmed'] >= 1000].copy()
-df_filtered['CFR'] = (df_filtered['Deaths'] / df_filtered['Confirmed'] * 100)
-
-fig3 = go.Figure(data=go.Choropleth(
-    locations = df_filtered['Country/Region'],
-    z = df_filtered['CFR'],
-    locationmode = 'country names',
-    colorscale = 'YlOrRd',
-    text = df_filtered['Country/Region'],
-    colorbar_title = "CFR %",
-))
-
-fig3.update_layout(
-    title_text='COVID-19 Case Fatality Rate by Country (1000+ cases)',
-    geo=dict(
-        showframe=False,
-        showcoastlines=True,
-        projection_type='natural earth'
-    ),
-    height=500,
-    width=None,
-    autosize=True,
-    margin={"r":10,"t":50,"l":10,"b":10}
-)
-
-display(fig3, target="map3")
-
-# 4. WORLD MAP - NEW CASES (Weekly Growth)
-df_active = df[df['New cases'] > 0].copy()
-
-fig4 = go.Figure(data=go.Choropleth(
-    locations = df_active['Country/Region'],
-    z = df_active['New cases'],
-    locationmode = 'country names',
-    colorscale = 'Oranges',
-    text = df_active['Country/Region'],
-    colorbar_title = "New Cases",
-))
-
-fig4.update_layout(
-    title_text='COVID-19 New Cases by Country',
-    geo=dict(
-        showframe=False,
-        showcoastlines=True,
-        projection_type='natural earth'
-    ),
-    height=500,
-    width=None,
-    autosize=True,
-    margin={"r":10,"t":50,"l":10,"b":10}
-)
-
-display(fig4, target="map4")
-
-print("✅ All world maps generated successfully!")
-print("💡 Hover over countries to see detailed data")
-				</script>
+			<PyExample title="Creating an interactive choropleth world map:" src="/python/matplotlib/covid_world_maps.py">
+				<script type="py" src="/python/matplotlib/covid_world_maps.py" id="covid-world-map"></script>
 			</PyExample>
 
-			<div class="space-y-8 mt-6">
+			{#if loading}
+				<div class="mt-6 flex items-center justify-center gap-3 rounded-lg border-2 border-blue-200 bg-blue-50 p-8">
+					<div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+					<p class="text-lg font-semibold text-blue-900">Generating world maps...</p>
+				</div>
+			{/if}
+
+			<div class="space-y-8 mt-6" class:opacity-0={loading} class:opacity-100={!loading} style="transition: opacity 0.3s ease-in-out;">
 				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
 					<h3 class="text-lg font-bold mb-3">🗺️ Map 1: Total Deaths</h3>
 					<p class="text-sm text-gray-600 mb-3">Darker red indicates higher death toll. Hover over countries for details.</p>

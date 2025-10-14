@@ -98,6 +98,9 @@ with Diagram("Simple Web Service", show=False):
 
 <ExperimentCard props={{ previousPage: '/examples/diagrams/gallery', nextPage: '/examples/ml' }}>
 	<div slot="py_slot" class="flex h-full flex-col p-5">
+		<!-- Hidden Python script container - must exist before controller initializes -->
+		<div id="diagram-creator-script" style="display: none;"></div>
+
 		{#if loading}
 			<div class="flex items-center justify-center p-8">
 				<p class="text-lg">🐍 Loading diagram creator...</p>
@@ -161,9 +164,6 @@ with Diagram("Simple Web Service", show=False):
 				<p class="text-gray-400">Click "Run Diagram" to see your visualization</p>
 			</div>
 		</div>
-
-			<!-- Hidden Python script container -->
-			<div id="diagram-creator-script" style="display: none;"></div>
 		{/if}
 	</div>
 

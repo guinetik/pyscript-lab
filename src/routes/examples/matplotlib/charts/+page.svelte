@@ -1,7 +1,47 @@
 <script>
+	import { onMount } from 'svelte';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
-	export let name = 'COVID-19 Data Charts';
+	import { createLogger } from '@guinetik/logger';
+	
+	let loading = $state(true);
+	const name = 'COVID-19 Data Charts';
+
+	const logger = createLogger({
+		prefix: 'CovidChartsPage',
+		level: 'debug'
+	});
+
+	onMount(() => {
+		// Wait for Python module to load, then generate charts individually
+		const checkAndGenerate = setInterval(() => {
+			if (typeof window !== 'undefined' && 
+			    window.generateTopDeathsChart && 
+			    window.generateRegionalDeathsPie &&
+			    window.generateCasesVsDeathsScatter &&
+			    window.generateCaseFatalityRateChart) {
+				
+				clearInterval(checkAndGenerate);
+				
+				// Call each chart generation function individually in Promise.all
+				Promise.all([
+					window.generateTopDeathsChart(),
+					window.generateRegionalDeathsPie(),
+					window.generateCasesVsDeathsScatter(),
+					window.generateCaseFatalityRateChart()
+				]).then(() => {
+					loading = false;
+					logger.log('✅ All COVID charts loaded');
+				}).catch((error) => {
+					console.error('❌ Error generating charts:', error);
+					loading = false;
+				});
+			}
+		}, 100);
+
+		// Cleanup
+		return () => clearInterval(checkAndGenerate);
+	});
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/matplotlib/intro', nextPage: '/examples/matplotlib/maps' }}>
@@ -10,112 +50,18 @@
 			<h1>COVID-19 Global Data Analysis</h1>
 			<p class="mb-4 text-gray-600">Visualizing pandemic data from 187 countries/regions</p>
 
-			<PyExample title="Loading and analyzing COVID-19 data:">
-				<script type="py" id="covid-data">
-from pyscript import display
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-from pyodide.http import open_url
-
-# Load the COVID data
-df = pd.read_csv(open_url('/data/covid_country.csv'))
-
-print(f"📊 Loaded data for {len(df)} countries/regions")
-print(f"Total Deaths: {df['Deaths'].sum():,}")
-print(f"Total Confirmed Cases: {df['Confirmed'].sum():,}")
-
-# 1. TOP 20 COUNTRIES BY DEATHS - Horizontal Bar Chart (Heatmap style)
-top_deaths = df.nlargest(20, 'Deaths')[['Country/Region', 'Deaths']].sort_values('Deaths')
-
-fig1, ax1 = plt.subplots(figsize=(10, 8))
-colors = plt.cm.Reds(np.linspace(0.3, 0.9, len(top_deaths)))
-bars = ax1.barh(top_deaths['Country/Region'], top_deaths['Deaths'], color=colors)
-ax1.set_xlabel('Total Deaths', fontsize=12, fontweight='bold')
-ax1.set_title('Top 20 Countries by COVID-19 Deaths', fontsize=14, fontweight='bold', pad=20)
-ax1.grid(axis='x', alpha=0.3)
-
-# Add value labels
-for i, (idx, row) in enumerate(top_deaths.iterrows()):
-    ax1.text(row['Deaths'], i, f" {int(row['Deaths']):,}",
-             va='center', fontsize=9, fontweight='bold')
-
-plt.tight_layout()
-display(fig1, target="covid-chart1")
-
-# 2. DEATHS BY WHO REGION - Pie Chart
-region_deaths = df.groupby('WHO Region')['Deaths'].sum().sort_values(ascending=False)
-
-fig2, ax2 = plt.subplots(figsize=(10, 8))
-colors2 = plt.cm.Set3(range(len(region_deaths)))
-wedges, texts, autotexts = ax2.pie(region_deaths, labels=region_deaths.index, autopct='%1.1f%%',
-                                     colors=colors2, startangle=90)
-ax2.set_title('COVID-19 Deaths Distribution by WHO Region', fontsize=14, fontweight='bold', pad=20)
-
-# Make percentage text bold
-for autotext in autotexts:
-    autotext.set_color('white')
-    autotext.set_fontweight('bold')
-    autotext.set_fontsize(10)
-
-plt.tight_layout()
-display(fig2, target="covid-chart2")
-
-# 3. CONFIRMED CASES VS DEATHS - Scatter Plot
-fig3, ax3 = plt.subplots(figsize=(10, 8))
-
-# Color by WHO Region
-regions = df['WHO Region'].unique()
-colors_map = {region: plt.cm.tab10(i) for i, region in enumerate(regions)}
-colors3 = [colors_map[region] for region in df['WHO Region']]
-
-scatter = ax3.scatter(df['Confirmed'], df['Deaths'],
-                     c=colors3, alpha=0.6, s=100, edgecolors='black', linewidth=0.5)
-
-ax3.set_xlabel('Confirmed Cases', fontsize=12, fontweight='bold')
-ax3.set_ylabel('Deaths', fontsize=12, fontweight='bold')
-ax3.set_title('COVID-19: Confirmed Cases vs Deaths', fontsize=14, fontweight='bold', pad=20)
-ax3.grid(True, alpha=0.3)
-
-# Log scale for better visualization
-ax3.set_xscale('log')
-ax3.set_yscale('log')
-
-# Add legend
-from matplotlib.patches import Patch
-legend_elements = [Patch(facecolor=colors_map[region], label=region) for region in regions]
-ax3.legend(handles=legend_elements, loc='upper left', fontsize=8)
-
-plt.tight_layout()
-display(fig3, target="covid-chart3")
-
-# 4. TOP 15 COUNTRIES BY CASE FATALITY RATE
-df['Case Fatality Rate'] = (df['Deaths'] / df['Confirmed'] * 100)
-# Filter countries with at least 1000 confirmed cases for meaningful comparison
-df_filtered = df[df['Confirmed'] >= 1000]
-top_cfr = df_filtered.nlargest(15, 'Case Fatality Rate')[['Country/Region', 'Case Fatality Rate', 'Deaths']].sort_values('Case Fatality Rate')
-
-fig4, ax4 = plt.subplots(figsize=(10, 8))
-colors4 = plt.cm.YlOrRd(np.linspace(0.3, 0.9, len(top_cfr)))
-bars = ax4.barh(top_cfr['Country/Region'], top_cfr['Case Fatality Rate'], color=colors4)
-ax4.set_xlabel('Case Fatality Rate (%)', fontsize=12, fontweight='bold')
-ax4.set_title('Top 15 Countries by Case Fatality Rate\n(Countries with 1000+ confirmed cases)',
-              fontsize=14, fontweight='bold', pad=20)
-ax4.grid(axis='x', alpha=0.3)
-
-# Add value labels
-for i, (idx, row) in enumerate(top_cfr.iterrows()):
-    ax4.text(row['Case Fatality Rate'], i, f" {row['Case Fatality Rate']:.1f}%",
-             va='center', fontsize=9, fontweight='bold')
-
-plt.tight_layout()
-display(fig4, target="covid-chart4")
-
-print("✅ All visualizations generated successfully!")
-				</script>
+			<PyExample title="Loading and analyzing COVID-19 data:" src="/python/matplotlib/covid_charts.py">
+				<script type="py" src="/python/matplotlib/covid_charts.py" id="covid-data"></script>
 			</PyExample>
 
-			<div class="space-y-8 mt-6">
+			{#if loading}
+				<div class="mt-6 flex items-center justify-center gap-3 rounded-lg border-2 border-blue-200 bg-blue-50 p-8">
+					<div class="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+					<p class="text-lg font-semibold text-blue-900">Generating charts...</p>
+				</div>
+			{/if}
+
+			<div class="space-y-8 mt-6" class:opacity-0={loading} class:opacity-100={!loading} style="transition: opacity 0.3s ease-in-out;">
 				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
 					<h3 class="text-lg font-bold mb-3">📊 Chart 1: Top 20 Countries by Deaths</h3>
 					<div id="covid-chart1" class="flex justify-center"></div>

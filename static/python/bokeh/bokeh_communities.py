@@ -101,7 +101,7 @@ class BokehCommunityDetection:
         self.node_to_community = {}
 
         print("🐍 BokehCommunityDetection initialized")
-        console.log("🐍 BokehCommunityDetection initialized")
+        print("🐍 BokehCommunityDetection initialized")
 
     def _load_data(self):
         """
@@ -118,8 +118,8 @@ class BokehCommunityDetection:
         """
         try:
             print("🐍 Loading StackOverflow network data...")
-            console.log(f"🐍 Loading nodes from: {self.nodes_url}")
-            console.log(f"🐍 Loading edges from: {self.edges_url}")
+            print(f"🐍 Loading nodes from: {self.nodes_url}")
+            print(f"🐍 Loading edges from: {self.edges_url}")
 
             self.nodes_df = pd.read_csv(open_url(self.nodes_url))
             self.edges_df = pd.read_csv(open_url(self.edges_url))
@@ -128,7 +128,7 @@ class BokehCommunityDetection:
                 raise ValueError("Loaded DataFrames are empty")
 
             print(f"🐍 Loaded {len(self.nodes_df)} nodes and {len(self.edges_df)} edges")
-            console.log(f"✅ Data loaded: {len(self.nodes_df)} nodes, {len(self.edges_df)} edges")
+            print(f"✅ Data loaded: {len(self.nodes_df)} nodes, {len(self.edges_df)} edges")
 
         except Exception as e:
             error_msg = f"Failed to load network data: {str(e)}"
@@ -151,7 +151,7 @@ class BokehCommunityDetection:
             all nodes, edges, and basic attributes.
         """
         print("🐍 Building NetworkX graph...")
-        console.log("🐍 Building graph structure...")
+        print("🐍 Building graph structure...")
 
         # Create empty graph
         self.G = nx.Graph()
@@ -174,7 +174,7 @@ class BokehCommunityDetection:
         nx.set_node_attributes(self.G, name='degree', values=degrees)
 
         print(f"✅ Graph built: {len(self.G.nodes())} nodes, {len(self.G.edges())} edges")
-        console.log(f"✅ Graph: {len(self.G.nodes())} nodes, {len(self.G.edges())} edges")
+        print(f"✅ Graph: {len(self.G.nodes())} nodes, {len(self.G.edges())} edges")
 
     def _detect_communities(self):
         """
@@ -193,13 +193,13 @@ class BokehCommunityDetection:
             the network is divided into communities.
         """
         print("🐍 Detecting communities using greedy modularity...")
-        console.log("🐍 Running community detection algorithm...")
+        print("🐍 Running community detection algorithm...")
 
         # Detect communities
         self.communities = list(nx_comm.greedy_modularity_communities(self.G))
         num_communities = len(self.communities)
         print(f"🐍 Found {num_communities} communities!")
-        console.log(f"✅ Detected {num_communities} communities")
+        print(f"✅ Detected {num_communities} communities")
 
         # Create node-to-community mapping
         self.node_to_community = {}
@@ -213,14 +213,14 @@ class BokehCommunityDetection:
         # Calculate modularity score
         self.modularity = nx_comm.modularity(self.G, self.communities)
         print(f"🐍 Network modularity: {self.modularity:.3f}")
-        console.log(f"✅ Modularity score: {self.modularity:.3f}")
+        print(f"✅ Modularity score: {self.modularity:.3f}")
 
         # Log community sizes
         print("🐍 Community sizes:")
         for i, community in enumerate(self.communities):
             size = len(community)
             print(f"   Community {i+1}: {size} nodes")
-            console.log(f"🐍 Community {i+1}: {size} nodes")
+            print(f"🐍 Community {i+1}: {size} nodes")
 
     def _compute_node_radii(self, graph: nx.Graph, min_radius: float = 0.005, max_radius: float = 0.03):
         """
@@ -251,7 +251,7 @@ class BokehCommunityDetection:
             radii[node] = min_radius + (normalized * (max_radius - min_radius))
 
         nx.set_node_attributes(graph, radii, 'radius')
-        console.log(f"🐍 Node radii: {min_radius:.4f} to {max_radius:.4f}")
+        print(f"🐍 Node radii: {min_radius:.4f} to {max_radius:.4f}")
 
     def _create_bokeh_graph(
         self,
@@ -292,7 +292,7 @@ class BokehCommunityDetection:
         self._compute_node_radii(graph)
 
         # Use Kamada-Kawai layout for better community structure visualization
-        console.log("🐍 Using Kamada-Kawai layout algorithm...")
+        print("🐍 Using Kamada-Kawai layout algorithm...")
         pos = nx.kamada_kawai_layout(graph)
 
         # Create Bokeh graph from NetworkX
@@ -337,7 +337,7 @@ class BokehCommunityDetection:
         try:
             p_json = json.dumps(json_item(plot, container_id))
             Bokeh.embed.embed_item(JSON.parse(p_json))
-            console.log(f"✅ Plot embedded in #{container_id}")
+            print(f"✅ Plot embedded in #{container_id}")
         except Exception as e:
             error_msg = f"Failed to embed plot: {str(e)}"
             console.error(f"❌ {error_msg}")
@@ -355,7 +355,7 @@ class BokehCommunityDetection:
         The graph is embedded in the element with ID "chart".
         """
         print("🐍 Creating full network with communities...")
-        console.log("🐍 Rendering community network visualization...")
+        print("🐍 Rendering community network visualization...")
 
         num_communities = len(self.communities)
         plot, network_graph = self._create_bokeh_graph(
@@ -370,7 +370,7 @@ class BokehCommunityDetection:
         print("🐍 Rendering community network graph...")
         self._embed_plot(plot, "chart")
         print("✅ Community network graph rendered!")
-        console.log("✅ Chart 1 (full network) complete")
+        print("✅ Chart 1 (full network) complete")
 
     def _create_largest_community_graph(self):
         """
@@ -383,14 +383,14 @@ class BokehCommunityDetection:
         The graph is embedded in the element with ID "chart2".
         """
         print("🐍 Analyzing largest community...")
-        console.log("🐍 Extracting largest community...")
+        print("🐍 Extracting largest community...")
 
         # Find largest community
         largest_community = max(self.communities, key=len)
         largest_subgraph = self.G.subgraph(largest_community)
 
         print(f"🐍 Largest community: {len(largest_community)} nodes, {len(largest_subgraph.edges())} edges")
-        console.log(f"🐍 Largest: {len(largest_community)} nodes, {len(largest_subgraph.edges())} edges")
+        print(f"🐍 Largest: {len(largest_community)} nodes, {len(largest_subgraph.edges())} edges")
 
         # Sample some nodes for logging
         sample_nodes = list(largest_community)[:10]
@@ -413,7 +413,7 @@ class BokehCommunityDetection:
         print("🐍 Rendering largest community graph...")
         self._embed_plot(plot, "chart2")
         print("✅ Largest community graph rendered!")
-        console.log("✅ Chart 2 (largest community) complete")
+        print("✅ Chart 2 (largest community) complete")
 
     def _create_community_comparison_chart(self):
         """
@@ -432,7 +432,7 @@ class BokehCommunityDetection:
         The graph is embedded in the element with ID "chart3".
         """
         print("🐍 Creating community comparison chart...")
-        console.log("🐍 Building community size comparison...")
+        print("🐍 Building community size comparison...")
 
         num_communities = len(self.communities)
         community_sizes = [len(c) for c in self.communities]
@@ -474,7 +474,7 @@ class BokehCommunityDetection:
         print("🐍 Rendering community comparison...")
         self._embed_plot(p, "chart3")
         print("✅ Community comparison rendered!")
-        console.log("✅ Chart 3 (comparison) complete")
+        print("✅ Chart 3 (comparison) complete")
 
     def run(self):
         """
@@ -501,7 +501,7 @@ class BokehCommunityDetection:
             the globally optimal partition.
         """
         print("🐍 Starting Community Detection example...")
-        console.log("🐍 Starting community detection analysis...")
+        print("🐍 Starting community detection analysis...")
 
         try:
             # Load data
@@ -519,7 +519,7 @@ class BokehCommunityDetection:
             self._create_community_comparison_chart()
 
             print("✅ All community detection visualizations complete!")
-            console.log("✅ All 3 community visualizations rendered successfully!")
+            print("✅ All 3 community visualizations rendered successfully!")
 
         except Exception as e:
             error_msg = f"Community detection failed: {str(e)}"

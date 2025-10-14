@@ -15,13 +15,11 @@
 		if (!pyScriptRunner) {
 			pyScriptRunner = RunPython();
 			// Add cache-busting parameter
-			const scriptUrl = getLink('python/bokeh_networks.py') + '?v=' + Date.now();
+			const scriptUrl = getLink('python/bokeh/bokeh_networks.py') + '?v=' + Date.now();
 			pyScriptRunner.runScript(scriptUrl, 'script_gutter', false);
-
-			// Hide loading after a delay (4 charts take time to render)
 			setTimeout(() => {
 				loading = false;
-			}, 5000);
+			}, 1000);
 		}
 	});
 
@@ -116,7 +114,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh_networks.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh/bokeh_networks.py"
 				target="_blank">View source</a
 			>
 			<br />

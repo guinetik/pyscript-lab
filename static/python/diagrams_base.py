@@ -35,7 +35,7 @@ class DiagramsBase:
         self.current_chart_id = None
         self.original_digraph = None
         self.is_patched = False
-        console.log("🐍 DiagramsBase initialized")
+        print("🐍 DiagramsBase initialized")
 
     def patch_graphviz(self):
         """
@@ -45,7 +45,7 @@ class DiagramsBase:
         with JavaScript for viz.js rendering instead of executing subprocess.
         """
         if self.is_patched:
-            console.log("⚠️ Already patched, skipping")
+            print("⚠️ Already patched, skipping")
             return
 
         import graphviz
@@ -68,15 +68,15 @@ class DiagramsBase:
                 filename = kwargs.get('filename') or (args[0] if args else 'diagram')
                 filename = str(filename)
 
-                console.log(f"🎯 Captured DOT: {len(dot_source)} bytes")
+                print(f"🎯 Captured DOT: {len(dot_source)} bytes")
 
                 # Extract icon URLs
                 image_urls = base._extract_icon_urls(dot_source)
-                console.log(f"✅ Found {len(image_urls)} images")
+                print(f"✅ Found {len(image_urls)} images")
 
                 # Determine chart ID
                 chart_id = base.current_chart_id or "user-diagram-output"
-                console.log(f"📊 Chart ID: {chart_id}")
+                print(f"📊 Chart ID: {chart_id}")
 
                 # Store DOT
                 base.dot_outputs[chart_id] = dot_source
@@ -95,7 +95,7 @@ class DiagramsBase:
         # Replace Digraph
         graphviz.Digraph = CaptureDigraph
         self.is_patched = True
-        console.log("✅ graphviz.Digraph patched")
+        print("✅ graphviz.Digraph patched")
 
     def patch_subprocess(self):
         """
@@ -109,7 +109,7 @@ class DiagramsBase:
         def mock_subprocess_run(args, **kwargs):
             """Mock subprocess calls."""
             if args and 'dot' in str(args[0]):
-                console.log(f"🔧 Intercepting subprocess: {args}")
+                print(f"🔧 Intercepting subprocess: {args}")
 
                 class MockResult:
                     returncode = 0
@@ -126,7 +126,7 @@ class DiagramsBase:
             raise OSError(138, "emscripten does not support processes")
 
         subprocess.run = mock_subprocess_run
-        console.log("✅ subprocess.run patched")
+        print("✅ subprocess.run patched")
 
     def _extract_icon_urls(self, dot_source: str) -> Dict[str, str]:
         """
@@ -157,10 +157,10 @@ class DiagramsBase:
 
     def setup(self):
         """Apply all necessary patches."""
-        console.log("🐍 Setting up DiagramsBase patches...")
+        print("🐍 Setting up DiagramsBase patches...")
         self.patch_graphviz()
         self.patch_subprocess()
-        console.log("✅ DiagramsBase setup complete")
+        print("✅ DiagramsBase setup complete")
 
 
 # Global instance for reuse

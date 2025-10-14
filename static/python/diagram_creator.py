@@ -8,18 +8,36 @@ Event-driven architecture: Python exposes functions to JS, JS calls them, Python
 
 Author: PyScript Lab
 """
-import js
-from js import console
-from pyscript import window
+try:
+    import js
+    from js import console
+    from pyscript import window
 
-# Import the shared base module (configured in py-config)
-from diagrams_base import get_diagrams_base
+    print("🐍 Starting diagram creator initialization...")
+    console.log("🐍 Starting diagram creator initialization...")
 
-console.log("🐍 Initializing diagram creator...")
+    print("🐍 Imports successful, loading diagrams_base...")
+    console.log("🐍 Imports successful, loading diagrams_base...")
 
-# Get the shared base instance
-diagrams_base = get_diagrams_base()
-console.log("✅ Patches applied")
+    # Import the shared base module (configured in py-config)
+    from diagrams_base import get_diagrams_base
+
+    print("🐍 diagrams_base imported successfully")
+    console.log("🐍 diagrams_base imported successfully")
+
+    # Get the shared base instance
+    diagrams_base = get_diagrams_base()
+    print("✅ Patches applied")
+    console.log("✅ Patches applied")
+
+except Exception as e:
+    print(f"❌ Error during initialization: {str(e)}")
+    console.error(f"❌ Error during initialization: {str(e)}")
+    import traceback
+    error_trace = traceback.format_exc()
+    print(error_trace)
+    console.error(error_trace)
+    raise
 
 
 def create_diagram(user_code):
@@ -29,7 +47,7 @@ def create_diagram(user_code):
     Args:
         user_code: String containing the user's Python diagram code
     """
-    console.log(f"🐍 Received code to execute ({len(user_code)} chars)")
+    print(f"🐍 Received code to execute ({len(user_code)} chars)")
 
     try:
         # Notify UI that we're processing
@@ -45,27 +63,41 @@ def create_diagram(user_code):
             '__builtins__': __builtins__
         })
 
-        console.log("✅ Diagram code executed successfully")
+        print("✅ Diagram code executed successfully")
         js.window.updateDiagramStatus('success', 'Diagram generated!')
 
     except FileNotFoundError as e:
         # Suppress FileNotFoundError - this happens because we return a filename
         # from render() but don't actually create the file (we use viz.js instead)
-        console.log(f"ℹ️ Suppressing expected FileNotFoundError: {str(e)}")
-        console.log("✅ Diagram code executed successfully")
+        print(f"ℹ️ Suppressing expected FileNotFoundError: {str(e)}")
+        print("✅ Diagram code executed successfully")
         js.window.updateDiagramStatus('success', 'Diagram generated!')
 
     except Exception as e:
         error_msg = f"{type(e).__name__}: {str(e)}"
-        console.log(f"❌ Error executing diagram code: {error_msg}")
+        print(f"❌ Error executing diagram code: {error_msg}")
         # Include line number if available
         import traceback
         tb = traceback.format_exc()
-        console.log(f"📋 Traceback: {tb}")
+        print(f"📋 Traceback: {tb}")
         js.window.updateDiagramStatus('error', error_msg)
 
 
 # Expose the function to JavaScript
-console.log("🐍 Exposing create_diagram to window object")
-js.window.create_diagram = create_diagram
-console.log("✅ Diagram creator ready!")
+try:
+    print("🐍 Exposing create_diagram to window object...")
+    console.log("🐍 Exposing create_diagram to window object...")
+
+    window.create_diagram = create_diagram
+
+    print("✅ Diagram creator ready!")
+    console.log("✅ Diagram creator ready!")
+    console.log("✅ window.create_diagram is now available")
+
+except Exception as e:
+    print(f"❌ Error exposing function: {str(e)}")
+    console.error(f"❌ Error exposing function: {str(e)}")
+    import traceback
+    error_trace = traceback.format_exc()
+    print(error_trace)
+    console.error(error_trace)

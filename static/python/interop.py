@@ -80,7 +80,7 @@ class InteropGreeter:
                     <p class="text-gray-600">Fill out the form to see JavaScript calling Python in action</p>
                 </div>
             """
-            console.log("✅ InteropGreeter initialized and ready")
+            print("✅ InteropGreeter initialized and ready")
 
     def _get_greeting(self) -> str:
         """
@@ -272,7 +272,7 @@ class InteropGreeter:
             This function is exposed to JavaScript and called via PyScript's
             interoperability features. See the Svelte component for the JS side.
         """
-        console.log(f"🐍 Python function called with: name='{name}', age={age}")
+        print(f"🐍 Python function called with: name='{name}', age={age}")
 
         # Get the output element
         chart = document.getElementById(self.output_element_id)
@@ -291,7 +291,7 @@ class InteropGreeter:
         response_html = self._generate_response_html(name, int(age))
         chart.innerHTML = response_html
 
-        console.log(f"✅ Greeting generated successfully for {name}, age {age}")
+        print(f"✅ Greeting generated successfully for {name}, age {age}")
 
 
 # Create a global instance of the greeter
@@ -316,4 +316,4 @@ def run(name: Optional[str], age: Optional[int]) -> None:
 
 
 # Log initialization
-console.log("🐍 Interop module loaded successfully")
+print("🐍 Interop module loaded successfully")

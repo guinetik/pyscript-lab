@@ -6,6 +6,7 @@
 	import PredictionResult from '$lib/ml/PredictionResult.svelte';
 	import ModelVisualization from '$lib/ml/ModelVisualization.svelte';
 	import UIStatus from '$lib/ml/UIStatus.svelte';
+	import { createLogger } from '@guinetik/logger';
 	import {
 		predictionResult,
 		modelState,
@@ -16,13 +17,18 @@
 	// Page metadata
 	let name = 'Machine Learning - Digit Recognition';
 
+	const logger = createLogger({
+		prefix: 'DigitRecognitionPage',
+		level: 'debug'
+	});
+
 	// Canvas reference
 	let canvas;
 	let ctx;
 	let isDrawing = false;
 
 	// Python script URL
-	const pyScriptUrl = getLink('python/digit_recognition.py');
+	const pyScriptUrl = getLink('python/ml/digit_recognition.py');
 
 	// Define a RunPython instance to attach our script to
 	let pyScriptRunner = RunPython();
@@ -32,9 +38,9 @@
 		// Expose store update functions to window for Python to call
 		// Convert Pyodide proxies to plain JavaScript objects to avoid proxy destruction errors
 		window.updatePredictionResult = (data) => {
-			console.log('🟢 [JS] updatePredictionResult called with:', data);
+			logger.log('🟢 [JS] updatePredictionResult called with:', data);
 			if (data === null || data === undefined) {
-				console.log('🟢 [JS] Clearing prediction result');
+				logger.log('🟢 [JS] Clearing prediction result');
 				predictionResult.set(null);
 			} else {
 				// Convert proxy to plain JS object
@@ -45,24 +51,24 @@
 					imageData: Array.from(data.imageData || []),
 					imageData2D: Array.from(data.imageData2D || []).map(row => Array.from(row))
 				};
-				console.log('🟢 [JS] Setting prediction result:', plainData);
+				logger.log('🟢 [JS] Setting prediction result:', plainData);
 				predictionResult.set(plainData);
 			}
 		};
 
 		window.updateModelState = (data) => {
-			console.log('🟢 [JS] updateModelState called with:', data);
+			logger.log('🟢 [JS] updateModelState called with:', data);
 			// Convert proxy to plain JS object
 			const plainData = {
 				accuracy: data.accuracy,
 				trainingExamples: data.trainingExamples
 			};
-			console.log('🟢 [JS] Setting model state:', plainData);
+			logger.log('🟢 [JS] Setting model state:', plainData);
 			modelState.set(plainData);
 		};
 
 		window.updateUIState = (status, message) => {
-			console.log('🟢 [JS] updateUIState called:', status, message);
+			logger.log('🟢 [JS] updateUIState called:', status, message);
 			// Primitives don't need conversion
 			uiState.set({ status: String(status), message: String(message) });
 		};
@@ -178,17 +184,17 @@
 	 * Predict the drawn digit by calling Python
 	 */
 	function predictDigit() {
-		console.log('🔵 [JS] predictDigit() called');
+		logger.log('🔵 [JS] predictDigit() called');
 		try {
 			// Get canvas data as base64
 			const imageData = canvas.toDataURL('image/png');
-			console.log('🔵 [JS] Got canvas data, length:', imageData.length);
+			logger.log('🔵 [JS] Got canvas data, length:', imageData.length);
 
 			// Call Python function directly through window
 			if (window.predict_digit) {
-				console.log('🔵 [JS] Calling window.predict_digit()');
+				logger.log('🔵 [JS] Calling window.predict_digit()');
 				window.predict_digit(imageData);
-				console.log('🔵 [JS] Python call completed');
+				logger.log('🔵 [JS] Python call completed');
 			} else {
 				console.error('🔴 [JS] window.predict_digit not found! Python may not be ready.');
 				alert('Python is not ready yet. Please wait a moment and try again.');
@@ -291,7 +297,7 @@
 		<p class="mt-4">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/digit_recognition.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/digit_recognition.py"
 				target="_blank">View source</a
 			>
 		</p>

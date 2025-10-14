@@ -57,8 +57,8 @@ class RLAgent:
             'B+RIGHT',   # Run right
         ]
 
-        console.log("🤖 [Python] RL Agent initialized")
-        console.log(f"📊 [Python] Action space: {len(self.actions)} actions")
+        print("🤖 [Python] RL Agent initialized")
+        print(f"📊 [Python] Action space: {len(self.actions)} actions")
 
     def select_action(self):
         """
@@ -71,12 +71,12 @@ class RLAgent:
         if random.random() < self.epsilon:
             # Explore: random action
             action = random.choice(self.actions)
-            console.log(f"🔍 [Python] Exploring: {action}")
+            print(f"🔍 [Python] Exploring: {action}")
         else:
             # Exploit: for now, bias towards moving right and jumping
             # In a full implementation, this would use Q-values
             action = random.choice(['A+RIGHT', 'B+RIGHT', 'RIGHT', 'A'])
-            console.log(f"🎯 [Python] Exploiting: {action}")
+            print(f"🎯 [Python] Exploiting: {action}")
 
         return action
 
@@ -90,7 +90,7 @@ class RLAgent:
         emulator = window.nesEmulator
 
         if not emulator or not emulator.isLoaded():
-            console.log("⚠️ [Python] Emulator not ready")
+            print("⚠️ [Python] Emulator not ready")
             return
 
         # Don't interfere if emulator is already running (manual play mode)
@@ -192,7 +192,7 @@ class RLAgent:
 
         # Check if episode should end
         if self.episode_steps >= self.max_steps_per_episode:
-            console.log(f"📊 [Python] Episode {self.episode} complete: {self.episode_reward:.1f} reward")
+            print(f"📊 [Python] Episode {self.episode} complete: {self.episode_reward:.1f} reward")
             self.end_episode()
             self.start_episode()
 
@@ -214,7 +214,7 @@ class RLAgent:
         emulator = window.nesEmulator
         if emulator and emulator.isLoaded():
             emulator.reset()
-            console.log(f"🎮 [Python] Episode {self.episode} started")
+            print(f"🎮 [Python] Episode {self.episode} started")
 
         self.update_ui()
 
@@ -223,7 +223,7 @@ class RLAgent:
         # Update high score
         if self.episode_reward > self.high_score:
             self.high_score = self.episode_reward
-            console.log(f"🏆 [Python] New high score: {self.high_score:.1f}")
+            print(f"🏆 [Python] New high score: {self.high_score:.1f}")
 
         self.update_ui()
 
@@ -240,7 +240,7 @@ class RLAgent:
 
     def start_training(self):
         """Start the training loop."""
-        console.log("🚀 [Python] Starting training...")
+        print("🚀 [Python] Starting training...")
         self.is_training = True
         self.is_paused = False
 
@@ -270,20 +270,20 @@ class RLAgent:
 
     def pause_training(self):
         """Pause training."""
-        console.log("⏸️ [Python] Training paused")
+        print("⏸️ [Python] Training paused")
         self.is_paused = True
         window.updateRLStatus('paused', f"Training paused at Episode {self.episode}")
 
     def resume_training(self):
         """Resume training."""
-        console.log("▶️ [Python] Training resumed")
+        print("▶️ [Python] Training resumed")
         self.is_paused = False
         window.updateRLStatus('training', f"Training resumed - Episode {self.episode}")
         self.training_loop()
 
     def reset_training(self):
         """Reset all training progress."""
-        console.log("🔄 [Python] Training reset")
+        print("🔄 [Python] Training reset")
         self.is_training = False
         self.is_paused = False
         self.episode = 0
@@ -303,7 +303,7 @@ class RLAgent:
 
     def play_demo(self):
         """Play a demo using the trained policy."""
-        console.log("🎮 [Python] Playing demo...")
+        print("🎮 [Python] Playing demo...")
         window.updateRLStatus('playing', 'Playing demo with trained policy...')
 
         # TODO: Implement demo mode (use best policy, no exploration)
@@ -312,21 +312,21 @@ class RLAgent:
 
 
 # Initialize the RL agent
-console.log("🐍 [Python] Initializing RL agent...")
+print("🐍 [Python] Initializing RL agent...")
 rl_agent = RLAgent()
-console.log("✅ [Python] RL agent ready")
+print("✅ [Python] RL agent ready")
 
 
 # Expose functions to JavaScript
 def start_training():
     """Start RL training (called from JS)."""
-    console.log("🟢 [Python] start_training() called")
+    print("🟢 [Python] start_training() called")
     rl_agent.start_training()
 
 
 def pause_training():
     """Pause RL training (called from JS)."""
-    console.log("🟡 [Python] pause_training() called")
+    print("🟡 [Python] pause_training() called")
     if rl_agent.is_paused:
         rl_agent.resume_training()
     else:
@@ -335,20 +335,20 @@ def pause_training():
 
 def reset_training():
     """Reset RL training (called from JS)."""
-    console.log("🔴 [Python] reset_training() called")
+    print("🔴 [Python] reset_training() called")
     rl_agent.reset_training()
 
 
 def play_demo():
     """Play demo (called from JS)."""
-    console.log("🔵 [Python] play_demo() called")
+    print("🔵 [Python] play_demo() called")
     rl_agent.play_demo()
 
 
 # Expose to window
-console.log("🐍 [Python] Exposing RL functions to window object")
+print("🐍 [Python] Exposing RL functions to window object")
 window.startRLTraining = start_training
 window.pauseRLTraining = pause_training
 window.resetRLTraining = reset_training
 window.playRLDemo = play_demo
-console.log("✅ [Python] RL agent ready for training!")
+print("✅ [Python] RL agent ready for training!")

@@ -3,6 +3,8 @@
  * Based on jsnes-react implementation
  */
 
+import { createLogger } from "@guinetik/logger";
+
 const SCREEN_WIDTH = 256;
 const SCREEN_HEIGHT = 240;
 
@@ -12,6 +14,9 @@ export class Screen {
 	 * @param {HTMLCanvasElement} canvas - Canvas element to render to
 	 */
 	constructor(canvas) {
+		this.logger = createLogger(
+			{prefix: 'Screen',
+			level: 'debug'});
 		this.canvas = canvas;
 		this.context = null;
 		this.imageData = null;
@@ -22,7 +27,7 @@ export class Screen {
 		this.buffer32 = null;
 		
 		this.initCanvas();
-		console.log('🖥️ Screen created');
+		this.logger.log('🖥️ Screen created');
 	}
 
 	/**
@@ -46,7 +51,7 @@ export class Screen {
 			this.buffer32[i] = 0xff000000;
 		}
 		
-		console.log('✅ Screen initialized');
+		this.logger.log('✅ Screen initialized');
 	}
 
 	/**

@@ -14,6 +14,7 @@
 import { DiagramRenderer } from '$lib/DiagramRenderer.js';
 import RunPython from '$lib/RunPython.js';
 import { getLink } from '$lib/utils.js';
+import { createLogger } from '@guinetik/logger';
 
 /**
  * @typedef {Object} Template
@@ -86,6 +87,9 @@ with Diagram("Data Pipeline", show=False):
 	 * @returns {Promise<void>}
 	 */
 	async initialize() {
+		this.logger = createLogger(
+			{prefix: 'DiagramCreatorController',
+			level: 'debug'});
 		if (this.isInitialized) {
 			console.warn('⚠️ DiagramCreatorController already initialized');
 			return;
@@ -102,7 +106,7 @@ with Diagram("Data Pipeline", show=False):
 			await this._initializePyScript();
 
 			this.isInitialized = true;
-			console.log('✅ DiagramCreatorController initialized');
+			this.logger.log('✅ DiagramCreatorController initialized');
 		} catch (error) {
 			console.error('❌ Failed to initialize DiagramCreatorController:', error);
 			throw error;
@@ -116,7 +120,7 @@ with Diagram("Data Pipeline", show=False):
 	 */
 	_setupStatusCallback() {
 		window.updateDiagramStatus = (newStatus, message) => {
-			console.log('🟢 updateDiagramStatus called:', newStatus, message);
+			this.logger.log('🟢 updateDiagramStatus called:', newStatus, message);
 
 			// Dispatch custom event for the UI to listen to
 			window.dispatchEvent(
@@ -134,7 +138,7 @@ with Diagram("Data Pipeline", show=False):
 			}
 		};
 
-		console.log('✅ Status callback setup complete');
+		this.logger.log('✅ Status callback setup complete');
 	}
 
 	/**
@@ -147,24 +151,24 @@ with Diagram("Data Pipeline", show=False):
 		// Load viz.js dynamically
 		const { instance } = await import('https://cdn.jsdelivr.net/npm/@viz-js/viz@3.2.0/+esm');
 		const viz = await instance();
-		console.log('✅ Viz.js loaded');
+		this.logger.log('✅ Viz.js loaded');
 
 		// Create DiagramRenderer instance
 		this.diagramRenderer = new DiagramRenderer(viz);
-		console.log('✅ DiagramRenderer created');
+		this.logger.log('✅ DiagramRenderer created');
 
 		// Expose to window for Python to call
 		window.diagramRenderer = this.diagramRenderer;
 		window.fetchAndRenderDiagram = (chartId, dotContent, imageMappingJson) => {
-			console.log('🟢 fetchAndRenderDiagram called for:', chartId);
+			this.logger.log('🟢 fetchAndRenderDiagram called for:', chartId);
 			this.diagramRenderer.render(chartId, dotContent, imageMappingJson);
 		};
 		window.renderDiagram = (chartId, dotContent) => {
-			console.log('🟢 renderDiagram called for:', chartId);
+			this.logger.log('🟢 renderDiagram called for:', chartId);
 			this.diagramRenderer.renderSimple(chartId, dotContent);
 		};
 
-		console.log('✅ DiagramRenderer exposed to window');
+		this.logger.log('✅ DiagramRenderer exposed to window');
 	}
 
 	/**
@@ -181,7 +185,7 @@ with Diagram("Data Pipeline", show=False):
 		// Wait for Python to be ready
 		await this._waitForPythonReady();
 
-		console.log('✅ PyScript runner initialized');
+		this.logger.log('✅ PyScript runner initialized');
 	}
 
 	/**
@@ -191,13 +195,22 @@ with Diagram("Data Pipeline", show=False):
 	 * @returns {Promise<void>}
 	 */
 	_waitForPythonReady() {
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
+			let attempts = 0;
+			const maxAttempts = 20; // 10 seconds max
+
 			const checkReady = () => {
+				attempts++;
+
 				if (window.create_diagram) {
-					console.log('✅ Python create_diagram ready');
+					this.logger.log('✅ Python create_diagram ready');
 					resolve();
+				} else if (attempts >= maxAttempts) {
+					this.logger.error('❌ Timeout waiting for Python create_diagram');
+					this.logger.error('Check browser console for Python errors');
+					reject(new Error('Timeout waiting for Python to load. Check console for errors.'));
 				} else {
-					console.log('⏳ Waiting for Python create_diagram...');
+					this.logger.log(`⏳ Waiting for Python create_diagram... (${attempts}/${maxAttempts})`);
 					setTimeout(checkReady, 500);
 				}
 			};
@@ -217,7 +230,7 @@ with Diagram("Data Pipeline", show=False):
 			return;
 		}
 
-		console.log('🔵 runDiagram() called');
+		this.logger.log('🔵 runDiagram() called');
 
 		// Clear previous output
 		const outputDiv = document.getElementById('user-diagram-output');
@@ -227,7 +240,7 @@ with Diagram("Data Pipeline", show=False):
 
 		// Call Python function
 		if (window.create_diagram) {
-			console.log('🔵 Calling window.create_diagram()');
+			this.logger.log('🔵 Calling window.create_diagram()');
 			window.create_diagram(code);
 		} else {
 			console.error('🔴 window.create_diagram not found!');
@@ -248,7 +261,7 @@ with Diagram("Data Pipeline", show=False):
 	 * @returns {boolean} True if save was successful
 	 */
 	saveDiagram() {
-		console.log('🔵 saveDiagram() called');
+		this.logger.log('🔵 saveDiagram() called');
 
 		const outputDiv = document.getElementById('user-diagram-output');
 		if (!outputDiv) {
@@ -287,7 +300,7 @@ with Diagram("Data Pipeline", show=False):
 		// Clean up
 		URL.revokeObjectURL(url);
 
-		console.log('✅ Diagram saved!');
+		this.logger.log('✅ Diagram saved!');
 		return true;
 	}
 
@@ -326,7 +339,7 @@ with Diagram("Data Pipeline", show=False):
 		delete window.updateDiagramStatus;
 
 		this.isInitialized = false;
-		console.log('✅ DiagramCreatorController destroyed');
+		this.logger.log('✅ DiagramCreatorController destroyed');
 	}
 }
 

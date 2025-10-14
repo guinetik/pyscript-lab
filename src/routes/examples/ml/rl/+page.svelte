@@ -4,6 +4,12 @@
 	import { getLink } from '$lib/utils.js';
 	import RunPython from '$lib/RunPython.js';
 	import { onMount, onDestroy } from 'svelte';
+	import { createLogger } from '@guinetik/logger';
+
+	const logger = createLogger({
+		prefix: 'RlPage',
+		level: 'debug'
+	});
 
 	// Page metadata
 	let name = 'Reinforcement Learning';
@@ -24,11 +30,11 @@
 	let hasState = $state(false);
 
 	onMount(async () => {
-		console.log('🎮 RL Page mounted');
+		logger.log('🎮 RL Page mounted');
 
 		// Expose JS callback functions for Python to call
 		window.updateRLStatus = (newStatus, message) => {
-			console.log('🟢 [JS] updateRLStatus called:', newStatus, message);
+			logger.log('🟢 [JS] updateRLStatus called:', newStatus, message);
 			status = newStatus;
 			statusMessage = message;
 		};
@@ -44,14 +50,14 @@
 		window.loadStateJS = loadState;
 
 		// Load Python neural network module first
-		const neuralUrl = getLink('python/neural.py');
+		const neuralUrl = getLink('python/ml/neural.py');
 		await pyScriptRunner.runScript(neuralUrl, 'neural-script', false);
-		console.log('✅ [JS] Neural network module loaded');
+		logger.log('✅ [JS] Neural network module loaded');
 
 		// Load Python Mario agent script
-		const marioAgentUrl = getLink('python/mario_agent.py');
+		const marioAgentUrl = getLink('python/ml/mario_agent.py');
 		await pyScriptRunner.runScript(marioAgentUrl, 'mario-script', false);
-		console.log('✅ [JS] Mario agent loaded');
+		logger.log('✅ [JS] Mario agent loaded');
 	});
 
 	onDestroy(() => {
@@ -61,9 +67,9 @@
 	});
 
 	async function handleEmulatorReady(emulator) {
-		console.log('✅ [JS] NES Emulator ready!', emulator);
-		console.log('   Is loaded:', emulator.isLoaded());
-		console.log('   NES object:', emulator.nes);
+		logger.log('✅ [JS] NES Emulator ready!', emulator);
+		logger.log('   Is loaded:', emulator.isLoaded());
+		logger.log('   NES object:', emulator.nes);
 		emulatorReady = true;
 
 		statusMessage = 'Emulator ready. Click "Play Game" to test or "Start Training" to begin AI learning.';
@@ -77,7 +83,7 @@
 	}
 
 	function startTraining() {
-		console.log('🔵 [JS] startTraining() called');
+		logger.log('🔵 [JS] startTraining() called');
 
 		if (!emulatorReady) {
 			alert('Emulator not ready yet!');
@@ -85,7 +91,7 @@
 		}
 
 		if (window.startRLTraining) {
-			console.log('🔵 [JS] Calling window.startRLTraining()');
+			logger.log('🔵 [JS] Calling window.startRLTraining()');
 			window.startRLTraining();
 		} else {
 			console.error('🔴 [JS] window.startRLTraining not found! Python may not be ready.');
@@ -113,7 +119,7 @@
 	}
 
 	function playManual() {
-		console.log('🔵 [JS] playManual() called');
+		logger.log('🔵 [JS] playManual() called');
 
 		if (!emulatorReady) {
 			alert('Emulator not ready yet!');
@@ -132,7 +138,7 @@
 
 			// Start emulator
 			if (!emulator.isRunning()) {
-				console.log('▶️ Starting emulator for manual play');
+				logger.log('▶️ Starting emulator for manual play');
 				emulator.start();
 			}
 
@@ -142,7 +148,7 @@
 	}
 
 	function stopManual() {
-		console.log('🔵 [JS] stopManual() called');
+		logger.log('🔵 [JS] stopManual() called');
 
 		const emulator = window.nesEmulator;
 		if (emulator) {
@@ -155,7 +161,7 @@
 	}
 
 	function saveState() {
-		console.log('💾 [JS] saveState() called');
+		logger.log('💾 [JS] saveState() called');
 
 		const emulator = window.nesEmulator;
 		if (emulator && emulator.controller) {
@@ -169,8 +175,8 @@
 				hasState = true;
 
 				// Print JSON to console for copying to data/state.json
-				console.log('📋 Copy this JSON and save it to static/data/state.json:');
-				console.log(stateJson);
+				logger.log('📋 Copy this JSON and save it to static/data/state.json:');
+				logger.log(stateJson);
 
 				// Try to download as file
 				try {
@@ -191,7 +197,7 @@
 	}
 
 	function loadState() {
-		console.log('📂 [JS] loadState() called - opening file picker');
+		logger.log('📂 [JS] loadState() called - opening file picker');
 
 		// Create file input for picking JSON file
 		const input = document.createElement('input');
@@ -201,7 +207,7 @@
 		input.onchange = async (e) => {
 			const file = e.target.files[0];
 			if (!file) {
-				console.log('No file selected');
+				logger.log('No file selected');
 				return;
 			}
 
@@ -214,7 +220,7 @@
 				savedState = text;
 				hasState = true;
 
-				console.log('✅ State file loaded into memory');
+				logger.log('✅ State file loaded into memory');
 				statusMessage = `State loaded from ${file.name}! Click Play or Start Training to use it.`;
 
 				// Immediately apply the state to the emulator if it's ready
@@ -222,7 +228,7 @@
 				if (emulator && emulator.controller) {
 					const loaded = emulator.controller.loadState(text);
 					if (loaded) {
-						console.log('✅ State applied to emulator');
+						logger.log('✅ State applied to emulator');
 						statusMessage = `State from ${file.name} applied! Game is now at saved position.`;
 					}
 				}
@@ -238,7 +244,7 @@
 
 	// Computed status display
 	$effect(() => {
-		console.log('Status changed:', status, statusMessage);
+		logger.log('Status changed:', status, statusMessage);
 	});
 </script>
 
@@ -469,7 +475,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/rl_agent.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/rl_agent.py"
 				target="_blank">View source</a
 			>
 		</p>

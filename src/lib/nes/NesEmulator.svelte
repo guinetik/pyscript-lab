@@ -1,6 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { NesEmulatorController } from './index.js';
+	import { createLogger } from '@guinetik/logger';
 
 	let {
 		romPath = '',
@@ -15,13 +16,18 @@
 	let controller;
 	let keyboardEnabled = false;
 
+	const logger = createLogger({
+		prefix: 'NesEmulator',
+		level: 'debug'
+	});
+
 	onMount(async () => {
 		// Create controller
 		controller = new NesEmulatorController(canvasElement);
 
 		// Initialize with ROM
 		await controller.initialize(romPath, (ctrl) => {
-			console.log('✅ Controller ready');
+			logger.log('✅ Controller ready');
 
 			// Expose to window for Python/external access
 			window.nesEmulator = {
@@ -58,7 +64,7 @@
 	function enableKeyboardControls() {
 		if (keyboardEnabled) return;
 		keyboardEnabled = true;
-		console.log('⌨️ Keyboard enabled');
+		logger.log('⌨️ Keyboard enabled');
 		document.addEventListener('keydown', handleKeyDown);
 		document.addEventListener('keyup', handleKeyUp);
 	}
@@ -66,7 +72,7 @@
 	function disableKeyboardControls() {
 		if (!keyboardEnabled) return;
 		keyboardEnabled = false;
-		console.log('⌨️ Keyboard disabled');
+		logger.log('⌨️ Keyboard disabled');
 		document.removeEventListener('keydown', handleKeyDown);
 		document.removeEventListener('keyup', handleKeyUp);
 	}

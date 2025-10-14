@@ -21,20 +21,20 @@
             <hr class="my-4" />
             <h1>Example 2</h1>
 			<PyExample title="Current date and time, as computed by Python:">
-				<script type="py" src="/python/date.py" id="date-script">
+				<script type="py" src="/python/basic/date.py" id="date-script">
 				</script>
 			</PyExample>
             <hr class="my-4" />
             <h1>Example 3</h1>
             <PyExample title="Fibonacci sequence, computed by Python:">
-                <script type="py" src="/python/fibo.py" id="fibonacci-script">
+                <script type="py" src="/python/basic/fibo.py" id="fibonacci-script">
                 </script>
             </PyExample>
             <hr class="my-4" />
             <h1>Example 4</h1>
 			<div id="matrix-container"></div>
             <PyExample title="Snake traversal, computed by Python:">
-                <script type="py" src="/python/snek.py" id="snek-script">
+                <script type="py" src="/python/basic/snek.py" id="snek-script">
                 </script>
             </PyExample>
 		</section>

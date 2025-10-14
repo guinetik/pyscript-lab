@@ -3,6 +3,8 @@
  * Based on jsnes-react implementation
  */
 
+import { createLogger } from "@guinetik/logger";
+
 // NES button constants
 export const NES_BUTTON = {
 	A: 0,
@@ -23,6 +25,9 @@ export class GamepadController {
 	 * @param {Function} options.onButtonUp - Called when button released
 	 */
 	constructor({ onButtonDown, onButtonUp }) {
+		this.logger = createLogger(
+			{prefix: 'GamepadController',
+			level: 'debug'});
 		this.onButtonDown = onButtonDown;
 		this.onButtonUp = onButtonUp;
 		
@@ -36,7 +41,7 @@ export class GamepadController {
 		// Gamepad enabled flag
 		this.enabled = true;
 		
-		console.log('🎮 GamepadController created');
+		this.logger.log('🎮 GamepadController created');
 	}
 
 	/**
@@ -69,7 +74,7 @@ export class GamepadController {
 			return;
 		}
 
-		console.log('▶️ GamepadController polling started');
+		this.logger.log('▶️ GamepadController polling started');
 		this.isPolling = true;
 		this.buttonStates = {};
 
@@ -90,7 +95,7 @@ export class GamepadController {
 			return;
 		}
 
-		console.log('⏹️ GamepadController polling stopped');
+		this.logger.log('⏹️ GamepadController polling stopped');
 		this.isPolling = false;
 
 		if (this.pollingInterval) {
@@ -243,7 +248,7 @@ export class GamepadController {
 	 */
 	destroy() {
 		this.stopPolling();
-		console.log('🗑️ GamepadController destroyed');
+		this.logger.log('🗑️ GamepadController destroyed');
 	}
 }
 

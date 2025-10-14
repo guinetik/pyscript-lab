@@ -15,11 +15,9 @@
 		if (!pyScriptRunner) {
 			pyScriptRunner = RunPython();
 			pyScriptRunner.runScript(getLink('python/bokeh_index.py'), 'script_gutter', false);
-
-			// Hide loading after a delay (chart should start rendering)
 			setTimeout(() => {
 				loading = false;
-			}, 2000);
+			}, 1000);
 		}
 	});
 

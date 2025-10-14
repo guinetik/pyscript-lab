@@ -49,11 +49,7 @@
 		if (container) {
 			container.innerHTML = '<p class="text-gray-500 animate-pulse">🔄 Regenerating...</p>';
 		}
-		setTimeout(() => {
-			if (controller) {
-				controller.regenerateDiagram(exampleId);
-			}
-		}, 100);
+		controller.regenerateDiagram(exampleId);
 	}
 
 	onMount(async () => {
