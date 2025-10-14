@@ -16,7 +16,7 @@
     packages = ["bokeh", "pandas", "numpy", "networkx", "diagrams", "scikit-learn", "pillow", "matplotlib", "plotly"]
     [[fetch]]
     files = ["diagrams_base.py"]
-    from = "http://localhost:5173/python/diagrams/"
+    from = "%sveltekit.assets%/python/diagrams/"
   </py-config>
   <!-- Bokeh JS -->
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.2.min.js"></script>
@@ -221,7 +221,7 @@
     }
   </style>
   <script type="module">
-    import App from '/app.js';
+    import App from '%sveltekit.assets%/app.js';
 
     const app = new App(document, window);
     app.init();

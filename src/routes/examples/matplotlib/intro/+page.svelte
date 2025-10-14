@@ -1,4 +1,5 @@
 <script>
+	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
 	export let name = 'Matplotlib Introduction';
@@ -8,24 +9,24 @@
 	<div slot="py_slot">
 		<section class="pyscript p-5">
 			<h1>Example 1: Simple Line Plot</h1>
-			<PyExample title="A basic line chart with matplotlib:" src="/python/matplotlib/line_plot.py">
-				<script type="py" src="/python/matplotlib/line_plot.py" id="matplotlib-line"></script>
+			<PyExample title="A basic line chart with matplotlib:" src="{base}/python/matplotlib/line_plot.py">
+				<script type="py" src="{base}/python/matplotlib/line_plot.py" id="matplotlib-line"></script>
 			</PyExample>
 			<div id="matplotlib-line-output"></div>
 
 			<hr class="my-4" />
 
 			<h1>Example 2: Bar Chart</h1>
-			<PyExample title="A colorful bar chart:" src="/python/matplotlib/bar_chart.py">
-				<script type="py" src="/python/matplotlib/bar_chart.py" id="matplotlib-bar"></script>
+			<PyExample title="A colorful bar chart:" src="{base}/python/matplotlib/bar_chart.py">
+				<script type="py" src="{base}/python/matplotlib/bar_chart.py" id="matplotlib-bar"></script>
 			</PyExample>
 			<div id="matplotlib-bar-output"></div>
 
 			<hr class="my-4" />
 
 			<h1>Example 3: Scatter Plot</h1>
-			<PyExample title="Data correlation visualization:" src="/python/matplotlib/scatter_plot.py">
-				<script type="py" src="/python/matplotlib/scatter_plot.py" id="matplotlib-scatter"></script>
+			<PyExample title="Data correlation visualization:" src="{base}/python/matplotlib/scatter_plot.py">
+				<script type="py" src="{base}/python/matplotlib/scatter_plot.py" id="matplotlib-scatter"></script>
 			</PyExample>
 			<div id="matplotlib-scatter-output"></div>
 		</section>

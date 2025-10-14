@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
 	import { createLogger } from '@guinetik/logger';
@@ -50,8 +51,8 @@
 			<h1>COVID-19 Interactive World Map</h1>
 			<p class="mb-4 text-gray-600">Geographic visualization of pandemic data using Plotly</p>
 
-			<PyExample title="Creating an interactive choropleth world map:" src="/python/matplotlib/covid_world_maps.py">
-				<script type="py" src="/python/matplotlib/covid_world_maps.py" id="covid-world-map"></script>
+			<PyExample title="Creating an interactive choropleth world map:" src="{base}/python/matplotlib/covid_world_maps.py">
+				<script type="py" src="{base}/python/matplotlib/covid_world_maps.py" id="covid-world-map"></script>
 			</PyExample>
 
 			{#if loading}

@@ -1,3 +1,7 @@
+<script>
+	import { base } from '$app/paths';
+</script>
+
 <main class="w-full">
 	<div class="flex items-center justify-center py-10 px-4">
 		<div class="max-w-7xl w-full space-y-8">
@@ -6,7 +10,7 @@
 				<div class="md:flex">
 					<img
 						class="w-full rounded-lg object-cover object-center p-1 md:w-1/2"
-						src="images/pyscript.png"
+						src="{base}/images/pyscript.png"
 						alt="PyScript"
 					/>
 					<div class="space-y-4 border-slate-900 p-8 sm:border-t md:border-l">
@@ -20,7 +24,7 @@
 						</p>
 						<div class="flex gap-4 pt-4">
 							<a
-								href="/examples/basics/hello"
+								href="{base}/examples/basics/hello"
 								class="rounded-lg bg-blue-600 px-6 py-3 text-white font-semibold hover:bg-blue-700 transition-colors"
 							>
 								Start Exploring
@@ -40,7 +44,7 @@
 			<!-- Features Grid -->
 			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 				<!-- Basic Examples -->
-				<a href="/examples/basics/hello" class="group block h-full">
+				<a href="{base}/examples/basics/hello" class="group block h-full">
 					<div class="h-full flex flex-col rounded-lg bg-white p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-blue-500">
 						<div class="text-4xl mb-4">🐍</div>
 						<h3 class="text-xl font-bold mb-2 text-gray-900 group-hover:text-blue-600">Basic Examples</h3>
@@ -52,7 +56,7 @@
 				</a>
 
 				<!-- Bokeh Visualizations -->
-				<a href="/examples/bokeh" class="group block h-full">
+				<a href="{base}/examples/bokeh" class="group block h-full">
 					<div class="h-full flex flex-col rounded-lg bg-white p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-green-500">
 						<div class="text-4xl mb-4">📊</div>
 						<h3 class="text-xl font-bold mb-2 text-gray-900 group-hover:text-green-600">Bokeh Visualizations</h3>
@@ -64,7 +68,7 @@
 				</a>
 
 				<!-- Diagrams as Code -->
-				<a href="/examples/diagrams/gallery" class="group block h-full">
+				<a href="{base}/examples/diagrams/gallery" class="group block h-full">
 					<div class="h-full flex flex-col rounded-lg bg-white p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-purple-500">
 						<div class="text-4xl mb-4">🏗️</div>
 						<h3 class="text-xl font-bold mb-2 text-gray-900 group-hover:text-purple-600">Diagrams as Code</h3>
@@ -76,7 +80,7 @@
 				</a>
 
 				<!-- Matplotlib Charts -->
-				<a href="/examples/matplotlib/intro" class="group block h-full">
+				<a href="{base}/examples/matplotlib/intro" class="group block h-full">
 					<div class="h-full flex flex-col rounded-lg bg-white p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-orange-500">
 						<div class="text-4xl mb-4">📈</div>
 						<h3 class="text-xl font-bold mb-2 text-gray-900 group-hover:text-orange-600">Matplotlib & Maps</h3>
@@ -88,7 +92,7 @@
 				</a>
 
 				<!-- Machine Learning -->
-				<a href="/examples/ml" class="group block h-full">
+				<a href="{base}/examples/ml" class="group block h-full">
 					<div class="h-full flex flex-col rounded-lg bg-white p-6 shadow-lg hover:shadow-xl transition-shadow border-2 border-transparent hover:border-red-500">
 						<div class="text-4xl mb-4">🤖</div>
 						<h3 class="text-xl font-bold mb-2 text-gray-900 group-hover:text-red-600">Machine Learning</h3>

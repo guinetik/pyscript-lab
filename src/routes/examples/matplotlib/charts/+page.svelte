@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
 	import { createLogger } from '@guinetik/logger';
@@ -50,8 +51,8 @@
 			<h1>COVID-19 Global Data Analysis</h1>
 			<p class="mb-4 text-gray-600">Visualizing pandemic data from 187 countries/regions</p>
 
-			<PyExample title="Loading and analyzing COVID-19 data:" src="/python/matplotlib/covid_charts.py">
-				<script type="py" src="/python/matplotlib/covid_charts.py" id="covid-data"></script>
+			<PyExample title="Loading and analyzing COVID-19 data:" src="{base}/python/matplotlib/covid_charts.py">
+				<script type="py" src="{base}/python/matplotlib/covid_charts.py" id="covid-data"></script>
 			</PyExample>
 
 			{#if loading}
