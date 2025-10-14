@@ -33,6 +33,12 @@
 
 		// Expose UIHandler for Python to call
 		window.digitRecognitionUIHandler = {
+			// Python ready callback (called when PyScriptManager signals ready)
+			onPythonReady: () => {
+				console.log('✅ Python ML module is ready!');
+				// Python initialization already sets initial state, no need to duplicate
+			},
+
 			// Prediction results
 			onPredictionResult: (data) => {
 				if (data === null || data === undefined) {
@@ -65,12 +71,8 @@
 			}
 		};
 
-		// Initialize controller
+		// Initialize controller (Python will set initial state when ready)
 		await controller.initialize();
-
-		// Initialize model state
-		modelState.set({ accuracy: 0, trainingExamples: 0 });
-		uiState.set({ status: 'ready', message: 'Draw a digit and click Predict' });
 
 		// Setup canvas
 		canvas = document.getElementById('drawCanvas');
@@ -270,14 +272,17 @@
 		<div class="mt-4 rounded-lg bg-orange-50 p-4">
 			<h3 class="mb-2 font-bold text-orange-900">🏗️ Architecture</h3>
 			<p class="text-sm text-orange-800">
-				This example demonstrates proper separation of concerns:
+				This example demonstrates proper separation of concerns with event-driven initialization:
 			</p>
 			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
 				<li>
-					<strong>Python</strong> - Pure ML logic, sends only data via window callbacks (no innerHTML!)
+					<strong>PyScriptManager</strong> - Event-driven lifecycle management (no polling!)
 				</li>
 				<li>
-					<strong>DigitRecognitionController</strong> - Manages Python lifecycle and communication layer
+					<strong>Python</strong> - Pure ML logic, signals ready when initialized, sends only data via callbacks
+				</li>
+				<li>
+					<strong>DigitRecognitionController</strong> - Manages communication layer between Python and UI
 				</li>
 				<li>
 					<strong>Svelte Components</strong> - Pure UI rendering with reactive state

@@ -3,7 +3,7 @@
  *
  * Manages the machine learning digit recognition feature with proper separation of concerns.
  * Handles:
- * - PyScript runner setup and lifecycle
+ * - PyScriptManager setup and lifecycle (event-driven)
  * - Window callback registration for Python to call
  * - Business logic layer between Python ML engine and Svelte UI
  * - Canvas image data extraction and transmission to Python
@@ -16,7 +16,7 @@
  * @author Guinetik
  */
 
-import RunPython from '$lib/RunPython.js';
+import { PyScriptManager } from '$lib/PyScriptManager.js';
 import { getLink } from '$lib/utils.js';
 import { createLogger } from '@guinetik/logger';
 
@@ -30,14 +30,17 @@ export class DigitRecognitionController {
 			level: 'debug'
 		});
 
-		/** @type {RunPython|null} */
-		this.pyScriptRunner = null;
+		/** @type {PyScriptManager|null} */
+		this.pyScriptManager = null;
 
 		/** @type {boolean} */
 		this.isInitialized = false;
 
 		/** @type {HTMLCanvasElement|null} */
 		this.canvas = null;
+
+		/** @type {Object|null} - Python exported functions */
+		this.pythonExports = null;
 	}
 
 	/**
@@ -57,13 +60,33 @@ export class DigitRecognitionController {
 			// Setup callbacks FIRST (before Python loads)
 			this._setupCallbacks();
 
-			// Load Python script
-			this.pyScriptRunner = RunPython();
+			// Create PyScriptManager and load script with Promise-based approach
+			this.pyScriptManager = new PyScriptManager();
 			const pyScriptUrl = getLink('python/ml/digit_recognition.py');
-			this.pyScriptRunner.runScript(pyScriptUrl, 'script_gutter', false);
 
-			this.isInitialized = true;
-			this.logger.log('✅ DigitRecognitionController initialized');
+			this.logger.log('🔵 Loading Python script...');
+
+			// Await the Promise returned by runScript
+			try {
+				this.pythonExports = await this.pyScriptManager.runScript(pyScriptUrl, 'script_gutter');
+
+				this.logger.log('✅ Python script ready! Exports:', Object.keys(this.pythonExports));
+				this.isInitialized = true;
+
+				// Notify UI that Python is ready
+				if (window.digitRecognitionUIHandler) {
+					window.digitRecognitionUIHandler.onPythonReady();
+				}
+			} catch (error) {
+				this.logger.error('❌ Python script failed to load:', error);
+				if (window.digitRecognitionUIHandler) {
+					window.digitRecognitionUIHandler.onUIState(
+						'error',
+						`Failed to load Python: ${error.message}`
+					);
+				}
+				throw error;
+			}
 		} catch (error) {
 			this.logger.error('❌ Failed to initialize DigitRecognitionController:', error);
 			throw error;
@@ -140,8 +163,8 @@ export class DigitRecognitionController {
 	predictDigit() {
 		this.logger.log('🔵 predictDigit() called');
 
-		if (!this.isInitialized) {
-			this.logger.error('❌ Controller not initialized');
+		if (!this.isInitialized || !this.pythonExports) {
+			this.logger.error('❌ Controller not initialized or Python not ready');
 			if (window.digitRecognitionUIHandler) {
 				window.digitRecognitionUIHandler.onUIState(
 					'error',
@@ -161,17 +184,17 @@ export class DigitRecognitionController {
 			const imageData = this.canvas.toDataURL('image/png');
 			this.logger.log('🔵 Got canvas data, length:', imageData.length);
 
-			// Call Python function through window
-			if (window.predict_digit) {
-				this.logger.log('🔵 Calling window.predict_digit()');
-				window.predict_digit(imageData);
+			// Call Python function from exports
+			if (this.pythonExports.predict_digit) {
+				this.logger.log('🔵 Calling pythonExports.predict_digit()');
+				this.pythonExports.predict_digit(imageData);
 				this.logger.log('🔵 Python call completed');
 			} else {
-				this.logger.error('🔴 window.predict_digit not found! Python may not be ready.');
+				this.logger.error('🔴 predict_digit not found in exports!');
 				if (window.digitRecognitionUIHandler) {
 					window.digitRecognitionUIHandler.onUIState(
 						'error',
-						'Python is not ready yet. Please wait a moment and try again.'
+						'Python function not available.'
 					);
 				}
 			}
@@ -188,10 +211,10 @@ export class DigitRecognitionController {
 	 */
 	confirmCorrectPrediction() {
 		this.logger.log('🔵 confirmCorrectPrediction() called');
-		if (window.handleCorrectPrediction) {
-			window.handleCorrectPrediction();
+		if (this.pythonExports?.handleCorrectPrediction) {
+			this.pythonExports.handleCorrectPrediction();
 		} else {
-			this.logger.error('🔴 window.handleCorrectPrediction not found!');
+			this.logger.error('🔴 handleCorrectPrediction not found in exports!');
 		}
 	}
 
@@ -202,10 +225,10 @@ export class DigitRecognitionController {
 	 */
 	retrainWithCorrection(correctDigit) {
 		this.logger.log('🔵 retrainWithCorrection() called with:', correctDigit);
-		if (window.retrainWithCorrection) {
-			window.retrainWithCorrection(correctDigit);
+		if (this.pythonExports?.retrainWithCorrection) {
+			this.pythonExports.retrainWithCorrection(correctDigit);
 		} else {
-			this.logger.error('🔴 window.retrainWithCorrection not found!');
+			this.logger.error('🔴 retrainWithCorrection not found in exports!');
 		}
 	}
 
@@ -214,10 +237,10 @@ export class DigitRecognitionController {
 	 */
 	resetTraining() {
 		this.logger.log('🔵 resetTraining() called');
-		if (window.resetTraining) {
-			window.resetTraining();
+		if (this.pythonExports?.resetTraining) {
+			this.pythonExports.resetTraining();
 		} else {
-			this.logger.error('🔴 window.resetTraining not found!');
+			this.logger.error('🔴 resetTraining not found in exports!');
 		}
 	}
 
@@ -226,10 +249,10 @@ export class DigitRecognitionController {
 	 */
 	showTrainingExamples() {
 		this.logger.log('🔵 showTrainingExamples() called');
-		if (window.showTrainingExamples) {
-			window.showTrainingExamples();
+		if (this.pythonExports?.showTrainingExamples) {
+			this.pythonExports.showTrainingExamples();
 		} else {
-			this.logger.error('🔴 window.showTrainingExamples not found!');
+			this.logger.error('🔴 showTrainingExamples not found in exports!');
 		}
 	}
 
@@ -257,9 +280,9 @@ export class DigitRecognitionController {
 	 * Clean up resources.
 	 */
 	destroy() {
-		if (this.pyScriptRunner) {
-			this.pyScriptRunner.destroy();
-			this.pyScriptRunner = null;
+		if (this.pyScriptManager) {
+			this.pyScriptManager.destroy();
+			this.pyScriptManager = null;
 		}
 
 		// Clean up window references
@@ -270,6 +293,7 @@ export class DigitRecognitionController {
 		delete window.digitRecognitionUIHandler;
 
 		this.canvas = null;
+		this.pythonExports = null;
 		this.isInitialized = false;
 		this.logger.log('✅ DigitRecognitionController destroyed');
 	}

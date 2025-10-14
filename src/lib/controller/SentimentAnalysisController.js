@@ -1,29 +1,35 @@
 /**
  * SentimentAnalysisController
  *
- * Business logic layer for sentiment analysis.
- * Handles Python script loading, window callbacks, and Custom Events.
+ * Business logic layer for sentiment analysis with event-driven initialization.
+ * Handles PyScriptManager lifecycle, window callbacks, and exported functions.
  *
  * @author Guinetik
  */
 
-import RunPython from '$lib/RunPython.js';
+import { PyScriptManager } from '$lib/PyScriptManager.js';
 import { getLink } from '$lib/utils.js';
 import { createLogger } from '@guinetik/logger';
 
 export class SentimentAnalysisController {
 	constructor() {
-		this.logger = createLogger(
-			{
-				prefix: 'SentimentAnalysisController',
-				level: 'debug'
-			});
-		this.pyScriptRunner = null;
+		this.logger = createLogger({
+			prefix: 'SentimentAnalysisController',
+			level: 'debug'
+		});
+
+		/** @type {PyScriptManager|null} */
+		this.pyScriptManager = null;
+
+		/** @type {Object|null} - Python exported functions */
+		this.pythonExports = null;
+
+		/** @type {boolean} */
 		this.isInitialized = false;
 	}
 
 	/**
-	 * Initialize controller - setup callbacks and load Python
+	 * Initialize controller - setup callbacks and load Python with event-driven approach
 	 */
 	async initialize() {
 		this.logger.log('🔵 [Controller] initialize() called');
@@ -33,23 +39,45 @@ export class SentimentAnalysisController {
 			return;
 		}
 
-		this.logger.log('🔵 [Controller] Setting up callbacks...');
-		// Setup window callbacks FIRST
-		this._setupCallbacks();
+		try {
+			this.logger.log('🔵 [Controller] Setting up callbacks...');
+			// Setup window callbacks FIRST
+			this._setupCallbacks();
 
-		this.logger.log('🔵 [Controller] Creating RunPython instance...');
-		// Then load Python script
-		this.pyScriptRunner = RunPython();
+			// Create PyScriptManager and load script with Promise-based approach
+			this.pyScriptManager = new PyScriptManager();
+			const pyScriptUrl = getLink('python/ml/sentiment_analysis.py');
 
-		this.logger.log('🔵 [Controller] Getting script URL...');
-		const pyScriptUrl = getLink('python/ml/sentiment_analysis.py');
-		this.logger.log('🔵 [Controller] Script URL:', pyScriptUrl);
+			this.logger.log('🔵 [Controller] Loading Python script...');
 
-		this.logger.log('🔵 [Controller] Loading Python script...');
-		this.pyScriptRunner.runScript(pyScriptUrl, 'sentiment-analysis-script', false);
+			// Await the Promise returned by runScript
+			try {
+				this.pythonExports = await this.pyScriptManager.runScript(
+					pyScriptUrl,
+					'sentiment-analysis-script'
+				);
 
-		this.isInitialized = true;
-		this.logger.log('✅ [Controller] SentimentAnalysisController initialized');
+				this.logger.log(
+					'✅ [Controller] Python script ready! Exports:',
+					Object.keys(this.pythonExports)
+				);
+				this.isInitialized = true;
+
+				// Notify UI that Python is ready
+				if (window.sentimentUIHandler && window.sentimentUIHandler.onPythonReady) {
+					window.sentimentUIHandler.onPythonReady();
+				}
+			} catch (error) {
+				this.logger.error('❌ [Controller] Python script failed to load:', error);
+				if (window.sentimentUIHandler && window.sentimentUIHandler.onError) {
+					window.sentimentUIHandler.onError(`Failed to load Python: ${error.message}`);
+				}
+				throw error;
+			}
+		} catch (error) {
+			this.logger.error('❌ [Controller] Failed to initialize:', error);
+			throw error;
+		}
 	}
 
 	/**
@@ -108,25 +136,20 @@ export class SentimentAnalysisController {
 	analyzeSentiment(text) {
 		this.logger.log('🔵 [Controller] analyzeSentiment() called with:', text.substring(0, 50));
 
-		if (!this.isInitialized) {
-			console.error('❌ [Controller] Controller not initialized');
+		if (!this.isInitialized || !this.pythonExports) {
+			console.error('❌ [Controller] Controller not initialized or Python not ready');
+			if (window.sentimentUIHandler && window.sentimentUIHandler.onError) {
+				window.sentimentUIHandler.onError('Python not ready yet. Please wait a moment.');
+			}
 			return;
 		}
 
-		this.logger.log('🔵 [Controller] Checking for window.predictSentiment...');
-		this.logger.log('🔵 [Controller] window.predictSentiment:', typeof window.predictSentiment);
-
-		if (window.predictSentiment) {
-			this.logger.log('🔵 [Controller] Calling window.predictSentiment()...');
-			window.predictSentiment(text);
+		if (this.pythonExports.predictSentiment) {
+			this.logger.log('🔵 [Controller] Calling pythonExports.predictSentiment()...');
+			this.pythonExports.predictSentiment(text);
 			this.logger.log('🔵 [Controller] Call completed');
 		} else {
-			console.error('🔴 [Controller] window.predictSentiment not found');
-			window.dispatchEvent(
-				new CustomEvent('sentimentError', {
-					detail: { message: 'Python not ready yet' }
-				})
-			);
+			console.error('🔴 [Controller] predictSentiment not found in exports');
 		}
 	}
 
@@ -134,8 +157,10 @@ export class SentimentAnalysisController {
 	 * Confirm prediction was correct
 	 */
 	confirmPrediction() {
-		if (window.handleCorrectPrediction) {
-			window.handleCorrectPrediction();
+		if (this.pythonExports?.handleCorrectPrediction) {
+			this.pythonExports.handleCorrectPrediction();
+		} else {
+			this.logger.error('🔴 [Controller] handleCorrectPrediction not found in exports');
 		}
 	}
 
@@ -143,8 +168,10 @@ export class SentimentAnalysisController {
 	 * Correct prediction with new label
 	 */
 	correctPrediction(label) {
-		if (window.retrainWithCorrection) {
-			window.retrainWithCorrection(label);
+		if (this.pythonExports?.retrainWithCorrection) {
+			this.pythonExports.retrainWithCorrection(label);
+		} else {
+			this.logger.error('🔴 [Controller] retrainWithCorrection not found in exports');
 		}
 	}
 
@@ -152,8 +179,10 @@ export class SentimentAnalysisController {
 	 * Reset model
 	 */
 	resetModel() {
-		if (window.resetTraining) {
-			window.resetTraining();
+		if (this.pythonExports?.resetTraining) {
+			this.pythonExports.resetTraining();
+		} else {
+			this.logger.error('🔴 [Controller] resetTraining not found in exports');
 		}
 	}
 
@@ -161,16 +190,18 @@ export class SentimentAnalysisController {
 	 * Cleanup
 	 */
 	destroy() {
-		if (this.pyScriptRunner) {
-			this.pyScriptRunner.destroy();
-			this.pyScriptRunner = null;
+		if (this.pyScriptManager) {
+			this.pyScriptManager.destroy();
+			this.pyScriptManager = null;
 		}
 
 		delete window.onModelReady;
 		delete window.onSentimentPrediction;
 		delete window.onModelUpdated;
 		delete window.onSentimentError;
+		delete window.sentimentUIHandler;
 
+		this.pythonExports = null;
 		this.isInitialized = false;
 		this.logger.log('✅ Controller destroyed');
 	}

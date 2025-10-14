@@ -18,7 +18,7 @@ Example:
 Author: Guinetik
 """
 
-from js import window, Object, console
+from js import window, Object, console, document
 from pyodide.ffi import to_js, create_proxy
 from typing import Dict, Any, Callable, Optional
 import traceback
@@ -118,10 +118,15 @@ class PyScriptManager:
                 dict_converter=Object.fromEntries
             )
 
+            # Get the actual script ID set by JavaScript PyScriptManager
+            script_id = self._get_script_id()
+            if script_id != self.module_name:
+                print(f"🔍 [PyScriptManager:{self.module_name}] Found script ID: {script_id}")
+
             # Call JavaScript callback (use getattr to avoid Python name mangling)
             py_script_ready = getattr(window, '__pyScriptReady', None)
             if py_script_ready:
-                py_script_ready(self.module_name, exports_js)
+                py_script_ready(script_id, exports_js)
                 print(f"✅ [PyScriptManager:{self.module_name}] Ready! Exported {len(self._exports)} functions.")
             else:
                 console.error(f"❌ [PyScriptManager:{self.module_name}] window.__pyScriptReady not found!")
@@ -131,6 +136,27 @@ class PyScriptManager:
             console.error(f"❌ [PyScriptManager:{self.module_name}] Error signaling ready: {str(e)}")
             traceback.print_exc()
             self.signal_error(e)
+
+    def _get_script_id(self) -> str:
+        """
+        Find the actual script ID set by JavaScript PyScriptManager.
+
+        Returns:
+            The script ID if found, otherwise falls back to module_name
+        """
+        script_id = self.module_name  # fallback
+        try:
+            scripts = document.querySelectorAll('script[type="py"]')
+            for script in scripts:
+                script_src = str(getattr(script, 'src', ''))
+                if self.module_name in script_src or self.module_name in str(script.id):
+                    if hasattr(script, 'dataset') and hasattr(script.dataset, 'scriptId'):
+                        return str(script.dataset.scriptId)
+                    elif hasattr(script, 'id') and script.id:
+                        return str(script.id)
+        except Exception:
+            pass
+        return script_id
 
     def signal_error(self, error: Exception) -> None:
         """
@@ -148,10 +174,13 @@ class PyScriptManager:
         console.error(f"❌ [PyScriptManager:{self.module_name}] Error: {error_msg}")
         console.error(error_trace)
 
+        # Get the actual script ID
+        script_id = self._get_script_id()
+
         # Call JavaScript error callback (use getattr to avoid Python name mangling)
         py_script_error = getattr(window, '__pyScriptError', None)
         if py_script_error:
-            py_script_error(self.module_name, error_msg)
+            py_script_error(script_id, error_msg)
         else:
             console.error(f"❌ [PyScriptManager:{self.module_name}] window.__pyScriptError not found!")
 
