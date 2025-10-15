@@ -115,6 +115,11 @@ const pages = [
     new Page("ml_rl", "Reinforcement Learning", getLink("/examples/ml/rl"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/sentiment")),
+      new PageProp("next_page", getLink("/examples/ml/neuro")),
+    ]),
+    new Page("ml_neuro", "Neural Networks", getLink("/examples/ml/neuro"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/ml/rl")),
       new PageProp("next_page", getLink("/")),
     ]),
   ]),

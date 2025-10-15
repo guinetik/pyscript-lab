@@ -10,6 +10,12 @@ from js import console, window, setTimeout
 from pyodide.ffi import create_proxy
 import numpy as np
 from lib.pyscript_manager import PyScriptManager
+from lib.nes.nes_ram_utils import (
+    extract_vision_grid,
+    get_mario_position,
+    get_mario_state,
+    get_mario_tile_position
+)
 
 # Import neural network (loaded as separate script)
 # The NeuralNetwork class will be available globally after neural.py loads
@@ -40,7 +46,8 @@ class MarioAgent:
         # Get NeuralNetwork class from builtins (loaded by neural.py)
         import builtins
         NeuralNetwork = builtins.NeuralNetwork
-        self.network = NeuralNetwork([input_size, hidden_size, output_size], seed=42)
+        # Use random seed for diverse weight initialization
+        self.network = NeuralNetwork([input_size, hidden_size, output_size], seed=None)
 
         # Button mapping (NES controller)
         self.BUTTON_A = 0
@@ -64,110 +71,61 @@ class MarioAgent:
         self.current_episode = 0
         self.episode_reward = 0
         self.best_distance = 0
+        self.best_fitness = 0
         self.total_episodes = 0
+
+        # Death tracking
+        self.death_cause = None  # 'enemy', 'pit', 'timeout', 'stuck'
 
         print("🧠 Mario Agent initialized")
         print(f"   Network: {input_size} → {hidden_size} → {output_size}")
 
     def get_game_state(self) -> np.ndarray:
         """
-        Extract game state from emulator.
-        Returns a flattened array of tiles around Player.
+        Extract game state (vision grid) from emulator.
 
-        For now, returns random state as placeholder.
-        TODO: Extract actual tile data from NES RAM.
+        Returns:
+            np.ndarray: Vision grid (width × height floats)
         """
-        # Placeholder: random vision grid
-        # In real implementation, we'd read NES RAM to get:
-        # - Player's position
-        # - Tiles around Player (blocks, enemies, pipes, etc.)
-        # - Encode as: 0 = empty, 1 = solid block, -1 = enemy
+        nes = self._get_nes()
+        if not nes:
+            return np.zeros(self.vision_width * self.vision_height)
 
-        state = np.random.randn(self.vision_width * self.vision_height)
-        return state
+        try:
+            # Delegate to utility function
+            vision = extract_vision_grid(nes, width=self.vision_width, height=self.vision_height)
+            return np.array(vision, dtype=np.float32)
+        except Exception as e:
+            print(f"❌ Error extracting game state: {e}")
+            return np.zeros(self.vision_width * self.vision_height)
+
+    def _get_nes(self):
+        """
+        Get NES instance from emulator.
+        Returns None if not available.
+        """
+        emulator = window.nesEmulator
+        if not emulator or not emulator.controller or not emulator.controller.nes:
+            return None
+        return emulator.controller.nes
 
     def get_mario_position(self):
-        """
-        Get Player's X position from RAM.
-        Address 0x6D contains Player's X position on screen.
-        Address 0x86 contains page (screen) number.
-        """
-        emulator = window.nesEmulator
-        if not emulator or not emulator.controller or not emulator.controller.nes:
+        """Get Mario's X position in pixels."""
+        nes = self._get_nes()
+        if not nes:
             return 0
 
-        try:
-            nes = emulator.controller.nes
-            # Player's X position on screen (0-255)
-            x_position = nes.cpu.mem[0x6D]
-            # Current page/screen (0-255)
-            page = nes.cpu.mem[0x86]
-            # Total X position
-            total_x = page * 256 + x_position
-            return total_x
-        except:
-            return 0
+        x, y = get_mario_position(nes)
+        return x
 
     def is_mario_alive(self):
-        """
-        Check if Player is alive.
-        Address 0x0E contains player state (0x0B = dying, 0x06 = dead)
-        Address 0x770 contains Player's Y position (> 240 means fallen)
-        """
-        emulator = window.nesEmulator
-        if not emulator or not emulator.controller or not emulator.controller.nes:
+        """Check if Mario is alive."""
+        nes = self._get_nes()
+        if not nes:
             return True
 
-        try:
-            nes = emulator.controller.nes
-            # Player state
-            player_state = nes.cpu.mem[0x0E]
-            # Y position
-            y_position = nes.cpu.mem[0x00B5]
-
-            # Dead if player_state indicates death or fell off screen
-            is_dead = player_state in [0x0B, 0x06] or y_position > 240
-            return not is_dead
-        except:
-            return True
-
-    def is_in_gameplay(self):
-        """
-        Check if we're actually in gameplay (not title screen or game over).
-        Address 0x770 contains game state (0x00 = title, 0x01 = gameplay, etc.)
-        """
-        emulator = window.nesEmulator
-        if not emulator or not emulator.controller or not emulator.controller.nes:
-            return False
-
-        try:
-            nes = emulator.controller.nes
-            # Game state - 0x0770 or try 0x770
-            game_state = nes.cpu.mem[0x0770]
-            # In gameplay if state is non-zero
-            return game_state != 0x00
-        except:
-            # If we can't read, assume we need to press start
-            return False
-
-    def press_start(self):
-        """Press START button to get through menus."""
-        emulator = window.nesEmulator
-        if emulator:
-            try:
-                emulator.buttonDown(1, self.BUTTON_START)
-                # Hold for a few frames
-                from js import setTimeout
-                from pyodide.ffi import create_proxy
-
-                def release_start():
-                    if emulator:
-                        emulator.buttonUp(1, self.BUTTON_START)
-
-                proxy = create_proxy(release_start)
-                setTimeout(proxy, 100)  # Release after 100ms
-            except:
-                pass
+        state = get_mario_state(nes)
+        return state == 'alive'
 
     def decide_action(self, state: np.ndarray) -> np.ndarray:
         """
@@ -234,36 +192,59 @@ class MarioAgent:
         except Exception as e:
             print(f"❌ Error executing action: {e}")
 
+    def visualize_vision(self, state):
+        """
+        Print a visual representation of what Mario sees.
+        Helps debug the vision system.
+
+        Args:
+            state: Flattened vision array
+        """
+        print("\n👁️ Mario's Vision:")
+        vision_2d = state.reshape(self.vision_height, self.vision_width)
+
+        for row in vision_2d:
+            line = ""
+            for val in row:
+                if val < -0.5:      # Enemy
+                    line += "E"
+                elif val > 0.5:     # Solid
+                    line += "#"
+                else:               # Empty
+                    line += "."
+            print(line)
+        print("")
+
     def step(self):
         """
         Execute one step of the agent:
-        1. Check if in gameplay (press START if not)
-        2. Observe game state
-        3. Decide action
-        4. Execute action
-        5. Track progress
-        """
-        # Check if we're in gameplay (not title/game over screen)
-        if not self.is_in_gameplay():
-            # Press START to get into gameplay
-            self.press_start()
-            print("📱 Not in gameplay, pressing START...")
-            return True  # Continue waiting for gameplay to start
+        1. Observe game state
+        2. Decide action
+        3. Execute action
+        4. Track progress
 
+        Note: User must manually start the game before training.
+        """
         self.frames += 1
 
         # Check timeout - episode too long
         if self.frames >= self.max_frames:
+            self.death_cause = 'timeout'
             print(f"⏰ Timeout! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
-        # Check if Player is still alive
+        # Check if Mario is still alive
         if not self.is_mario_alive():
-            print(f"💀 Player died! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            self.death_cause = 'enemy'  # Most deaths are from enemies
+            print(f"💀 Mario died! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Get current game state
         state = self.get_game_state()
+
+        # Debug: visualize vision every 5 seconds
+        if self.frames % 300 == 0:
+            self.visualize_vision(state)
 
         # Decide what to do
         buttons = self.decide_action(state)
@@ -282,12 +263,18 @@ class MarioAgent:
 
         # Check if stuck (no progress for 1 second)
         if self.stuck_frames > 60:  # 1 second at 60fps
-            print(f"🚫 Player stuck! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
+            self.death_cause = 'stuck'
+            print(f"🚫 Mario stuck! Episode ended. Frames: {self.frames}, Max X: {self.max_x}")
             return False  # Signal episode ended
 
         # Log progress occasionally
         if self.frames % 60 == 0:
             print(f"🎮 Frame {self.frames}/{self.max_frames}, X: {current_x}, Max X: {self.max_x}, Stuck: {self.stuck_frames}")
+
+            # Debug: Check if we're actually getting vision data
+            if self.frames == 60:
+                print(f"🔍 Debug - Vision sample: {state[:10]}...")
+                print(f"🔍 Debug - Vision has data: {not all(v == 0 for v in state)}")
 
         self.last_x = current_x
         return True  # Episode continues
@@ -298,6 +285,7 @@ class MarioAgent:
         self.max_x = 0
         self.stuck_frames = 0
         self.last_x = 0
+        self.death_cause = None
         print("🔄 Agent reset")
 
     def load_weights(self, weights_data):
@@ -340,49 +328,115 @@ class MarioAgent:
         setTimeout(proxy, 67)
 
 
-    def end_episode(self):
-        """Handle end of episode - calculate reward and restart."""
-        # Calculate reward (how far Mario got)
+    def calculate_fitness(self):
+        """
+        Calculate fitness score for this episode.
+
+        Inspired by chrispresso's SMB-AI project fitness function:
+        - Rewards distance exponentially (going far is REALLY good)
+        - Penalizes taking too long (encourages moving quickly)
+        - Penalizes deaths (especially early deaths)
+        - Small bonus for reaching certain milestones
+
+        Returns:
+            float: Fitness score
+        """
         distance = self.max_x
-        self.episode_reward = distance
+        frames = self.frames
+
+        # Base fitness: exponential reward for distance
+        # distance^1.5 rewards going far exponentially
+        # 50 pixels = 353, 100 pixels = 1000, 200 pixels = 2828
+        distance_reward = (distance ** 1.5) if distance > 0 else 0
+
+        # Time penalty: None for now, just focus on distance
+        # (We'll add this back later with neuroevolution)
+        time_penalty = 0
+
+        # Death penalty based on cause (very light - just a nudge)
+        death_penalty = 0
+        if self.death_cause == 'enemy':
+            death_penalty = 50  # Slight penalty for dying to enemy
+        elif self.death_cause == 'stuck':
+            death_penalty = 20  # Very light penalty for getting stuck
+        elif self.death_cause == 'timeout':
+            death_penalty = 0  # No penalty for timeout!
+
+        # Milestone bonuses (encourage progress)
+        milestone_bonus = 0
+        if distance > 50:    # Got past first goomba area
+            milestone_bonus += 200
+        if distance > 100:   # Significant progress
+            milestone_bonus += 500
+        if distance > 200:   # Really good!
+            milestone_bonus += 1000
+        if distance > 400:   # Excellent!
+            milestone_bonus += 2000
+        if distance > 800:   # Amazing!
+            milestone_bonus += 5000
+
+        # Calculate final fitness
+        # Max with small positive to avoid negative fitness (breaks roulette selection)
+        fitness = max(distance_reward - time_penalty - death_penalty + milestone_bonus, 1.0)
+
+        return fitness
+
+    def end_episode(self):
+        """Handle end of episode - calculate fitness and mutate."""
+        distance = self.max_x
+
+        # Calculate fitness score
+        fitness = self.calculate_fitness()
+        self.episode_reward = fitness
 
         # Track if this was better than previous
-        improved = distance > self.best_distance
+        improved_distance = distance > self.best_distance
+        improved_fitness = fitness > self.best_fitness
 
-        # Update best distance
-        if improved:
+        # Update bests
+        if improved_distance:
             self.best_distance = distance
             print(f"🎉 New best distance: {self.best_distance}!")
 
+        if improved_fitness:
+            self.best_fitness = fitness
+            print(f"🏆 New best fitness: {self.best_fitness:.1f}!")
+
         self.total_episodes += 1
 
-        print(f"📊 Episode {self.total_episodes} complete: Distance = {distance}, Best = {self.best_distance}")
+        print(f"📊 Episode {self.total_episodes} complete:")
+        print(f"   Distance: {distance}, Fitness: {fitness:.1f}")
+        print(f"   Cause: {self.death_cause}, Frames: {self.frames}")
+        print(f"   Best Distance: {self.best_distance}, Best Fitness: {self.best_fitness:.1f}")
 
-        # Update UI metrics
+        # Update UI metrics (show fitness as reward)
         window.updateRLMetrics(self.total_episodes, self.episode_reward, self.best_distance)
 
-        # Mutation strategy: if doing poorly, mutate more aggressively
-        if distance < self.best_distance * 0.5:  # Less than 50% of best
+        # Mutation strategy based on fitness improvement
+        if fitness < self.best_fitness * 0.3:  # Really bad performance
+            print("🎲 Terrible performance - very large mutation")
+            self.network.mutate(mutation_rate=0.5, mutation_scale=1.5)
+        elif fitness < self.best_fitness * 0.6:  # Poor performance
             print("🎲 Poor performance - large mutation")
             self.network.mutate(mutation_rate=0.3, mutation_scale=1.0)
-        elif improved:
-            print("✨ Improved - small mutation")
+        elif improved_fitness:  # Improvement!
+            print("✨ Improved - small mutation to refine")
             self.network.mutate(mutation_rate=0.05, mutation_scale=0.2)
-        else:
+        else:  # Decent but not improving
             print("🔄 Normal mutation")
             self.network.mutate(mutation_rate=0.15, mutation_scale=0.5)
 
-        # Wait for game to restart naturally, then continue
-        def restart_episode():
+        # Wait a bit then restart with saved state
+        async def restart_episode():
             if self.is_training:
-                self.start_new_episode()
+                await self.start_new_episode()
 
         proxy = create_proxy(restart_episode)
-        setTimeout(proxy, 3000)  # Wait 3 seconds for death animation
+        setTimeout(proxy, 1000)  # Wait 1 second then reload state
 
 
-    def start_new_episode(self):
-        """Start a new training episode - just reset stats, game continues."""
+    async def start_new_episode(self):
+        """Start a new training episode - reset to saved state."""
         print(f"🔄 Starting new episode {self.total_episodes + 1}")
 
         # Calculate timeout based on episode number
@@ -398,8 +452,10 @@ class MarioAgent:
         timeout_seconds = new_timeout / 60
         print(f"⏱️ Episode timeout set to {timeout_seconds:.1f} seconds ({new_timeout} frames)")
 
-        # Just reset agent stats - don't touch emulator
-        # The game will naturally respawn Mario or restart level
+        # Load saved state to restart at level 1-1
+        await self._load_saved_state()
+
+        # Reset agent stats
         self.reset()
         self.episode_reward = 0
 
@@ -407,8 +463,29 @@ class MarioAgent:
         if self.is_training:
             self.training_loop()
 
+    async def _load_saved_state(self):
+        """Helper to load the saved state file."""
+        try:
+            from js import fetch, JSON
 
-    def start_training(self):
+            emulator = window.nesEmulator
+            if not emulator:
+                return
+
+            # Fetch and parse state
+            response = await fetch('/data/nes_state.json')
+            state_json = await response.text()
+            state_obj = JSON.parse(state_json)
+
+            # Load into emulator
+            if emulator.controller and emulator.controller.loadState:
+                emulator.controller.loadState(state_obj)
+                print("♻️ Reloaded saved state")
+        except Exception as e:
+            print(f"⚠️ Could not reload state: {e}")
+
+
+    async def start_training(self):
         """Start AI training - Mario plays automatically."""
         print("🚀 Starting AI training...")
 
@@ -426,6 +503,10 @@ class MarioAgent:
             emulator.start()
         else:
             print("✅ Emulator already running")
+
+        # Load saved state to start at beginning of level 1-1
+        print("📂 Loading saved state from /data/nes_state.json...")
+        await self._load_saved_state()
 
         # Reset agent stats
         self.reset()

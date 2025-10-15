@@ -1,5 +1,5 @@
 /**
- * RLController - Reinforcement Learning Demo Controller
+ * NeuroController - Reinforcement Learning Demo Controller
  *
  * Manages the lifecycle of the RL training system:
  * - PyScriptManager for event-driven Python module loading
@@ -14,10 +14,10 @@ import { PyScriptManager } from '$lib/PyScriptManager.js';
 import { getLink } from '$lib/utils.js';
 import { createLogger } from '@guinetik/logger';
 
-export class RLController {
+export class NeuroController {
 	constructor() {
 		this.logger = createLogger({
-			prefix: 'RLController',
+			prefix: 'NeuroController',
 			level: 'debug'
 		});
 
@@ -38,10 +38,10 @@ export class RLController {
 	 * Initialize controller - load neural network then agent
 	 */
 	async initialize() {
-		this.logger.log('🔵 Initializing RLController...');
+		this.logger.log('🔵 Initializing NeuroController...');
 
 		if (this.isInitialized) {
-			this.logger.warn('⚠️ RLController already initialized');
+			this.logger.warn('⚠️ NeuroController already initialized');
 			return;
 		}
 
@@ -72,10 +72,11 @@ export class RLController {
 
 			// Load Mario agent with PyScriptManager
 			this.logger.log('🔵 Loading Mario agent module...');
-			const agentUrl = getLink('python/ml/rl/player_agent.py');
+			const agentUrl = getLink('python/ml/rl/agent.py');
 
 			try {
-				this.pythonExports = await this.pyScriptManager.runScript(agentUrl, 'player-script');
+				// PyScriptManager generates script ID automatically, 'body' means append to document.body
+			this.pythonExports = await this.pyScriptManager.runScript(agentUrl, 'body');
 
 				this.logger.log('✅ Mario agent ready! Exports:', Object.keys(this.pythonExports));
 				this.isInitialized = true;
@@ -92,7 +93,7 @@ export class RLController {
 				throw error;
 			}
 		} catch (error) {
-			this.logger.error('❌ Failed to initialize RLController:', error);
+			this.logger.error('❌ Failed to initialize NeuroController:', error);
 			throw error;
 		}
 	}
@@ -122,9 +123,10 @@ export class RLController {
 
 	/**
 	 * Start training
+	 * @param {string} networkType - Type of neural network to use
 	 */
-	startTraining() {
-		this.logger.log('🔵 startTraining() called');
+	startTraining(networkType = 'simple-feedforward') {
+		this.logger.log('🔵 startTraining() called with network:', networkType);
 
 		if (!this.isInitialized || !this.pythonExports) {
 			this.logger.error('❌ Controller not initialized or Python not ready');
@@ -135,8 +137,8 @@ export class RLController {
 		}
 
 		if (this.pythonExports.startRLTraining) {
-			this.logger.log('🔵 Calling pythonExports.startRLTraining()');
-			this.pythonExports.startRLTraining();
+			this.logger.log('🔵 Calling pythonExports.startRLTraining() with network:', networkType);
+			this.pythonExports.startRLTraining(networkType);
 		} else {
 			this.logger.error('🔴 startRLTraining not found in exports');
 		}
@@ -197,6 +199,6 @@ export class RLController {
 		this.pythonExports = null;
 		this.isInitialized = false;
 		this.neuralModuleLoaded = false;
-		this.logger.log('✅ RLController destroyed');
+		this.logger.log('✅ NeuroController destroyed');
 	}
 }

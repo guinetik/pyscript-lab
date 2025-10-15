@@ -8,9 +8,7 @@ PyScript L.A.B is a collection of interactive examples demonstrating PyScript's 
 
 ## Development Commands
 
-### Essential Commands
-
-**NEVER** run commands without explicitily being told to. Most of the time, user is running `npm run dev` on their system which is isolated from where you operate and it screws up node_modules and package_lock. If you absolutely need to run an npm command, ask first.
+**NEVER** run commands without explicitly being told to. Most of the time, user is running `npm run dev` on their system which is isolated from where you operate and it screws up node_modules and package_lock. If you absolutely need to run an npm command, ask first.
 
 ## Architecture
 
@@ -22,14 +20,11 @@ PyScript L.A.B is a collection of interactive examples demonstrating PyScript's 
 - Bokeh 3.6.2 and Plotly JavaScript libraries are loaded for visualization support
 - A persistent Python console (using xterm.js) is available via the footer "Console" button
 
-**RunPython Utility** (`src/lib/RunPython.js`):
-- Factory function that creates controllers for executing Python code dynamically
-- Returns an object with three methods:
-  - `runScript(srcUrl, targetId, showCode)`: Loads and executes external Python files from `/static/python/`
-  - `runCode(code, targetId, showCode)`: Executes inline Python code
-  - `destroy(removeElements)`: Cleans up created `<script type="py">` elements
-- Creates `<script type="py">` elements dynamically and appends them to the DOM
-- **Critical for memory management**: Always call `destroy()` in Svelte's `onDestroy()` lifecycle hook to prevent memory leaks
+**PyScriptManager** (`src/lib/pyscript_manager.py`):
+- Modern async/await-based Python module loader
+- Handles loading external Python scripts and exposing functions to JavaScript
+- Event-driven architecture with `signal_ready()` callback system
+- Used by RL demo and other complex examples
 
 ### Component Architecture
 
@@ -42,17 +37,6 @@ PyScript L.A.B is a collection of interactive examples demonstrating PyScript's 
 - Footer contains `#script_gutter` div where Python output is rendered
 - Navigation controls (Previous/Next) that link examples together
 - Props: `{ previousPage: string, nextPage: string }`
-
-**Example Page Pattern**:
-All example pages follow this pattern:
-1. Import `RunPython` and create instance in component script
-2. Use `onMount()` to:
-   - Expose JavaScript functions to `window` for Python to call
-   - Initialize UI state and stores
-   - Call `pyScriptRunner.runScript()` with path to Python file in `/static/python/`
-3. Use `onDestroy()` to call `pyScriptRunner.destroy()`
-4. Wrap content in `<ExperimentCard>` with navigation props
-5. Python scripts in `/static/python/` can access DOM via `from pyscript import document`
 
 ### Code Organization Principles
 
@@ -71,49 +55,32 @@ Keep Svelte components lean and focused on UI rendering. Extract complex logic t
   - Contain all PyScript integration logic
   - Handle data transformations and business logic
   - Manage communication between Python and JavaScript
-  - Examples: `DiagramCreatorController.js`, `SentimentAnalysisController.js`, `DiagramGalleryController.js`
+  - Examples: `RLController.js` (RL demo), `DiagramCreatorController.js`, `SentimentAnalysisController.js`
 
 **Example structure:**
 ```javascript
 // src/lib/controller/MyFeatureController.js
 export class MyFeatureController {
   constructor() {
-    this.pyRunner = RunPython();
+    this.pyScriptManager = new PyScriptManager('my-feature');
   }
 
-  initialize() {
-    this.setupPythonCallbacks();
-    this.pyRunner.runScript('/python/my_feature.py');
+  async initialize() {
+    this.setupCallbacks();
+    await this.pyScriptManager.runScript('/python/my_feature.py', 'body');
   }
 
-  setupPythonCallbacks() {
+  setupCallbacks() {
     window.handlePythonData = (data) => {
       // Transform and process data
       return this.processData(data);
     };
   }
 
-  processData(data) {
-    // Business logic here
-  }
-
   destroy() {
-    this.pyRunner.destroy();
+    // Cleanup
   }
 }
-```
-
-```svelte
-<!-- src/routes/examples/my-feature/+page.svelte -->
-<script>
-  import { MyFeatureController } from '$lib/controller/MyFeatureController.js';
-  import { onMount, onDestroy } from 'svelte';
-
-  let controller = new MyFeatureController();
-
-  onMount(() => controller.initialize());
-  onDestroy(() => controller.destroy());
-</script>
 ```
 
 **2. Data-Only Communication: Avoid innerHTML from Python**
@@ -141,18 +108,11 @@ window.updateResult = (data) => {
 };
 ```
 
-**Benefits of data-only communication:**
+**Benefits:**
 - Maintains Svelte's reactivity system
 - Prevents XSS vulnerabilities
 - Easier to test and debug
 - Clear separation between data and presentation
-- Svelte components remain the single source of truth for UI
-
-**Pattern to follow:**
-1. Python computes/processes data
-2. Python calls JavaScript function with data via `window.callbackName(data)`
-3. JavaScript updates Svelte stores or component state
-4. Svelte reactively updates the DOM
 
 ### State Management
 
@@ -160,30 +120,7 @@ window.updateResult = (data) => {
 - Stores are used for reactive state between Python and JavaScript
 - Example: `src/lib/stores/digitRecognitionStore.js` for ML example
 - JavaScript exposes update functions on `window` object for Python to call
-- **Important**: Convert Pyodide proxies to plain JavaScript objects to avoid destruction errors:
-  ```javascript
-  window.updateData = (data) => {
-    const plainData = {
-      value: data.value,
-      array: Array.from(data.array || [])
-    };
-    store.set(plainData);
-  };
-  ```
-
-### Navigation & Routing
-
-**SiteMapStore** (`src/lib/stores/SiteMapStore.js`):
-- Centralized navigation configuration using custom `SiteMap`, `Page`, and `PageProp` classes
-- Defines all routes, page titles, URLs, and navigation relationships
-- Each page has properties: `show` (all/mobile/none), `prev_page`, `next_page`
-- Hierarchical structure with parent pages and sub-pages
-
-**Base Path Handling** (`src/lib/utils.js`):
-- `getLink(page)` function handles development vs production URLs
-- In development: returns paths as-is (e.g., `/examples/hello`)
-- In production: prepends `/python-ds` base path
-- **Always use `getLink()` for internal links and asset paths**
+- **Important**: Convert Pyodide proxies to plain JavaScript objects to avoid destruction errors
 
 ### Python File Organization
 
@@ -193,29 +130,53 @@ Python scripts are organized in `/static/python/` by category:
 - `/static/python/matplotlib/`: Matplotlib charts and maps
 - `/static/python/diagrams/`: Architecture diagram generators
 - `/static/python/ml/`: Machine learning examples
+  - `/static/python/ml/rl/`: Reinforcement learning demo files
+    - `agent.py`: Main training agent (modular architecture)
+    - `neural.py`: Base neural network class
+    - `player_agent.py`: Legacy agent (deprecated)
+  - `/static/python/lib/`: Shared utilities
+    - `/static/python/lib/nes/`: NES emulator interaction
+      - `game_controller.py`: All emulator interactions
+      - `nes_ram_utils.py`: RAM extraction utilities
+    - `/static/python/lib/neural/`: Neural network abstractions
+      - `neural_controller.py`: Abstract neural network interface
 - `/static/python/interop.py`: JavaScript ↔ Python communication demo
 
-**Python-JavaScript Interop Pattern**:
-- **From Python**: Access browser globals via `window` and `document` from pyscript module
-- **From JavaScript**: Python functions exposed to window are callable as `window.pythonFunctionName()`
-- **Passing Data**: Use JSON-serializable data structures; avoid raw canvas ImageData
+### RL Demo Architecture
+
+The reinforcement learning demo uses a modular, event-driven architecture:
+
+**JavaScript Side** (`src/lib/controller/RLController.js`):
+- Manages UI state and emulator lifecycle
+- Uses PyScriptManager to load Python modules
+- Provides callbacks for Python to update UI
+
+**Python Side** (`static/python/ml/rl/`):
+- **agent.py**: Main training loop with clean architecture
+  - `PlayerAgent` class orchestrates training
+  - Uses composition: GameController + NeuralController + ActionDecoder
+  - Implements neuroevolution with elite preservation
+- **lib/nes/game_controller.py**: Encapsulates all emulator interactions
+  - Vision extraction from RAM
+  - Button execution
+  - Mario state detection
+- **lib/neural/neural_controller.py**: Abstract neural network interface
+  - `SimpleNeuralController`: 3-layer feedforward network
+  - `ActionDecoder`: Converts network outputs to button presses
+  - Behavioral priors initialization (biases toward RIGHT+JUMP)
+
+**Key Principles:**
+- Python sends data only (never manipulates DOM)
+- JavaScript handles all UI rendering
+- Event-driven communication via `window` callbacks
+- Modular, testable components
 
 ## Key Technical Notes
 
-### PyScript Loading & Performance
-- First load takes 5-10 seconds to download and initialize WebAssembly runtime
-- Subsequent navigation is fast since PyScript is cached
-- Heavy computations should show loading/progress indicators
-
 ### Memory Management
-- **Critical**: Always call `pyScriptRunner.destroy()` in `onDestroy()` hooks
+- **Critical**: Always clean up PyScript resources in `onDestroy()` hooks
 - Python script elements persist in DOM unless explicitly removed
 - Each page navigation without cleanup adds memory overhead
-
-### Python Package Configuration
-- Packages are declared globally in `src/app.html` `<py-config>` section
-- Adding new packages requires modifying this configuration
-- Some packages may not be available or may have limitations in browser environment
 
 ### Canvas & Image Processing
 - When passing canvas data to Python, use `canvas.toDataURL('image/png')` for base64 encoding
@@ -227,42 +188,6 @@ Python scripts are organized in `/static/python/` by category:
 - Build output is fully static (no server required)
 - Base path `/python-ds` is configured for GitHub Pages hosting
 - All routes must be pre-rendered at build time
-
-## Adding New Examples
-
-To add a new example page:
-
-1. Create Svelte page in `src/routes/examples/{category}/{name}/+page.svelte`
-2. Create Python script in `static/python/{category}/{name}.py`
-3. Use the standard pattern:
-   ```svelte
-   <script>
-     import ExperimentCard from '$lib/components/ExperimentCard.svelte';
-     import RunPython from '$lib/RunPython.js';
-     import { onMount, onDestroy } from 'svelte';
-
-     let pyScriptRunner = RunPython();
-
-     onMount(() => {
-       pyScriptRunner.runScript('/python/{category}/{name}.py', 'script_gutter', false);
-     });
-
-     onDestroy(() => {
-       if (pyScriptRunner) pyScriptRunner.destroy();
-     });
-   </script>
-
-   <ExperimentCard props={{ previousPage: '/previous', nextPage: '/next' }}>
-     <div slot="py_slot">
-       <!-- Interactive demo here -->
-     </div>
-     <article slot="content_slot">
-       <!-- Documentation here -->
-     </article>
-   </ExperimentCard>
-   ```
-4. Add page to navigation in `src/lib/stores/SiteMapStore.js`
-5. Update previous/next page links in adjacent pages
 
 ## Browser Compatibility
 

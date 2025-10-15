@@ -117,29 +117,57 @@ Generate cloud architecture diagrams using Python's [diagrams](https://diagrams.
 - Programmatic diagram creation
 - Export to SVG format
 
-### 6. Machine Learning - Digit Recognition
-**Path**: `/examples/ml`
+### 6. Machine Learning
 
-Interactive digit recognition with active learning:
+#### a) **Digit Recognition with Active Learning** (`/examples/ml/digits`)
+Interactive digit recognition powered by scikit-learn:
 
 **Features:**
 - **Canvas Drawing**: Draw digits 0-9 with mouse/touch support
 - **KNN Classification**: scikit-learn K-Nearest Neighbors (k=5, distance-weighted)
 - **Active Learning**: Model learns from user feedback
-  - ✓ **Positive Feedback**: Click YES to reinforce correct predictions
-  - ✗ **Negative Feedback**: Click NO to correct and retrain
-- **Real-time Visualization**: See what the model sees (8×8 preprocessed image)
+  - ✓ **Positive Feedback**: Reinforce correct predictions
+  - ✗ **Negative Feedback**: Correct and retrain on mistakes
+- **Real-time Visualization**: See the 8×8 preprocessed image the model analyzes
 - **Training Examples**: Browse the sklearn digits dataset
-- **Adaptive Image Processing**:
-  - LANCZOS resampling for quality
-  - Adaptive thresholding for bounding box detection
-  - Intensity scaling to match training distribution
+- **Adaptive Image Processing**: LANCZOS resampling, adaptive thresholding, intensity scaling
 
-**Key Implementation:**
-- Image preprocessing: Canvas → Base64 → PIL → 8×8 grayscale → NumPy array
-- Model persistence during session (no page refresh needed)
+**Implementation:**
+- Image preprocessing: Canvas → Base64 → PIL → 8×8 grayscale → NumPy
+- Session-persistent model (no page refresh needed)
 - Dynamic retraining with user corrections
-- Training set grows from 1,437 to 1,437+N examples
+
+#### b) **Reinforcement Learning - Mario AI** (`/examples/ml/rl`)
+Watch an AI agent learn to play Super Mario Bros through trial and error:
+
+**What's Happening:**
+- **Neuroevolution**: Simple 3-layer neural network (vision → hidden → actions)
+- **Vision System**: 13×10 tile grid extracted from NES RAM
+  - Detects solid blocks (pipes, platforms)
+  - Detects enemies (Goombas, Koopas)
+  - Sees 6 tiles ahead, 4 tiles below
+- **Action Space**: 6 NES buttons (UP, DOWN, LEFT, RIGHT, A, B)
+- **Fitness Function**: Exponential distance rewards + (score × 2) + milestone bonuses - death penalties
+  - Stomping Goombas gives +200 points (×2 = +400 fitness!), encouraging enemy engagement
+- **Behavioral Priors**: Output layer biased toward RIGHT and JUMP
+- **Elite Preservation**: Saves best-performing weights, restores when performance drops
+
+**How It Learns:**
+1. **Initial Behavior**: Strong biases make Mario move right and jump frequently
+2. **Mutation**: Random weight changes explore different strategies
+3. **Selection**: Better-performing strategies are kept and refined
+4. **Evolution**: Over many episodes, discovers patterns like "jump when enemy detected"
+
+**Architecture:**
+- Python agent controls NES emulator via JavaScript bridge
+- Modular design: `GameController` (emulator) + `NeuralController` (brain) + `Agent` (training loop)
+- All computation runs client-side in the browser
+- No servers, no cloud - pure WebAssembly Python + JavaScript
+
+**Training Stats:**
+- Episode count, fitness score, max distance traveled
+- Real-time vision visualization every 5 seconds
+- Local minima escape (random restart after 5 stuck episodes)
 
 ## Getting Started
 

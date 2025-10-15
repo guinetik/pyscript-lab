@@ -22,6 +22,14 @@
     to_folder = "lib"
     from = "%sveltekit.assets%/python/lib/"
     [[fetch]]
+    files = ["nes_ram_utils.py", "game_controller.py"]
+    to_folder = "lib/nes"
+    from = "%sveltekit.assets%/python/lib/nes/"
+    [[fetch]]
+    files = ["neural_controller.py"]
+    to_folder = "lib/neural"
+    from = "%sveltekit.assets%/python/lib/neural/"
+    [[fetch]]
     files = ["bokeh_utils.py"]
     from = "%sveltekit.assets%/python/bokeh/"
     [[fetch]]
@@ -193,6 +201,26 @@
     #console-content py-terminal .xterm-viewport {
       width: 100% !important;
       height: 100% !important;
+      overflow-y: auto !important;
+      scrollbar-width: thin;
+      scrollbar-color: #666 #2d2d2d;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar-track {
+      background: #2d2d2d;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar-thumb {
+      background: #666;
+      border-radius: 6px;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar-thumb:hover {
+      background: #888;
     }
 
     #console-content py-terminal .xterm-rows {
@@ -246,7 +274,7 @@
   <div class="flex-1">
     <div style="display: contents">%sveltekit.body%</div>
   </div>
-  <footer class="flex h-10 w-full items-center justify-between bg-slate-900 text-white">
+  <footer class="sticky bottom-0 z-10 flex h-10 w-full items-center justify-between bg-slate-900 text-white shadow-[0_-2px_10px_rgba(0,0,0,0.3)]">
     <div class="flex items-center gap-4">
       <button id="open-console-btn" class="open-console-btn">🖥️ Console</button>
       <p>
