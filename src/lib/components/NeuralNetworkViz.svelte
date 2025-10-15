@@ -326,6 +326,7 @@
 
 			// Draw label centered horizontally, above the layer row
 			const labelY = layer.y - 15; // Positioned above nodes
+			ctx.fillStyle = 'greenyellow';
 			ctx.fillText(`${label} (${nodeCount})`, CANVAS_WIDTH / 2, labelY);
 
 			// Show activation stats if available - on the right side, aligned with label
@@ -345,13 +346,22 @@
 		// Draw button labels for output layer - horizontal layout below output nodes
 		if (layers.length > 0) {
 			const outputLayer = layerPositions[layerPositions.length - 1];
-			const buttons = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'A', 'B'];
 
-			ctx.font = '11px monospace';
-			ctx.textAlign = 'center';
+			// Determine button labels based on output size
+			let buttons = [];
+			if (outputLayer.size === 4) {
+				// 4-button mode: [LEFT, RIGHT, A, B]
+				buttons = ['LEFT', 'RIGHT', 'A', 'B'];
+			} else if (outputLayer.size === 6) {
+				// 6-button mode: [UP, DOWN, LEFT, RIGHT, A, B]
+				buttons = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'A', 'B'];
+			}
 
-			// Only show if output layer has 6 nodes (button output)
-			if (outputLayer.size === 6) {
+			// Only show button labels if we recognized the output size (4 or 6)
+			if (buttons.length > 0) {
+				ctx.font = '11px monospace';
+				ctx.textAlign = 'center';
+
 				outputLayer.nodes.forEach((node, idx) => {
 					if (idx < buttons.length) {
 						const activation = node.activation || 0;

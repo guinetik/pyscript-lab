@@ -12,12 +12,16 @@ Author: Guinetik
 from js import console, window, setTimeout
 from pyodide.ffi import create_proxy
 import numpy as np
+import math
 from lib.pyscript_manager import PyScriptManager
 from lib.nes.game_controller import GameController
 from lib.neural.neural_controller import SimpleNeuralController, NEATController, ConvNeuralController, ActionDecoder
 
 # Visualization update frequency (every N decisions)
-VIZ_UPDATE_FREQUENCY = 4
+VIZ_UPDATE_FREQUENCY = 6
+
+# Warmup period before starting viz updates (1 second = 60 frames at 60fps)
+VIZ_WARMUP_FRAMES = 60
 
 
 class PlayerAgent:
@@ -59,26 +63,19 @@ class PlayerAgent:
         vision_size = vision_width * vision_height
         context_size = 8 if use_context_features else 0
         input_size = vision_size + context_size  # 112 vision + 8 context = 120
-        output_size = 6  # [UP, DOWN, LEFT, RIGHT, A, B]
-
-        # Mario-specific behavioral priors (agent owns domain knowledge)
-        # Button order: [UP, DOWN, LEFT, RIGHT, A, B]
-        self.behavioral_priors = {
-            'UP': -5.0,      # Discourage (rarely useful)
-            'DOWN': -1.5,    # Discourage (crouching rarely helps)
-            'LEFT': -3.0,    # Strongly discourage (moving backward is bad)
-            'RIGHT': 2.0,    # Encourage (primary goal!)
-            'A': 2.0,        # Encourage jumping (essential for Mario)
-            'B': 1.1         # Slightly encourage running
-        }
 
         # Network will be created in _create_network()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.output_size = output_size
 
         # Set default network type (can be changed via start_training)
         self.network_type = 'simple-feedforward'
+
+        # Simple controls flag (will be set based on network type)
+        self.simple_controls = False
+
+        # Set output size and priors based on network type
+        self._configure_controls()
 
         # Create initial network
         self.neural = self._create_network(self.network_type)
@@ -87,7 +84,12 @@ class PlayerAgent:
         self._initialize_network()
 
         # Action decoder - converts neural outputs to buttons
-        self.decoder = ActionDecoder(use_variable_threshold=True)
+        # Max 3 buttons prevents input conflicts (UP+DOWN, LEFT+RIGHT) and ensures prioritization
+        self.decoder = ActionDecoder(
+            use_variable_threshold=True,
+            max_buttons=3,
+            simple_controls=self.simple_controls
+        )
 
         # Episode tracking
         self.frames = 0
@@ -114,36 +116,63 @@ class PlayerAgent:
         # Local minima detection
         self.generations_stuck = 0  # Consecutive generations at same distance
 
+        # Visualization control
+        self._viz_paused = False  # Pause viz between generations
+        self._viz_warmup_frames = 0  # Frames since generation start (for warmup period)
+
         print("🤖 PlayerAgent initialized with modular architecture")
-        print(f"   Input: {input_size} (vision: {vision_size}, context: {context_size}), Hidden: {hidden_size}, Output: {output_size}")
+        print(f"   Input: {self.input_size} (vision: {vision_size}, context: {context_size}), Hidden: {hidden_size}, Output: {self.output_size}")
         print(f"   Network type: {self.network_type}")
+        print(f"   Controls: {'4-BUTTON (Simplified)' if self.simple_controls else '6-BUTTON (Full)'}")
         print(f"   Context features: {'ENABLED' if use_context_features else 'DISABLED'}")
+
+    def _configure_controls(self):
+        """
+        Configure control scheme and behavioral priors based on network type.
+        Sets output_size and behavioral_priors appropriately.
+        """
+        # Determine if using simple controls based on network type
+        self.simple_controls = '4button' in self.network_type
+
+        if self.simple_controls:
+            # 4-button mode: [LEFT, RIGHT, A, B]
+            self.output_size = 4
+            self.behavioral_priors = {
+                'LEFT':  -2.0,    # Discourage (moving backward is bad)
+                'RIGHT': 2.0,    # Encourage (primary goal!)
+                'A':     1.5,    # Encourage jumping (essential for Mario)
+                'B':     0.5     # Encourage running
+            }
+        else:
+            # 6-button mode: [UP, DOWN, LEFT, RIGHT, A, B]
+            self.output_size = 6
+            self.behavioral_priors = {
+                'UP':   -10.0,   # Discourage (rarely useful)
+                'DOWN': -10.0,   # Discourage (crouching rarely helps)
+                'LEFT': -2.0,    # Discourage (moving backward is bad)
+                'RIGHT': 1.0,    # Encourage (primary goal!)
+                'A':     1.5,    # Encourage jumping (essential for Mario)
+                'B':     1.0     # Encourage running
+            }
 
     def _create_network(self, network_type: str):
         """
         Factory method to create neural network based on type.
 
         Args:
-            network_type: Type of network ('simple-feedforward', 'neat', 'conv', etc.)
+            network_type: Type of network ('simple-feedforward', 'simple-4button', 'conv', 'conv-4button')
 
         Returns:
             NeuralController instance
         """
-        if network_type == 'simple-feedforward':
+        if network_type == 'simple-feedforward' or network_type == 'simple-4button':
             return SimpleNeuralController(
                 input_size=self.input_size,
                 hidden_size=self.hidden_size,
                 output_size=self.output_size,
                 seed=None
             )
-        elif network_type == 'neat':
-            return NEATController(
-                input_size=self.input_size,
-                hidden_size=self.hidden_size,  # Ignored by NEAT
-                output_size=self.output_size,
-                seed=None
-            )
-        elif network_type == 'conv':
+        elif network_type == 'conv' or network_type == 'conv-4button':
             return ConvNeuralController(
                 vision_shape=(7, 16),  # Height × Width
                 context_size=8 if self.use_context_features else 0,
@@ -172,14 +201,25 @@ class PlayerAgent:
         # Apply behavioral priors if network supports it
         if hasattr(self.neural, 'apply_priors'):
             # Convert dict to array in button order
-            prior_values = [
-                self.behavioral_priors['UP'],
-                self.behavioral_priors['DOWN'],
-                self.behavioral_priors['LEFT'],
-                self.behavioral_priors['RIGHT'],
-                self.behavioral_priors['A'],
-                self.behavioral_priors['B']
-            ]
+            if self.simple_controls:
+                # 4-button mode: [LEFT, RIGHT, A, B]
+                prior_values = [
+                    self.behavioral_priors['LEFT'],
+                    self.behavioral_priors['RIGHT'],
+                    self.behavioral_priors['A'],
+                    self.behavioral_priors['B']
+                ]
+            else:
+                # 6-button mode: [UP, DOWN, LEFT, RIGHT, A, B]
+                prior_values = [
+                    self.behavioral_priors['UP'],
+                    self.behavioral_priors['DOWN'],
+                    self.behavioral_priors['LEFT'],
+                    self.behavioral_priors['RIGHT'],
+                    self.behavioral_priors['A'],
+                    self.behavioral_priors['B']
+                ]
+
             self.neural.apply_priors(prior_values)
             print(f"✅ Applied behavioral priors: {self.behavioral_priors}")
         else:
@@ -228,14 +268,19 @@ class PlayerAgent:
             num_solid = np.sum(state == 1.0)
             print(f"👁️ Vision check (decision {self._decision_count}): {num_obstacles} non-empty tiles ({num_enemies} enemies, {num_solid} solid)")
 
-        # Capture activations on EVERY decision if visualization enabled
-        capture = self._viz_enabled
+        # Capture activations on EVERY decision if visualization enabled AND active
+        # Don't capture if paused (between generations) to save compute
+        capture = self._viz_enabled and not self._viz_paused
 
         # Neural network forward pass
         output = self.neural.forward(state, capture_activations=capture)
 
         # Send visualization data to JavaScript at configured frequency
-        if self._viz_enabled and (self._decision_count % VIZ_UPDATE_FREQUENCY == 0):
+        # Only send if: enabled, not paused, warmup period passed, and at frequency
+        if (self._viz_enabled and
+            not self._viz_paused and
+            self._viz_warmup_frames >= VIZ_WARMUP_FRAMES and
+            (self._decision_count % VIZ_UPDATE_FREQUENCY == 0)):
             self._visualize_network()
 
         # Debug: check output shape and values (only log once)
@@ -252,7 +297,10 @@ class PlayerAgent:
                 print(f"   [enemy_left, enemy_right, ground_dist, pit_dist, obstacle_dist, on_ground, y_pos, enemy_nearby]")
 
             print(f"🔍 Raw output values (before threshold): {output}")
-            print(f"🔍 Output interpretation: UP={output[0]:.3f}, DOWN={output[1]:.3f}, LEFT={output[2]:.3f}, RIGHT={output[3]:.3f}, A={output[4]:.3f}, B={output[5]:.3f}")
+            if self.simple_controls:
+                print(f"🔍 Output interpretation (4-button): LEFT={output[0]:.3f}, RIGHT={output[1]:.3f}, A={output[2]:.3f}, B={output[3]:.3f}")
+            else:
+                print(f"🔍 Output interpretation (6-button): UP={output[0]:.3f}, DOWN={output[1]:.3f}, LEFT={output[2]:.3f}, RIGHT={output[3]:.3f}, A={output[4]:.3f}, B={output[5]:.3f}")
             self._logged_shapes = True
 
         # Decode to button presses
@@ -304,7 +352,14 @@ class PlayerAgent:
         if self._viz_enabled:
             print(f"   Activations will be captured on every decision")
             print(f"   Visualization updates every {VIZ_UPDATE_FREQUENCY} decisions")
-            print(f"   First update will appear momentarily...")
+            print(f"   Updates pause between generations and resume after 1-second warmup")
+            if self._viz_paused:
+                print(f"   Currently paused (will resume when next generation starts)")
+            elif self._viz_warmup_frames < VIZ_WARMUP_FRAMES:
+                remaining = VIZ_WARMUP_FRAMES - self._viz_warmup_frames
+                print(f"   In warmup period ({remaining} frames remaining)")
+            else:
+                print(f"   Currently sending updates")
 
         return self._viz_enabled
 
@@ -329,6 +384,10 @@ class PlayerAgent:
             bool: True if episode continues, False if episode ended
         """
         self.frames += 1
+
+        # Increment viz warmup counter (for 1-second delay at start of generation)
+        if self._viz_warmup_frames < VIZ_WARMUP_FRAMES:
+            self._viz_warmup_frames += 1
 
         # Check timeout
         if self.frames >= self.max_frames:
@@ -364,10 +423,24 @@ class PlayerAgent:
         else:
             self.stuck_frames += 1
 
-        # Check if stuck (no progress for 1 second)
-        if self.stuck_frames > 60:
+        # Progressive stuck threshold (logarithmic scaling with generation)
+        # Early generations get stuck quickly, later ones get more thinking time
+        import math
+        base_stuck_threshold = 120  # 2 seconds base
+        log_scale = 60  # Frames added per log unit
+        max_stuck_threshold = 360  # 6 seconds cap
+
+        stuck_threshold = min(
+            base_stuck_threshold + (log_scale * math.log(self.generation + 1)),
+            max_stuck_threshold
+        )
+
+        # Check if stuck (adaptive based on generation)
+        if self.stuck_frames > stuck_threshold:
             self.death_cause = 'stuck'
+            stuck_seconds = stuck_threshold / 60
             print(f"🚫 Mario stuck! Frames: {self.frames}, Max X: {self.max_x}")
+            print(f"   Stuck threshold for Gen {self.generation}: {stuck_threshold:.0f} frames ({stuck_seconds:.1f}s)")
 
             # Print what Mario sees when stuck (for debugging)
             print("👁️ Vision at stuck position:")
@@ -479,6 +552,10 @@ class PlayerAgent:
 
     def end_episode(self):
         """Handle end of episode - calculate fitness and mutate."""
+        # Pause visualization during generation transition
+        self._viz_paused = True
+        print("🎨 Visualization paused (between generations)")
+
         distance = self.max_x
 
         # Capture final score
@@ -631,6 +708,12 @@ class PlayerAgent:
         self.reset()
         self.current_fitness = 0
 
+        # Resume visualization with warmup period
+        self._viz_paused = False
+        self._viz_warmup_frames = 0
+        if self._viz_enabled:
+            print(f"🎨 Visualization resumed (will start sending after {VIZ_WARMUP_FRAMES} frames / 1 second)")
+
         # Continue training
         if self.is_training:
             self.training_loop()
@@ -651,6 +734,16 @@ class PlayerAgent:
 
             self.network_type = network_type
 
+            # Reconfigure controls for new network type
+            self._configure_controls()
+
+            # Recreate decoder with new control scheme
+            self.decoder = ActionDecoder(
+                use_variable_threshold=True,
+                max_buttons=3,
+                simple_controls=self.simple_controls
+            )
+
             # Reset all training stats
             self.generation = 0
             self.best_distance = 0
@@ -659,7 +752,8 @@ class PlayerAgent:
             self.champion_weights = None
 
             # Reinitialize neural network based on type
-            print(f"✅ Switching to {network_type} network")
+            controls_desc = '4-button (simplified)' if self.simple_controls else '6-button (full)'
+            print(f"✅ Switching to {network_type} network ({controls_desc})")
             self.neural = self._create_network(network_type)
             self._initialize_network()
 

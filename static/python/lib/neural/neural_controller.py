@@ -117,12 +117,12 @@ class SimpleNeuralController(NeuralController):
             seed=seed
         )
 
-        console.log(f"🧠 SimpleNeuralController initialized")
-        console.log(f"   Architecture: {input_size} → {hidden_size} → {output_size}")
+        print(f"🧠 SimpleNeuralController initialized")
+        print(f"   Architecture: {input_size} → {hidden_size} → {output_size}")
 
         # Debug: Check actual network layer sizes
-        console.log(f"   Weight shapes: {[w.shape for w in self.network.weights]}")
-        console.log(f"   Bias shapes: {[b.shape for b in self.network.biases]}")
+        print(f"   Weight shapes: {[w.shape for w in self.network.weights]}")
+        print(f"   Bias shapes: {[b.shape for b in self.network.biases]}")
 
     def forward(self, state: np.ndarray, capture_activations: bool = False) -> np.ndarray:
         """
@@ -137,16 +137,16 @@ class SimpleNeuralController(NeuralController):
         """
         # Debug network architecture (log once)
         if not hasattr(self, '_logged_arch'):
-            console.log(f"🔍 Network layer shapes:")
+            print(f"🔍 Network layer shapes:")
             for i, (w, b) in enumerate(zip(self.network.weights, self.network.biases)):
-                console.log(f"   Layer {i}: weights={w.shape}, biases={b.shape}")
+                print(f"   Layer {i}: weights={w.shape}, biases={b.shape}")
             self._logged_arch = True
 
         output = self.network.forward(state, capture_activations=capture_activations)
 
         # Debug raw output shape
         if not hasattr(self, '_logged_output'):
-            console.log(f"🔍 Raw network output shape: {output.shape}, expected: ({self.output_size},)")
+            print(f"🔍 Raw network output shape: {output.shape}, expected: ({self.output_size},)")
             self._logged_output = True
 
         # Ensure output is 1D with shape (output_size,)
@@ -220,24 +220,26 @@ class SimpleNeuralController(NeuralController):
         Apply behavioral priors to the output layer biases.
 
         Args:
-            prior_values: List of 6 bias values in button order [UP, DOWN, LEFT, RIGHT, A, B]
+            prior_values: List of bias values in button order
+                         4-button: [LEFT, RIGHT, A, B]
+                         6-button: [UP, DOWN, LEFT, RIGHT, A, B]
         """
-        if len(prior_values) != 6:
-            console.error(f"❌ Expected 6 prior values, got {len(prior_values)}")
+        if len(prior_values) != self.output_size:
+            console.error(f"❌ Expected {self.output_size} prior values, got {len(prior_values)}")
             return
 
         # Bias the OUTPUT layer (last layer)
         output_layer_idx = len(self.network.biases) - 1
         output_size = self.network.biases[output_layer_idx].shape[0]
 
-        if output_size != 6:
-            console.error(f"❌ Expected 6 outputs, got {output_size}")
+        if output_size != self.output_size:
+            console.error(f"❌ Expected {self.output_size} outputs, got {output_size}")
             return
 
         # Set the output layer biases
         self.network.biases[output_layer_idx] = np.array(prior_values, dtype=np.float32)
 
-        console.log(f"✅ Behavioral priors applied to output layer: {prior_values}")
+        print(f"✅ Behavioral priors applied to output layer ({self.output_size} buttons): {prior_values}")
 
 
 class NEATNode:
@@ -431,7 +433,7 @@ class NEATGenome:
             weight = np.random.randn() * 0.5
             innov = self._get_innovation(in_node, out_node)
             self.connections.append(NEATConnection(in_node, out_node, weight, innov))
-            console.log(f"🔗 Added connection: {in_node} → {out_node}")
+            print(f"🔗 Added connection: {in_node} → {out_node}")
             return True
 
         return False
@@ -463,7 +465,7 @@ class NEATGenome:
         self.connections.append(NEATConnection(conn.in_node, new_node_id, 1.0, innov1))
         self.connections.append(NEATConnection(new_node_id, conn.out_node, conn.weight, innov2))
 
-        console.log(f"➕ Added node {new_node_id}: {conn.in_node} → [{new_node_id}] → {conn.out_node}")
+        print(f"➕ Added node {new_node_id}: {conn.in_node} → [{new_node_id}] → {conn.out_node}")
         return True
 
     def get_complexity(self) -> dict:
@@ -504,9 +506,9 @@ class NEATController(NeuralController):
         # Activation storage
         self.layer_activations = []
 
-        console.log(f"🧬 NEATController initialized")
-        console.log(f"   Architecture: {input_size} inputs → {output_size} outputs")
-        console.log(f"   Starting topology: {self.genome.get_complexity()}")
+        print(f"🧬 NEATController initialized")
+        print(f"   Architecture: {input_size} inputs → {output_size} outputs")
+        print(f"   Starting topology: {self.genome.get_complexity()}")
 
     def forward(self, state: np.ndarray, capture_activations: bool = False) -> np.ndarray:
         """
@@ -658,7 +660,7 @@ class NEATController(NeuralController):
     def randomize(self):
         """Reset to minimal topology."""
         self.genome = NEATGenome(self.input_size, self.output_size)
-        console.log("🔄 NEAT genome reset to minimal topology")
+        print("🔄 NEAT genome reset to minimal topology")
 
 
 class ConvNeuralController(NeuralController):
@@ -706,9 +708,9 @@ class ConvNeuralController(NeuralController):
         # Activation storage
         self.layer_activations = []
 
-        console.log(f"👁️ ConvNeuralController initialized")
-        console.log(f"   Vision shape: {vision_shape}, Filters: {num_filters}, Hidden: {hidden_size}, Output: {output_size}")
-        console.log(f"   Conv output size: {conv_out_size}, FC input: {fc_input_size}")
+        print(f"👁️ ConvNeuralController initialized")
+        print(f"   Vision shape: {vision_shape}, Filters: {num_filters}, Hidden: {hidden_size}, Output: {output_size}")
+        print(f"   Conv output size: {conv_out_size}, FC input: {fc_input_size}")
 
     def _conv_forward(self, x: np.ndarray) -> np.ndarray:
         """Apply simple valid convolution with ReLU activation."""
@@ -772,9 +774,9 @@ class ConvNeuralController(NeuralController):
             self.layer_activations.append(out)
 
         if not hasattr(self, "_logged_arch"):
-            console.log(f"🔍 Conv forward shapes:")
-            console.log(f"   Conv features: {conv_features.shape}")
-            console.log(f"   Hidden: {h.shape}, Output: {out.shape}")
+            print(f"🔍 Conv forward shapes:")
+            print(f"   Conv features: {conv_features.shape}")
+            print(f"   Hidden: {h.shape}, Output: {out.shape}")
             self._logged_arch = True
 
         return out.flatten()
@@ -914,53 +916,157 @@ class ConvNeuralController(NeuralController):
             return
 
         self.b2 = np.array(prior_values, dtype=np.float32)
-        console.log(f"✅ Applied behavioral priors to ConvNeuralController: {prior_values}")
+        print(f"✅ Applied behavioral priors to ConvNeuralController: {prior_values}")
 
 
 class ActionDecoder:
     """
     Converts neural network outputs into button actions.
-    Handles thresholding and action interpretation.
+    Handles thresholding and action interpretation with top-k selection.
+
+    Supports two modes:
+    - 6-button mode: [UP, DOWN, LEFT, RIGHT, A, B]
+    - 4-button mode: [LEFT, RIGHT, A, B] (simplified for platformers)
     """
 
-    def __init__(self, use_variable_threshold: bool = True):
+    def __init__(self, use_variable_threshold: bool = True, max_buttons: int = 3, simple_controls: bool = False):
         """
         Initialize action decoder.
 
         Args:
             use_variable_threshold: Use random thresholds for more variety
+            max_buttons: Maximum number of buttons to press simultaneously (default: 3)
+                        Prevents input conflicts and ensures prioritization
+            simple_controls: If True, expect 4 outputs [LEFT, RIGHT, A, B] instead of 6
+                           UP and DOWN are forced to 0 (not useful for Mario 1-1)
         """
         self.use_variable_threshold = use_variable_threshold
+        self.max_buttons = max_buttons
+        self.simple_controls = simple_controls
 
     def decode(self, output: np.ndarray) -> np.ndarray:
         """
-        Convert network output to button presses.
+        Convert network output to button presses using top-k selection with conflict resolution.
+
+        Strategy:
+        1. Expand 4-button output to 6-button if in simple_controls mode
+        2. Resolve directional conflicts (LEFT vs RIGHT, UP vs DOWN)
+        3. Apply threshold to determine candidate buttons
+        4. Select only the top-k buttons by activation strength
+        5. Prevents input overflow and wasted button slots
+
+        Button order (6-button): [UP, DOWN, LEFT, RIGHT, A, B]
+        Button order (4-button): [LEFT, RIGHT, A, B] → expanded to [0, 0, LEFT, RIGHT, A, B]
 
         Args:
             output: Neural network output (typically sigmoid activations)
+                   Either 4 values (simple_controls) or 6 values (full controls)
 
         Returns:
-            np.ndarray: Binary button states [0 or 1 for each button]
+            np.ndarray: Binary button states [0 or 1 for each button] (always 6 buttons for NES)
         """
+        output_flat = output.flatten()
+
+        # STEP 0: Expand 4-button to 6-button format if using simple controls
+        if self.simple_controls and len(output_flat) == 4:
+            # [LEFT, RIGHT, A, B] → [UP=0, DOWN=0, LEFT, RIGHT, A, B]
+            expanded = np.zeros(6, dtype=np.float32)
+            expanded[2] = output_flat[0]  # LEFT
+            expanded[3] = output_flat[1]  # RIGHT
+            expanded[4] = output_flat[2]  # A (JUMP)
+            expanded[5] = output_flat[3]  # B (RUN)
+            output_flat = expanded
+
+        # STEP 1: Resolve directional conflicts BEFORE selection
+        # If both opposing directions exceed threshold, zero out the weaker one
+        # This prevents wasting button slots on conflicting inputs
+
+        # UP (0) vs DOWN (1) - only if not using simple controls
+        if not self.simple_controls:
+            if output_flat[0] > 0.3 and output_flat[1] > 0.3:
+                if output_flat[0] > output_flat[1]:
+                    output_flat[1] = 0.0  # Zero out DOWN
+                else:
+                    output_flat[0] = 0.0  # Zero out UP
+
+        # LEFT (2) vs RIGHT (3)
+        if output_flat[2] > 0.3 and output_flat[3] > 0.3:
+            if output_flat[2] > output_flat[3]:
+                output_flat[3] = 0.0  # Zero out RIGHT
+            else:
+                output_flat[2] = 0.0  # Zero out LEFT
+
+        # STEP 2: Apply threshold to determine candidate buttons
         if self.use_variable_threshold:
             # Variable threshold adds exploration variety
-            thresholds = np.random.uniform(0.4, 0.6, size=output.shape)
-            buttons = (output > thresholds).astype(int).flatten()
+            thresholds = np.random.uniform(0.4, 0.6, size=output_flat.shape)
+            candidates = (output_flat > thresholds).astype(int)
         else:
             # Fixed threshold (more deterministic)
-            buttons = (output > 0.5).astype(int).flatten()
+            candidates = (output_flat > 0.5).astype(int)
 
-        return buttons
+        # STEP 3: Apply top-k selection if more than max_buttons are active
+        active_count = np.sum(candidates)
+        if active_count > self.max_buttons:
+            # Get indices of top-k activations
+            top_k_indices = np.argsort(output_flat)[-self.max_buttons:]
+
+            # Create new button array with only top-k
+            buttons = np.zeros_like(output_flat, dtype=int)
+            buttons[top_k_indices] = 1
+            return buttons
+
+        return candidates
 
     def decode_deterministic(self, output: np.ndarray) -> np.ndarray:
         """
-        Deterministic decoding (always use 0.5 threshold).
+        Deterministic decoding (always use 0.5 threshold) with top-k selection and conflict resolution.
 
         Args:
-            output: Neural network output
+            output: Neural network output (4 or 6 values depending on simple_controls)
 
         Returns:
-            np.ndarray: Binary button states
+            np.ndarray: Binary button states (always 6 buttons for NES)
         """
-        return (output > 0.5).astype(int).flatten()
+        output_flat = output.flatten()
+
+        # Expand 4-button to 6-button format if using simple controls
+        if self.simple_controls and len(output_flat) == 4:
+            expanded = np.zeros(6, dtype=np.float32)
+            expanded[2] = output_flat[0]  # LEFT
+            expanded[3] = output_flat[1]  # RIGHT
+            expanded[4] = output_flat[2]  # A (JUMP)
+            expanded[5] = output_flat[3]  # B (RUN)
+            output_flat = expanded
+
+        # Resolve directional conflicts (same as decode())
+        # UP (0) vs DOWN (1) - only if not using simple controls
+        if not self.simple_controls:
+            if output_flat[0] > 0.3 and output_flat[1] > 0.3:
+                if output_flat[0] > output_flat[1]:
+                    output_flat[1] = 0.0
+                else:
+                    output_flat[0] = 0.0
+
+        # LEFT (2) vs RIGHT (3)
+        if output_flat[2] > 0.3 and output_flat[3] > 0.3:
+            if output_flat[2] > output_flat[3]:
+                output_flat[3] = 0.0
+            else:
+                output_flat[2] = 0.0
+
+        candidates = (output_flat > 0.5).astype(int)
+
+        # Apply top-k selection if more than max_buttons are active
+        active_count = np.sum(candidates)
+        if active_count > self.max_buttons:
+            # Get indices of top-k activations
+            top_k_indices = np.argsort(output_flat)[-self.max_buttons:]
+
+            # Create new button array with only top-k
+            buttons = np.zeros_like(output_flat, dtype=int)
+            buttons[top_k_indices] = 1
+            return buttons
+
+        return candidates
 

@@ -54,8 +54,8 @@ class GameController:
         self.vision_width = vision_width
         self.vision_height = vision_height
 
-        console.log("🎮 GameController initialized")
-        console.log(f"   Vision: {vision_width}×{vision_height} tiles")
+        print("🎮 GameController initialized")
+        print(f"   Vision: {vision_width}×{vision_height} tiles")
 
     def get_emulator(self):
         """
@@ -245,7 +245,7 @@ class GameController:
 
         if not emulator.isRunning():
             emulator.start()
-            console.log("▶️ Emulator started")
+            print("▶️ Emulator started")
             return True
         return True
 
@@ -254,14 +254,14 @@ class GameController:
         emulator = self.get_emulator()
         if emulator:
             emulator.stop()
-            console.log("⏹️ Emulator stopped")
+            print("⏹️ Emulator stopped")
 
     def reset_emulator(self):
         """Reset the emulator."""
         emulator = self.get_emulator()
         if emulator:
             emulator.reset()
-            console.log("🔄 Emulator reset")
+            print("🔄 Emulator reset")
 
     def disable_keyboard(self):
         """Disable keyboard input (for AI control)."""
@@ -298,7 +298,7 @@ class GameController:
             # Load into emulator
             if emulator.controller and emulator.controller.loadState:
                 emulator.controller.loadState(state_obj)
-                console.log(f"♻️ Loaded saved state from {state_path}")
+                print(f"♻️ Loaded saved state from {state_path}")
                 return True
             
             return False
@@ -318,7 +318,7 @@ class GameController:
         # Get Mario's actual position for context
         x, y = self.get_mario_position()
 
-        console.log(f"\n👁️ Mario's Vision (X: {x}px, Y: {y}px):")
+        print(f"\n👁️ Mario's Vision (X: {x}px, Y: {y}px):")
         vision_2d = state.reshape(self.vision_height, self.vision_width)
 
         # Mario is at column index = vision_width // 4 (25% from left, 75% from right)
@@ -351,8 +351,8 @@ class GameController:
             else:
                 line += f" ← {i - mario_row_index} tiles below"
 
-            console.log(line)
+            print(line)
 
-        console.log(f"  ↑ {mario_col_index} tiles behind M | {self.vision_width - mario_col_index - 1} tiles ahead ↑")
-        console.log("")
+        print(f"  ↑ {mario_col_index} tiles behind M | {self.vision_width - mario_col_index - 1} tiles ahead ↑")
+        print("")
 

@@ -78,7 +78,7 @@ def get_mario_position(nes):
 
         # Debug first call
         if not hasattr(get_mario_position, '_debug_printed'):
-            console.log(f"🔍 [RAM] First position read: page={x_page}, screen={x_screen}, total={x_total}, y={y}")
+            print(f"🔍 [RAM] First position read: page={x_page}, screen={x_screen}, total={x_total}, y={y}")
             get_mario_position._debug_printed = True
 
         return (x_total, y)
@@ -264,17 +264,17 @@ def extract_vision_grid(nes, width=7, height=10):
 
     # Debug first call
     if not hasattr(extract_vision_grid, '_debug_printed'):
-        console.log(f"🔍 [Vision] Mario at tile: col={mario_col}, row={mario_row}")
-        console.log(f"🔍 [Vision] Horizontal span: {tiles_behind} tiles behind → {width - tiles_behind - 1} tiles ahead")
-        console.log(f"🔍 [Vision] Scanning cols {start_col} to {start_col + width - 1}")
-        console.log(f"🔍 [Vision] Scanning rows {start_row} to {start_row + height - 1}")
+        print(f"🔍 [Vision] Mario at tile: col={mario_col}, row={mario_row}")
+        print(f"🔍 [Vision] Horizontal span: {tiles_behind} tiles behind → {width - tiles_behind - 1} tiles ahead")
+        print(f"🔍 [Vision] Scanning cols {start_col} to {start_col + width - 1}")
+        print(f"🔍 [Vision] Scanning rows {start_row} to {start_row + height - 1}")
 
         # Sample a few tiles
         test_tiles = []
         for i in range(3):
             tile = get_tile_at(nes, mario_col + i, mario_row + 2)  # Below Mario
             test_tiles.append(hex(tile))
-        console.log(f"🔍 [Vision] Sample tiles below Mario: {test_tiles}")
+        print(f"🔍 [Vision] Sample tiles below Mario: {test_tiles}")
         extract_vision_grid._debug_printed = True
 
     for row_offset in range(height):

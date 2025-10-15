@@ -215,43 +215,11 @@ export default class App {
    * Copies the console content to clipboard when the copy button is clicked.
    * @returns {void}
    */
-  handleCopyClick() {
-    const terminal = this.document.querySelector('#console-content py-terminal');
-
-    if (!terminal) {
-      console.warn('Terminal not found');
-      return;
-    }
-
-    // Try to get terminal buffer content
-    let text = '';
-
-    const term = document.getElementById("console-script").terminal;
-    const buffer = term.buffer.active;
-    for (let i = 0; i < buffer.length; i++) {
-      const line = buffer.getLine(i);
-      if (line) text += line.translateToString() + '\n';
-    }
-
-
-    // Copy to clipboard
-    if (text) {
-      navigator.clipboard.writeText(text).then(() => {
-        // Show feedback
-        if (this.copyBtn) {
-          const originalText = this.copyBtn.innerHTML;
-          this.copyBtn.innerHTML = '✓ Copied!';
-          setTimeout(() => {
-            this.copyBtn.innerHTML = originalText;
-          }, 2000);
-        }
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy to clipboard');
-      });
-    } else {
-      console.warn('No content to copy');
-    }
+  async handleCopyClick() {
+    term.selectAll();
+    const selection = term.getSelection();
+    await navigator.clipboard.writeText(selection);
+    term.clearSelection();
   }
 
   /**

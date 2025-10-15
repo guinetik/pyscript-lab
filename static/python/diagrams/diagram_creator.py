@@ -14,21 +14,21 @@ try:
     from pyscript import window
 
     print("🐍 Starting diagram creator initialization...")
-    console.log("🐍 Starting diagram creator initialization...")
+    print("🐍 Starting diagram creator initialization...")
 
     print("🐍 Imports successful, loading diagrams_base...")
-    console.log("🐍 Imports successful, loading diagrams_base...")
+    print("🐍 Imports successful, loading diagrams_base...")
 
     # Import the shared base module (configured in py-config)
     from diagrams_base import get_diagrams_base
 
     print("🐍 diagrams_base imported successfully")
-    console.log("🐍 diagrams_base imported successfully")
+    print("🐍 diagrams_base imported successfully")
 
     # Get the shared base instance
     diagrams_base = get_diagrams_base()
     print("✅ Patches applied")
-    console.log("✅ Patches applied")
+    print("✅ Patches applied")
 
 except Exception as e:
     print(f"❌ Error during initialization: {str(e)}")
@@ -86,13 +86,13 @@ def create_diagram(user_code):
 # Expose the function to JavaScript
 try:
     print("🐍 Exposing create_diagram to window object...")
-    console.log("🐍 Exposing create_diagram to window object...")
+    print("🐍 Exposing create_diagram to window object...")
 
     window.create_diagram = create_diagram
 
     print("✅ Diagram creator ready!")
-    console.log("✅ Diagram creator ready!")
-    console.log("✅ window.create_diagram is now available")
+    print("✅ Diagram creator ready!")
+    print("✅ window.create_diagram is now available")
 
 except Exception as e:
     print(f"❌ Error exposing function: {str(e)}")
