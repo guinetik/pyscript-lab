@@ -14,9 +14,11 @@ from js import window, console
 import numpy as np
 from lib.nes.nes_ram_utils import (
     extract_vision_grid,
+    extract_context_features,
     get_mario_position,
     get_mario_state,
-    get_mario_tile_position
+    get_mario_tile_position,
+    get_score
 )
 
 
@@ -36,19 +38,24 @@ class GameController:
     BUTTON_LEFT = 6
     BUTTON_RIGHT = 7
 
-    def __init__(self, vision_width: int = 13, vision_height: int = 10):
+    def __init__(self, vision_width: int = 16, vision_height: int = 7):
         """
         Initialize game controller.
 
         Args:
-            vision_width: Width of vision grid in tiles
-            vision_height: Height of vision grid in tiles
+            vision_width: Width of vision grid in tiles (default: 16)
+            vision_height: Height of vision grid in tiles (default: 7)
+
+        Vision distribution (7 tiles vertical):
+            3 tiles above Mario (jumps, blocks, platforms)
+            1 tile (Mario's current row)
+            3 tiles below Mario (pits, ground, enemies)
         """
         self.vision_width = vision_width
         self.vision_height = vision_height
-        
-        console.log("🎮 GameController initialized")
-        console.log(f"   Vision: {vision_width}×{vision_height} tiles")
+
+        print("🎮 GameController initialized")
+        print(f"   Vision: {vision_width}×{vision_height} tiles")
 
     def get_emulator(self):
         """
@@ -104,14 +111,34 @@ class GameController:
 
         try:
             vision = extract_vision_grid(
-                nes, 
-                width=self.vision_width, 
+                nes,
+                width=self.vision_width,
                 height=self.vision_height
             )
             return np.array(vision, dtype=np.float32)
         except Exception as e:
             console.error(f"❌ Error extracting vision: {e}")
             return np.zeros(self.vision_width * self.vision_height)
+
+    def get_context_features(self) -> np.ndarray:
+        """
+        Extract high-level engineered features.
+
+        Returns:
+            np.ndarray: Array of 8 context features (normalized 0-1):
+                       [enemy_left_dist, enemy_right_dist, ground_dist, pit_dist,
+                        obstacle_dist, is_on_ground, mario_y_normalized, enemy_nearby]
+        """
+        nes = self.get_nes()
+        if not nes:
+            return np.zeros(8, dtype=np.float32)
+
+        try:
+            features = extract_context_features(nes)
+            return np.array(features, dtype=np.float32)
+        except Exception as e:
+            console.error(f"❌ Error extracting context features: {e}")
+            return np.zeros(8, dtype=np.float32)
 
     def get_mario_position(self) -> tuple:
         """
@@ -149,6 +176,19 @@ class GameController:
 
         state = get_mario_state(nes)
         return state == 'alive'
+
+    def get_score(self) -> int:
+        """
+        Get Mario's current score.
+
+        Returns:
+            int: Current score (0-999999)
+        """
+        nes = self.get_nes()
+        if not nes:
+            return 0
+
+        return get_score(nes)
 
     def execute_buttons(self, button_states: np.ndarray):
         """
@@ -205,7 +245,7 @@ class GameController:
 
         if not emulator.isRunning():
             emulator.start()
-            console.log("▶️ Emulator started")
+            print("▶️ Emulator started")
             return True
         return True
 
@@ -214,14 +254,14 @@ class GameController:
         emulator = self.get_emulator()
         if emulator:
             emulator.stop()
-            console.log("⏹️ Emulator stopped")
+            print("⏹️ Emulator stopped")
 
     def reset_emulator(self):
         """Reset the emulator."""
         emulator = self.get_emulator()
         if emulator:
             emulator.reset()
-            console.log("🔄 Emulator reset")
+            print("🔄 Emulator reset")
 
     def disable_keyboard(self):
         """Disable keyboard input (for AI control)."""
@@ -258,7 +298,7 @@ class GameController:
             # Load into emulator
             if emulator.controller and emulator.controller.loadState:
                 emulator.controller.loadState(state_obj)
-                console.log(f"♻️ Loaded saved state from {state_path}")
+                print(f"♻️ Loaded saved state from {state_path}")
                 return True
             
             return False
@@ -266,9 +306,10 @@ class GameController:
             console.error(f"⚠️ Could not load state: {e}")
             return False
 
-    def visualize_vision(self, state: np.ndarray):
+    def print_vision(self, state: np.ndarray):
         """
         Print ASCII representation of vision grid.
+        Vision is centered on Mario (can see behind and ahead).
         Useful for debugging.
 
         Args:
@@ -277,18 +318,22 @@ class GameController:
         # Get Mario's actual position for context
         x, y = self.get_mario_position()
 
-        console.log(f"\n👁️ Mario's Vision (X: {x}px, Y: {y}px):")
+        print(f"\n👁️ Mario's Vision (X: {x}px, Y: {y}px):")
         vision_2d = state.reshape(self.vision_height, self.vision_width)
+
+        # Mario is at column index = vision_width // 4 (25% from left, 75% from right)
+        mario_col_index = self.vision_width // 4
+        mario_row_index = 3  # Looking 3 tiles up (for 7 tile height: 3 above, 1 current, 3 below)
 
         for i, row in enumerate(vision_2d):
             line = ""
             for j, val in enumerate(row):
-                # Mark Mario's position (approximately center)
-                if i == 2 and j == 0:  # Mario is at row 2 (looking 2 tiles up), col 0 (left edge)
+                # Mark Mario's position (centered in vision)
+                if i == mario_row_index and j == mario_col_index:
                     if val < -0.5:
-                        line += "E"
+                        line += "E"  # Enemy at Mario's position (danger!)
                     elif val > 0.5:
-                        line += "#"
+                        line += "#"  # Solid at Mario's position
                     else:
                         line += "M"  # Show Mario's position
                 elif val < -0.5:      # Enemy
@@ -299,15 +344,15 @@ class GameController:
                     line += "."
 
             # Add row labels to understand what we're looking at
-            if i == 2:
+            if i == mario_row_index:
                 line += " ← Mario's row"
-            elif i < 2:
-                line += f" ← {2-i} tiles above"
+            elif i < mario_row_index:
+                line += f" ← {mario_row_index - i} tiles above"
             else:
-                line += f" ← {i-2} tiles below"
+                line += f" ← {i - mario_row_index} tiles below"
 
-            console.log(line)
+            print(line)
 
-        console.log("  ↑ Left edge                Right edge ↑")
-        console.log("")
+        print(f"  ↑ {mario_col_index} tiles behind M | {self.vision_width - mario_col_index - 1} tiles ahead ↑")
+        print("")
 

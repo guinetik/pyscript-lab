@@ -301,4 +301,4 @@ window.runGreeting = runGreeting
 
 # Log initialization
 print("🐍 Interop module loaded successfully")
-console.log("🐍 Interop module loaded - window.runGreeting is available")
+print("🐍 Interop module loaded - window.runGreeting is available")

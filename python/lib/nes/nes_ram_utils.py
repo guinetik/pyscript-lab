@@ -27,6 +27,11 @@ class MarioRAM:
     # Mario state
     MARIO_STATE = 0x0E          # Player state (0x0B=dying, 0x06=dead)
 
+    # Score (BCD encoded, 6 digits)
+    SCORE_ONES = 0x07DD         # Rightmost 2 digits (ones, tens)
+    SCORE_HUNDREDS = 0x07DE     # Middle 2 digits (hundreds, thousands)
+    SCORE_TEN_THOUSANDS = 0x07DF  # Leftmost 2 digits (ten thousands, hundred thousands)
+
     # Enemies (5 slots, addresses are base + slot_number)
     ENEMY_DRAWN = 0x0F          # Is enemy drawn? (1=yes, 0=no)
     ENEMY_TYPE = 0x16           # Enemy type ID
@@ -73,7 +78,7 @@ def get_mario_position(nes):
 
         # Debug first call
         if not hasattr(get_mario_position, '_debug_printed'):
-            console.log(f"🔍 [RAM] First position read: page={x_page}, screen={x_screen}, total={x_total}, y={y}")
+            print(f"🔍 [RAM] First position read: page={x_page}, screen={x_screen}, total={x_total}, y={y}")
             get_mario_position._debug_printed = True
 
         return (x_total, y)
@@ -230,6 +235,7 @@ def is_enemy_at_tile(nes, col, row):
 def extract_vision_grid(nes, width=7, height=10):
     """
     Extract a grid of tiles around Mario for AI vision.
+    Vision is CENTERED on Mario (can see both ahead and behind).
 
     Encoding:
     - 0.0 = empty/air
@@ -248,27 +254,34 @@ def extract_vision_grid(nes, width=7, height=10):
 
     vision = []
 
-    # Start from Mario's row minus offset
-    start_row = mario_row - 2  # Look 2 tiles above
+    # Center vision horizontally on Mario
+    # For width=16: show 4 tiles behind, Mario at index 4, 11 tiles ahead
+    tiles_behind = width // 4  # 25% behind
+    start_col = mario_col - tiles_behind
+
+    # Vertical: Look 3 tiles above Mario (3 above, 1 current, 3 below for height=7)
+    start_row = mario_row - 3
 
     # Debug first call
     if not hasattr(extract_vision_grid, '_debug_printed'):
-        console.log(f"🔍 [Vision] Mario at tile: col={mario_col}, row={mario_row}")
-        console.log(f"🔍 [Vision] Scanning rows {start_row} to {start_row + height}")
+        print(f"🔍 [Vision] Mario at tile: col={mario_col}, row={mario_row}")
+        print(f"🔍 [Vision] Horizontal span: {tiles_behind} tiles behind → {width - tiles_behind - 1} tiles ahead")
+        print(f"🔍 [Vision] Scanning cols {start_col} to {start_col + width - 1}")
+        print(f"🔍 [Vision] Scanning rows {start_row} to {start_row + height - 1}")
 
         # Sample a few tiles
         test_tiles = []
         for i in range(3):
             tile = get_tile_at(nes, mario_col + i, mario_row + 2)  # Below Mario
             test_tiles.append(hex(tile))
-        console.log(f"🔍 [Vision] Sample tiles below Mario: {test_tiles}")
+        print(f"🔍 [Vision] Sample tiles below Mario: {test_tiles}")
         extract_vision_grid._debug_printed = True
 
     for row_offset in range(height):
         row = start_row + row_offset
 
         for col_offset in range(width):
-            col = mario_col + col_offset
+            col = start_col + col_offset
 
             # Check for enemy first (higher priority)
             if is_enemy_at_tile(nes, col, row):
@@ -306,3 +319,226 @@ def get_mario_state(nes):
             return 'alive'
     except:
         return 'alive'
+
+
+def get_score(nes):
+    """
+    Get Mario's current score.
+
+    The score is stored in BCD (Binary Coded Decimal) format across 3 bytes:
+    - Each byte stores 2 decimal digits (high nibble = tens, low nibble = ones)
+    - Example: 0x12 = 12, 0x34 = 34
+
+    Args:
+        nes: JSNes instance
+
+    Returns:
+        int: Current score (0-999999)
+    """
+    try:
+        ram = nes.cpu.mem
+
+        # Read the 3 BCD bytes (6 digits total)
+        ones_byte = ram[MarioRAM.SCORE_ONES]           # Rightmost 2 digits
+        hundreds_byte = ram[MarioRAM.SCORE_HUNDREDS]   # Middle 2 digits
+        ten_thousands_byte = ram[MarioRAM.SCORE_TEN_THOUSANDS]  # Leftmost 2 digits
+
+        # Convert BCD to decimal
+        # Each byte: high nibble * 10 + low nibble
+        ones_tens = ((ones_byte >> 4) * 10) + (ones_byte & 0x0F)
+        hundreds_thousands = ((hundreds_byte >> 4) * 10) + (hundreds_byte & 0x0F)
+        ten_thousands_hundred_thousands = ((ten_thousands_byte >> 4) * 10) + (ten_thousands_byte & 0x0F)
+
+        # Combine into final score
+        score = (ten_thousands_hundred_thousands * 10000 +
+                 hundreds_thousands * 100 +
+                 ones_tens)
+
+        return score
+    except Exception as e:
+        console.error(f"Error reading score: {e}")
+        return 0
+
+
+# ============================================================================
+# ENGINEERED FEATURES - High-level context features for better decision making
+# ============================================================================
+
+def get_nearest_enemy_distance(nes, max_scan_distance=10):
+    """
+    Get distance to nearest enemy in both directions.
+
+    Args:
+        nes: JSNes instance
+        max_scan_distance: Maximum tiles to scan in each direction
+
+    Returns:
+        tuple: (distance_left, distance_right) in tiles
+               Returns max_scan_distance if no enemy found
+    """
+    mario_col, mario_row = get_mario_tile_position(nes)
+    enemies = get_enemy_positions(nes)
+
+    nearest_left = max_scan_distance
+    nearest_right = max_scan_distance
+
+    for enemy_x, enemy_y in enemies:
+        enemy_col = enemy_x // MarioRAM.SPRITE_SIZE
+        enemy_row = (enemy_y + MarioRAM.SPRITE_SIZE - MarioRAM.STATUS_BAR_HEIGHT) // MarioRAM.SPRITE_SIZE
+
+        # Only consider enemies at similar height (within 3 tiles vertically)
+        if abs(enemy_row - mario_row) > 3:
+            continue
+
+        distance = enemy_col - mario_col
+
+        if distance < 0:  # Enemy is to the left
+            nearest_left = min(nearest_left, abs(distance))
+        elif distance > 0:  # Enemy is to the right
+            nearest_right = min(nearest_right, distance)
+
+    return (nearest_left, nearest_right)
+
+
+def get_distance_to_ground(nes, max_scan_depth=8):
+    """
+    Get distance from Mario to solid ground below.
+
+    Args:
+        nes: JSNes instance
+        max_scan_depth: Maximum tiles to scan downward
+
+    Returns:
+        int: Distance to ground in tiles (0 if on ground, max_scan_depth if no ground found)
+    """
+    mario_col, mario_row = get_mario_tile_position(nes)
+
+    # Scan downward from Mario's position
+    for depth in range(1, max_scan_depth + 1):
+        tile_value = get_tile_at(nes, mario_col, mario_row + depth)
+        if is_solid_tile(tile_value):
+            return depth
+
+    return max_scan_depth  # No ground found (pit!)
+
+
+def get_nearest_pit_distance(nes, max_scan_distance=12):
+    """
+    Get distance to nearest pit (gap in the ground) ahead of Mario.
+
+    Args:
+        nes: JSNes instance
+        max_scan_distance: Maximum tiles to scan ahead
+
+    Returns:
+        int: Distance to pit in tiles (max_scan_distance if no pit found)
+    """
+    mario_col, mario_row = get_mario_tile_position(nes)
+
+    # Scan ahead, checking ground level (2 tiles below Mario)
+    ground_row = mario_row + 2
+
+    for distance in range(1, max_scan_distance + 1):
+        col = mario_col + distance
+
+        # Check if there's ground at this position
+        tile_value = get_tile_at(nes, col, ground_row)
+
+        # If no solid ground, this might be a pit - verify by checking below too
+        if not is_solid_tile(tile_value):
+            # Check if it's truly a pit (no ground for next 2 tiles down)
+            deep_tile = get_tile_at(nes, col, ground_row + 1)
+            if not is_solid_tile(deep_tile):
+                return distance  # Found a pit!
+
+    return max_scan_distance  # No pit found
+
+
+def get_nearest_obstacle_distance(nes, max_scan_distance=10):
+    """
+    Get distance to nearest obstacle (solid block) ahead at Mario's height.
+    Useful for detecting walls, pipes, blocks that need jumping.
+
+    Args:
+        nes: JSNes instance
+        max_scan_distance: Maximum tiles to scan ahead
+
+    Returns:
+        int: Distance to obstacle in tiles (max_scan_distance if none found)
+    """
+    mario_col, mario_row = get_mario_tile_position(nes)
+
+    # Scan ahead at Mario's height and one tile above
+    for distance in range(1, max_scan_distance + 1):
+        col = mario_col + distance
+
+        # Check at Mario's height
+        tile_at_height = get_tile_at(nes, col, mario_row)
+        tile_above = get_tile_at(nes, col, mario_row - 1)
+
+        if is_solid_tile(tile_at_height) or is_solid_tile(tile_above):
+            return distance
+
+    return max_scan_distance
+
+
+def is_on_ground(nes):
+    """
+    Check if Mario is standing on solid ground.
+
+    Args:
+        nes: JSNes instance
+
+    Returns:
+        bool: True if on ground, False if in air
+    """
+    mario_col, mario_row = get_mario_tile_position(nes)
+
+    # Check tile directly below Mario
+    tile_below = get_tile_at(nes, mario_col, mario_row + 1)
+
+    return is_solid_tile(tile_below)
+
+
+def extract_context_features(nes):
+    """
+    Extract high-level engineered features for better decision making.
+
+    Returns:
+        list: Array of 8 normalized feature values [0.0-1.0]:
+              [enemy_left_dist, enemy_right_dist, ground_dist, pit_dist,
+               obstacle_dist, is_on_ground, mario_y_normalized, enemy_nearby]
+    """
+    # Distance features (normalize to 0-1 range)
+    enemy_left, enemy_right = get_nearest_enemy_distance(nes, max_scan_distance=10)
+    ground_dist = get_distance_to_ground(nes, max_scan_depth=8)
+    pit_dist = get_nearest_pit_distance(nes, max_scan_distance=12)
+    obstacle_dist = get_nearest_obstacle_distance(nes, max_scan_distance=10)
+
+    # Normalize distances (inverse: closer = higher value)
+    enemy_left_norm = 1.0 - (enemy_left / 10.0)
+    enemy_right_norm = 1.0 - (enemy_right / 10.0)
+    ground_dist_norm = ground_dist / 8.0  # Higher = further from ground
+    pit_dist_norm = 1.0 - (pit_dist / 12.0)  # Higher = pit is closer (danger!)
+    obstacle_dist_norm = 1.0 - (obstacle_dist / 10.0)  # Higher = obstacle closer
+
+    # Binary features
+    on_ground = 1.0 if is_on_ground(nes) else 0.0
+
+    # Mario's Y position (normalized 0-1, lower Y = higher in screen = higher value)
+    _, mario_y = get_mario_position(nes)
+    y_normalized = 1.0 - (mario_y / 240.0)  # Invert: jumping = higher value
+
+    # Enemy proximity alert (any enemy within 5 tiles)
+    enemy_nearby = 1.0 if (enemy_left < 5 or enemy_right < 5) else 0.0
+
+    return [
+        enemy_left_norm,
+        enemy_right_norm,
+        ground_dist_norm,
+        pit_dist_norm,
+        obstacle_dist_norm,
+        on_ground,
+        y_normalized,
+        enemy_nearby
+    ]

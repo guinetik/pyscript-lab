@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="utf-8" />
+  <title>PyScript Examples</title>
+  <link rel="icon" href="../../favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- PyScript CSS -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.1/core.css">
+  <!-- This script tag bootstraps PyScript -->
+  <script type="module" src="https://pyscript.net/releases/2025.2.1/core.js"></script>
+  
+  <!-- PyScript Configuration -->
+  <py-config>
+    packages = ["bokeh", "pandas", "numpy", "networkx", "diagrams", "scikit-learn", "pillow", "matplotlib", "plotly"]
+    [[fetch]]
+    files = ["diagrams_base.py"]
+    from = "../../python/diagrams/"
+    [[fetch]]
+    files = ["pyscript_manager.py", "data.py"]
+    to_folder = "lib"
+    from = "../../python/lib/"
+    [[fetch]]
+    files = ["nes_ram_utils.py", "game_controller.py"]
+    to_folder = "lib/nes"
+    from = "../../python/lib/nes/"
+    [[fetch]]
+    files = ["neural_controller.py"]
+    to_folder = "lib/neural"
+    from = "../../python/lib/neural/"
+    [[fetch]]
+    files = ["bokeh_utils.py"]
+    from = "../../python/bokeh/"
+    [[fetch]]
+    files = ["matplotlib_utils.py", "plotly_utils.py"]
+    from = "../../python/matplotlib/"
+  </py-config>
+  <!-- Bokeh JS -->
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-3.6.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-3.6.2.min.js"></script>
+  <!-- Plotly JS -->
+  <script type="text/javascript" src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      outline: none;
+      transform: translate(-50%, -50%);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #ccc;
+      background: rgba(255, 255, 255, 0.9);
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+
+    #loading h1 {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    #loading::backdrop {
+      backdrop-filter: blur(5px);
+    }
+
+    /* Console Styles */
+    #console {
+      width: 80vw;
+      height: 60vh;
+      max-width: 1400px;
+      max-height: 800px;
+      min-width: 600px;
+      min-height: 400px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0;
+      margin: auto;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #console[open] {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #console:not([open]) {
+      display: none;
+    }
+
+    #console::backdrop {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(2px);
+    }
+
+    .console-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #333;
+      padding: 8px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      cursor: move;
+      flex-shrink: 0;
+    }
+
+    .console-title {
+      color: #fff;
+      font-size: 14px;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+    }
+
+    .console-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .console-btn {
+      background: #666;
+      color: #fff;
+      border: none;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: background 0.2s;
+    }
+
+    .console-btn:hover {
+      background: #888;
+    }
+
+    .console-btn:disabled {
+      background: #444;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .console-close {
+      background: #ff5f57;
+      border: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .console-close:hover::before {
+      content: "×";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #660000;
+      font-size: 10px;
+    }
+
+    #console-content {
+      padding: 12px;
+      color: #fff;
+      font-family: 'Consolas', 'Monaco', monospace;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Fix py-terminal to fill container properly */
+    #console-content py-terminal {
+      display: flex !important;
+      flex: 1 1 auto !important;
+      width: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    #console-content py-terminal .xterm {
+      flex: 1 !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #console-content py-terminal .xterm-screen {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #console-content py-terminal .xterm-viewport {
+      width: 100% !important;
+      height: 100% !important;
+      overflow-y: auto !important;
+      scrollbar-width: thin;
+      scrollbar-color: #666 #2d2d2d;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar-track {
+      background: #2d2d2d;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar-thumb {
+      background: #666;
+      border-radius: 6px;
+    }
+
+    #console-content py-terminal .xterm-viewport::-webkit-scrollbar-thumb:hover {
+      background: #888;
+    }
+
+    #console-content py-terminal .xterm-rows {
+      width: 100% !important;
+    }
+
+    /* Enable text selection in terminal */
+    #console-content py-terminal .xterm,
+    #console-content py-terminal .xterm-screen,
+    #console-content py-terminal .xterm-rows {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      cursor: text;
+    }
+
+    /* Selection styles */
+    #console-content py-terminal .xterm-selection div {
+      background: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .open-console-btn {
+      background: #2d2d2d;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: all 0.2s;
+    }
+
+    .open-console-btn:hover {
+      background: #444;
+      border-color: #666;
+    }
+  </style>
+  <script type="module">
+    import App from '../../app.js';
+
+    const app = new App(document, window);
+    app.init();
+  </script>
+  
+		<link href="../../_app/immutable/assets/0.CxELkBqc.css" rel="stylesheet">
+		<link href="../../_app/immutable/assets/17.BkmsEZ9N.css" rel="stylesheet">
+		<link rel="modulepreload" href="../../_app/immutable/entry/start.BfLz2PRg.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/BPWCt60d.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/OnG-8Ph8.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/NarUlTeF.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DxRd1RxK.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/BOPQI3Nh.js">
+		<link rel="modulepreload" href="../../_app/immutable/entry/app.DodUiNd0.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Dp1pzeXC.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Bzak7iHL.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CvxyHPjZ.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/KiDt6rUv.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DXCf_wUV.js">
+		<link rel="modulepreload" href="../../_app/immutable/nodes/0.l06MvJnZ.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DiuIcriH.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/Czl32dNG.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/8ht7vWIU.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/yAPMJs6b.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/D8zTakLj.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/reENuJf4.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DS7PIqlm.js">
+		<link rel="modulepreload" href="../../_app/immutable/nodes/17.DbLmSCzZ.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CBEXs8Ca.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/CtSpYBjs.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DPafgeyU.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/0ZWKmQHB.js">
+		<link rel="modulepreload" href="../../_app/immutable/chunks/DTLPW5r6.js">
+</head>
+
+<body data-sveltekit-preload-data="hover" class="flex h-full flex-col">
+  <dialog id="loading">
+    <h1>Loading...</h1>
+  </dialog>
+  <div class="flex-1">
+    <div style="display: contents"><!--[--><!--[--><!----><nav class="bg-gray-100"><div class="mx-auto max-w-screen-2xl px-4"><div class="flex justify-between"><div class="flex space-x-2"><div><a href="../../" class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"><img src="../../images/python.svg" alt="PyScript L.A.B"/> <span class="font-bold">PyScript <span class="text-green-600">L</span>.<span class="text-blue-600">A</span>.<span class="text-yellow-500">B</span></span></a></div> <div class="hidden items-center space-x-1 md:flex"><!--[--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Basic Examples <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/basics/hello" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Hello World</a><a href="/examples/basics/repl" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">R.E.P.L</a><a href="/examples/basics/interop" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Interoperability</a><a href="/examples/basics/encoder" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Advanced Interop</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Matplotlib <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/matplotlib/intro" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Introduction</a><a href="/examples/matplotlib/charts" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">COVID-19 Charts</a><a href="/examples/matplotlib/maps" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">COVID-19 World Map</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Bokeh <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/bokeh" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Introduction</a><a href="/examples/bokeh/pandas" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Bokeh + Pandas</a><a href="/examples/bokeh/networks" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Bokeh + NetworkX</a><a href="/examples/bokeh/communities" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Community Detection</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-gray-700">Diagrams as Code <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/diagrams/gallery" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Diagrams Gallery</a><a href="/examples/diagrams/create" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Create Diagrams</a><!--]--></div></div></div><!--]--><!--[--><div class="relative group"><button class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 text-yellow-500 font-bold">Machine Learning <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button> <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"><div class="py-1"><!--[--><a href="/examples/ml" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Digit Recognition</a><a href="/examples/sentiment" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Sentiment Analysis</a><a href="/examples/ml/rl" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 ">Reinforcement Learning</a><a href="/examples/ml/neuro" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 bg-yellow-50 text-yellow-500 font-bold">Neural Networks</a><!--]--></div></div></div><!--]--><!--]--></div></div> <div class="hidden items-center space-x-1 md:flex"><a href="https://github.com/guinetik/python-ds"><img src="https://img.shields.io/badge/-View Source-gray?style=flat-square&amp;logo=github&amp;logoColor=white&amp;link=https://github.com/guinetik" alt="Visits"/></a> <a href="https://guinetik.github.io/python-ds/"><img src="https://img.shields.io/static/v1?label=&amp;message=0 Visitors&amp;color=blueviolet&amp;style=flat-square" alt="Visits"/></a> <a href="https://linkedin.com/in/guinetik"><img src="https://img.shields.io/badge/-LinkedIn-blue?style=flat-square&amp;logo=Linkedin&amp;logoColor=white&amp;link=https://www.linkedin.com/in/guinetik/" alt="Linkedin"/></a></div> <div class="flex items-center justify-between md:hidden"><button class="h-6 w-6" aria-label="Toggle menu"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button></div></div></div> <nav id="mobile-navigation" class="invisible opacity-0 fixed top-0 right-0 bottom-0 left-0 z-10 backdrop-blur-sm transition-all duration-500"><ul class="translate-x-full absolute top-0 right-0 bottom-0 z-10 bg-white drop-shadow-2xl transition-all duration-500"><div><a href="../../" class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"><img src="../../images/python.svg" alt="PyScript L.A.B"/> <span class="font-bold">PyScript <span class="text-blue-600">L</span>.<span class="text-gray-900">A</span>.<span class="text-orange-600">B</span></span></a></div> <!--[--><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Basic Examples</div> <!--[--><a href="/examples/basics/hello" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Hello World</a><a href="/examples/basics/repl" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">R.E.P.L</a><a href="/examples/basics/interop" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Interoperability</a><a href="/examples/basics/encoder" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Advanced Interop</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Matplotlib</div> <!--[--><a href="/examples/matplotlib/intro" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Introduction</a><a href="/examples/matplotlib/charts" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">COVID-19 Charts</a><a href="/examples/matplotlib/maps" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">COVID-19 World Map</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Bokeh</div> <!--[--><a href="/examples/bokeh" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Introduction</a><a href="/examples/bokeh/pandas" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Bokeh + Pandas</a><a href="/examples/bokeh/networks" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Bokeh + NetworkX</a><a href="/examples/bokeh/communities" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Community Detection</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Diagrams as Code</div> <!--[--><a href="/examples/diagrams/gallery" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Diagrams Gallery</a><a href="/examples/diagrams/create" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Create Diagrams</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[--><div class="block p-4 text-gray-700 font-bold">Machine Learning</div> <!--[--><a href="/examples/ml" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Digit Recognition</a><a href="/examples/sentiment" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Sentiment Analysis</a><a href="/examples/ml/rl" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 ">Reinforcement Learning</a><a href="/examples/ml/neuro" class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 bg-yellow-50 text-yellow-500 font-bold">Neural Networks</a><!--]--><!--]--></li><li class="border-b border-inherit"><!--[!--><a href="https://github.com/guinetik" class=" block p-4 hover:text-white hover:bg-yellow-500">Github</a><!--]--></li><li class="border-b border-inherit"><!--[!--><a href="https://twitter.com/guinetik" class=" block p-4 hover:text-white hover:bg-yellow-500">Twitter</a><!--]--></li><!--]--></ul> <button aria-label="Close menu" class="absolute top-0 right-0 bottom-0 left-0 opacity-0"><svg xmlns="http://www.w3.org/2000/svg" class="absolute top-2 left-2 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></nav></nav><!----> <main class="flex h-[calc(100%-120px)] w-full flex-col justify-center"><!----><main class="w-full h-[calc(100%-120px)]"><div class="py-10 w-full flex items-center justify-center h-full"><div class="bg-white rounded-lg shadow-2xl overflow-hidden w-10/12"><div class="md:flex"><section class="bg-slate-300 lg:w-3/4 md:flex-grow md:w-full min-h-[380px] md:rounded-l-lg"><!--[--><div slot="py_slot" class="flex h-full flex-col p-5 space-y-4"><div class="flex justify-center relative"><!----><div class="nes-emulator-container svelte-f1szkj"><canvas width="256" height="240" style="width: 512px; height: 480px; image-rendering: pixelated; image-rendering: crisp-edges;" class="border-4 border-gray-800 rounded bg-black svelte-f1szkj"></canvas></div><!----> <!--[!--><!--]--></div> <!--[!--><!--]--> <div class="grid grid-cols-3 gap-3"><div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-4 text-white shadow-lg"><div class="text-sm font-semibold opacity-90">Generation</div> <div class="text-3xl font-bold">0</div></div> <div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-4 text-white shadow-lg"><div class="text-sm font-semibold opacity-90">Fitness</div> <div class="text-3xl font-bold">0.0</div></div> <div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-4 text-white shadow-lg"><div class="text-sm font-semibold opacity-90">Best Distance</div> <div class="text-3xl font-bold">0.0</div></div></div> <div class="rounded border-2 p-4 bg-gray-50 border-gray-200"><p class="text-sm font-mono text-gray-600">Initializing emulator...</p></div> <div class="space-y-3"><div class="grid grid-cols-[1fr_2fr_1fr] gap-3"><button disabled class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">▶️ Start Training</button> <select disabled class="rounded border-2 border-gray-300 bg-white px-4 py-3 font-semibold text-gray-700 hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"><!--[--><option value="simple-4button" selected>🔥 Simple 4-Button (Recommended)</option><option value="simple-feedforward">Simple 6-Button (Full)</option><option value="conv-4button">CNN 4-Button</option><option value="conv">CNN 6-Button</option><!--]--></select> <button disabled class="rounded bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">🔄 Reset</button></div> <div class="grid grid-cols-6 gap-2"><button disabled class="rounded bg-purple-500 px-3 py-2 text-sm font-semibold text-white hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">🎮 Play</button> <button disabled class="rounded bg-yellow-500 px-3 py-2 text-sm font-semibold text-white hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">⏸️ Pause</button> <button disabled class="rounded bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">🔊</button> <button disabled class="rounded bg-blue-500 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">💾 Save</button> <button disabled class="rounded bg-cyan-500 px-3 py-2 text-sm font-semibold text-white hover:bg-cyan-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">📂 Load</button> <button disabled class="rounded px-3 py-2 text-sm font-semibold text-white transition-colors bg-slate-500 hover:bg-slate-600 disabled:bg-gray-400 disabled:cursor-not-allowed">🎨 Viz</button></div></div> <!--[!--><!--]--> <div class="space-y-3"><div class="rounded-lg bg-purple-50 p-3 border-2 border-purple-200"><h3 class="mb-2 text-base font-bold text-purple-900">🧬 What is Neuroevolution?</h3> <p class="text-xs text-purple-800 mb-2"><strong>Neuroevolution</strong> is a method of training neural networks using principles from biological evolution. Instead of traditional learning algorithms (like backpropagation), it mimics natural selection:</p> <ol class="list-decimal space-y-1 pl-5 text-xs text-purple-800"><li><strong>Initialize:</strong> Create a neural network with random weights</li> <li><strong>Evaluate:</strong> Test the network by playing a game episode and measuring performance (fitness)</li> <li><strong>Mutate:</strong> Randomly modify the weights (like genetic mutations)</li> <li><strong>Select:</strong> Keep networks that perform well, discard poor performers (survival of the fittest)</li> <li><strong>Repeat:</strong> Continue until the network discovers winning strategies</li></ol></div> <div class="rounded-lg bg-blue-50 p-3 border-2 border-blue-200"><h3 class="mb-2 text-base font-bold text-blue-900">🏗️ Network Architecture</h3> <p class="text-xs text-blue-800 mb-2"><strong>4-Button Networks (Recommended):</strong> Output only essential buttons (LEFT, RIGHT, JUMP, RUN). UP/DOWN disabled since they're rarely useful in Mario 1-1. 33% smaller action space = faster evolution and less wasted exploration!</p> <p class="text-xs text-blue-800 mb-2"><strong>Simple Feedforward:</strong> 120 inputs → 32 hidden (ReLU) → 4/6 outputs (Sigmoid). Fixed 3-layer topology. 4-button version has ~2,758 weights vs 6-button's ~4,070 weights. Best for quick convergence.</p> <p class="text-xs text-blue-800 mb-2"><strong>Convolutional (CNN):</strong> 16×7 vision grid → 4 conv filters (3×3 kernels) → 280 features → 32 hidden → 4/6 outputs. Preserves spatial structure to detect patterns like gaps, enemies, and platforms. Better for visual pattern recognition.</p> <p class="text-xs text-blue-800 mt-2"><strong>Behavioral Priors:</strong> Networks initialize with smart biases: RIGHT (+1.0), A/Jump (+1.5), B/Run (+1.0), LEFT (-2.0). 6-button also has UP/DOWN (-10.0) heavily discouraged. Gives intelligent starting behavior!</p> <p class="text-xs text-blue-800 mt-2"><strong>Top-3 Button Cap:</strong> Action decoder limits simultaneous button presses to 3 max, preventing input conflicts (LEFT+RIGHT) and ensuring prioritization. Conflict resolution automatically zeros out weaker opposing directional inputs.</p></div> <div class="rounded-lg bg-indigo-50 p-3 border-2 border-indigo-200"><h3 class="mb-2 text-base font-bold text-indigo-900">👁️ Vision System (16×7 Grid)</h3> <p class="text-xs text-indigo-800 mb-1">The agent extracts game state from NES RAM into a <strong>16×7 tile grid</strong> centered on Mario:</p> <ul class="list-disc space-y-1 pl-5 text-xs text-indigo-800"><li><strong>Horizontal:</strong> 4 tiles behind, 11 tiles ahead (optimal lookahead for jump planning)</li> <li><strong>Vertical:</strong> 3 above, 1 current row, 3 below (sufficient vertical awareness)</li> <li><strong>Tile Encoding:</strong> Empty (0.0), Solid blocks (1.0), Enemies (-1.0)</li> <li><strong>Context Features:</strong> +8 engineered inputs (enemy_left_dist, enemy_right_dist, ground_dist, pit_dist, obstacle_dist, is_on_ground, y_position, enemy_nearby)</li> <li><strong>Total Input:</strong> 112 vision + 8 context = 120 values per decision</li></ul> <p class="text-xs text-indigo-800 mt-2">For CNN: Vision reshaped to 7×16 2D grid before conv layers. For feedforward/NEAT: Flattened to 1D then concatenated with context.</p></div> <div class="rounded-lg bg-amber-50 p-3 border-2 border-amber-200"><h3 class="mb-2 text-base font-bold text-amber-900">🏆 Fitness Function &amp; Evolution Strategy</h3> <p class="text-xs text-amber-800 mb-1"><strong>Fitness Formula:</strong> distance<sup>1.5</sup> + (score × 2) + milestones - death_penalties</p> <ul class="list-disc space-y-1 pl-5 text-xs text-amber-800"><li><strong>Distance Rewards:</strong> Exponential (x<sup>1.5</sup>) to heavily favor progress right</li> <li><strong>Score Multiplier:</strong> 2× for enemy stomps (encourages combat over avoidance)</li> <li><strong>Milestone Bonuses:</strong> +200 at 50px, +500 at 100px, +1000 at 200px, +2000 at 400px, +5000 at 800px</li> <li><strong>Death Penalties:</strong> -50 for enemy hits, -100 for getting stuck (no progress for 60 frames)</li> <li><strong>Adaptive Mutation:</strong> 0.05 rate when improving fitness, 0.1 normal, 0.3 when performance drops or stuck</li> <li><strong>Elite Preservation:</strong> Best network saved as "champion", restored if fitness drops below 30% of best</li> <li><strong>Local Minima Escape:</strong> Full reset with priors after 5 consecutive generations at same distance</li></ul></div> <div class="rounded-lg bg-red-50 p-3 border-2 border-red-200"><h3 class="mb-2 text-base font-bold text-red-900">⚡ Technical Architecture</h3> <ul class="list-disc space-y-1 pl-5 text-xs text-red-800"><li><strong>PyScript 2025.2.1:</strong> Runs Python natively via WebAssembly (Pyodide)</li> <li><strong>JSNES:</strong> NES emulator in JavaScript running at 60fps</li> <li><strong>Modular Python:</strong> GameController (emulator interactions) + NeuralController (abstract network interface) + PlayerAgent (training loop orchestration)</li> <li><strong>NumPy:</strong> Matrix operations for neural network forward passes and mutations</li> <li><strong>Event-Driven:</strong> Python sends data-only to JavaScript via <code>window</code> callbacks, Svelte handles all UI rendering reactively</li> <li><strong>Decision Rate:</strong> ~15 decisions/second (67ms intervals) to balance performance and responsiveness</li> <li><strong>Progressive Timeout:</strong> Starts at 30s per generation, increases by 10s each generation (capped at 200s)</li> <li>All computation happens <strong>client-side</strong> in your browser - no servers, no cloud! Your CPU trains the AI.</li></ul></div></div> <div id="neural-script" style="display: none;"></div> <div id="player-script" style="display: none;"></div></div><!--]--></section> <section class="p-4 space-y-3 md:w-1/2 lg:w-4/12 border-t border-slate-900 md:border-l md:rounded-r-lg"><!--[--><article slot="content_slot" class="mb-10"><h2 class="mb-5 text-xl font-extrabold">Neuroevolution</h2> <div class="prose max-w-none space-y-4"><p class="text-sm">Watch an AI agent learn to play Super Mario Bros through <strong>neuroevolution</strong> - evolving neural networks that discover winning strategies through trial and error!</p> <div class="rounded-lg bg-cyan-50 p-4"><h3 class="mb-2 text-lg font-bold text-cyan-900">🎯 How to Use</h3> <ol class="list-decimal space-y-2 pl-5 text-sm text-cyan-800"><li><strong>Click "Start Evolution":</strong> Begin training immediately! The default 4-button network learns faster than full controls.</li> <li><strong>Choose Network Type:</strong> Default is 4-button (recommended) for faster learning. Can switch to 6-button for full controls or CNN for spatial pattern recognition.</li> <li><strong>Toggle Visualization (🎨 Viz):</strong> Click to see live neural network activations! Watch neurons light up as the network processes vision and makes decisions.</li> <li><strong>Play Game:</strong> Try playing yourself first to appreciate the difficulty - use arrow keys, Z (jump), X (run).</li> <li><strong>Watch Metrics:</strong> Generation counts evolution cycles, Fitness shows current performance, Best Distance is furthest progress.</li> <li><strong>Observe Vision:</strong> Open browser console (F12) to see the network's 16×7 tile grid vision, updated every 5 seconds.</li> <li><strong>Utility Buttons:</strong> Use Play, Pause, Mute, Save/Load State for testing and checkpointing.</li></ol> <p class="mt-3 text-xs text-cyan-700">💡 <strong>Pro Tip:</strong> 4-button networks have 32% fewer parameters and 75% smaller action space - they evolve winning strategies much faster!</p></div> <div class="rounded-lg bg-green-50 p-4"><h3 class="mb-2 text-lg font-bold text-green-900">🧠 Neural Network Basics</h3> <p class="text-sm text-green-800 mb-2">A <strong>neural network</strong> is a computational model inspired by biological brains. It consists of layers of artificial neurons that process information:</p> <ul class="list-disc space-y-1 pl-5 text-sm text-green-800"><li><strong>Input Layer:</strong> Receives raw data (in our case, Mario's vision of the game world)</li> <li><strong>Hidden Layers:</strong> Process and transform the data through mathematical operations</li> <li><strong>Output Layer:</strong> Produces decisions (which buttons to press)</li></ul> <p class="text-sm text-green-800 mt-2">Each neuron connection has a <strong>weight</strong> - a number that determines how much influence one neuron has on another. Learning means adjusting these weights to make better decisions.</p></div></div> <p class="mt-6"><a class="text-sky-500" href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/rl/agent.py" target="_blank">View source (agent.py)</a></p></article><!--]--> <div class="flex"><a href="../../examples/sentiment" class="text-xs ml-0 py-2 px-3 bg-blue-400 hover:bg-slate-300 text-slate-900 hover:text-slate-800 rounded transition duration-300"><img class="inline h-4" src="../../images/arrow-left.svg" alt="Next"/>Previous</a> <a href="../../" class="text-xs ml-auto py-2 px-3 bg-yellow-400 hover:bg-slate-300 text-slate-900 hover:text-slate-800 rounded transition duration-300">Next<img class="inline h-4" src="../../images/arrow-next.svg" alt="Next"/></a></div></section></div> <footer class="py-3 px-6 bg-slate-800 text-xs text-white font-mono"><div id="script_gutter"></div></footer></div></div></main><!----><!----></main><!----><!--]--> <!--[!--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1ae48k9 = {
+						base: new URL("../..", location).pathname.slice(0, -1)
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.BfLz2PRg.js"),
+						import("../../_app/immutable/entry/app.DodUiNd0.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 17],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+  </div>
+  <footer class="sticky bottom-0 z-10 flex h-10 w-full items-center justify-between bg-slate-900 text-white shadow-[0_-2px_10px_rgba(0,0,0,0.3)]">
+    <div class="flex items-center gap-4">
+      <button id="open-console-btn" class="open-console-btn">🖥️ Console</button>
+      <p>
+        Coded by
+        <a href="https://github.com/guinetik" target="_blank" style="
+            color: #facc15;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 2px solid #facc15;
+            transition: 
+              color 0.2s,
+              background 0.2s,
+              border-radius 0.2s,
+              box-shadow 0.2s;
+            padding: 2px 8px;
+            border-radius: 6px;
+          "
+          onmouseover="this.style.background='#facc15';this.style.color='#1e293b';this.style.boxShadow='0 2px 8px #facc1540';this.style.borderRadius='12px';"
+          onmouseout="this.style.background='';this.style.color='#facc15';this.style.boxShadow='';this.style.borderRadius='6px';">
+          Guinetik
+        </a>      
+      </p>
+      <div id="py-script-footer" class="py-script float-right">
+        <script type="py">
+          from pyscript import document
+          from datetime import datetime
+          now = datetime.now()
+          document.querySelector("#py-script-footer").innerText = "🐍 Hello from python. All systems go! " + now.strftime("%m/%d/%Y, %H:%M:%S")
+        </script>
+      </div>
+    </div>
+  </footer>
+  <dialog id="console">
+    <div class="console-title-bar">
+      <h3 class="console-title">🐍 Python Console</h3>
+      <div class="console-buttons">
+        <button id="console-copy-btn" class="console-btn" title="Copy console output">📋 Copy</button>
+        <button id="console-clear-btn" class="console-btn" title="Clear console">🗑️ Clear</button>
+        <button class="console-close"></button>
+      </div>
+    </div>
+    <div id="console-content">
+      <script type="py" terminal id="console-script"></script>
+    </div>
+  </dialog>
+</body>
+
+</html>

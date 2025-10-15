@@ -39,6 +39,7 @@ export default class App {
     this.handleClearClick = this.handleClearClick.bind(this);
     this.handleCopyClick = this.handleCopyClick.bind(this);
     this.handleOpenClick = this.handleOpenClick.bind(this);
+    this.scrollToBottom = this.scrollToBottom.bind(this);
   }
 
   /**
@@ -89,7 +90,11 @@ export default class App {
     }
 
     this.consoleDialog.showModal();
-    this.window.setTimeout(this.resizeTerminal, 100);
+    this.window.setTimeout(() => {
+      this.resizeTerminal();
+      this.setupAutoscroll();
+    }, 100);
+    this.window.term = document.getElementById("console-script")?.terminal;
   }
 
   /**
@@ -97,15 +102,21 @@ export default class App {
    * @returns {void}
    */
   resizeTerminal() {
-    if (!this.consoleDialog) {
+    const term = document.getElementById("console-script")?.terminal;
+    const container = document.getElementById("console-content");
+  
+    if (!term || !container) {
+      console.warn("Terminal or container not found");
       return;
     }
-
-    const terminal = this.consoleDialog.querySelector('py-terminal');
-    if (terminal && terminal._terminal && terminal._terminal.fit) {
-      terminal._terminal.fit.fit();
-    }
+    
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+  
+    term.resize(width, height); // call resize with pixel dimensions
+    console.log(`Terminal resized to ${width}x${height} pixels`);
   }
+  
 
   /**
    * Initializes console drag, clear, and open interactions once the DOM content is loaded.
@@ -192,83 +203,23 @@ export default class App {
    * @returns {void}
    */
   handleClearClick() {
-    const consoleScript = this.document.getElementById('console-script');
-    if (consoleScript && consoleScript._internal && consoleScript._internal.clear) {
-      consoleScript._internal.clear();
+    const term = document.getElementById("console-script").terminal;
+    if (!term) {
+      console.warn('Terminal not found');
       return;
     }
-
-    const outputs = this.document.querySelectorAll('#console-content py-terminal');
-    outputs.forEach(output => {
-      if (typeof output.clear === 'function') {
-        output.clear();
-      }
-    });
-
-    const consoleOut = this.document.querySelector('#console-content');
-    const pyScript = consoleOut ? consoleOut.querySelector('script[type="py"]') : null;
-    if (consoleOut && pyScript) {
-      consoleOut.innerHTML = '';
-      consoleOut.appendChild(pyScript);
-    }
+    term.clear();
   }
 
   /**
    * Copies the console content to clipboard when the copy button is clicked.
    * @returns {void}
    */
-  handleCopyClick() {
-    const terminal = this.document.querySelector('#console-content py-terminal');
-
-    if (!terminal) {
-      console.warn('Terminal not found');
-      return;
-    }
-
-    // Try to get terminal buffer content
-    let text = '';
-
-    // Method 1: Try xterm.js buffer API
-    if (terminal._terminal && terminal._terminal.buffer) {
-      const buffer = terminal._terminal.buffer.active;
-      const lines = [];
-
-      for (let i = 0; i < buffer.length; i++) {
-        const line = buffer.getLine(i);
-        if (line) {
-          lines.push(line.translateToString(true));
-        }
-      }
-
-      text = lines.join('\n');
-    }
-
-    // Method 2: Fallback to visible text content
-    if (!text) {
-      const xtermScreen = terminal.querySelector('.xterm-screen');
-      if (xtermScreen) {
-        text = xtermScreen.textContent || '';
-      }
-    }
-
-    // Copy to clipboard
-    if (text) {
-      navigator.clipboard.writeText(text).then(() => {
-        // Show feedback
-        if (this.copyBtn) {
-          const originalText = this.copyBtn.innerHTML;
-          this.copyBtn.innerHTML = '✓ Copied!';
-          setTimeout(() => {
-            this.copyBtn.innerHTML = originalText;
-          }, 2000);
-        }
-      }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy to clipboard');
-      });
-    } else {
-      console.warn('No content to copy');
-    }
+  async handleCopyClick() {
+    term.selectAll();
+    const selection = term.getSelection();
+    await navigator.clipboard.writeText(selection);
+    term.clearSelection();
   }
 
   /**
@@ -277,5 +228,41 @@ export default class App {
    */
   handleOpenClick() {
     this.openConsole();
+  }
+
+  /**
+   * Scrolls the terminal viewport to the bottom.
+   * @returns {void}
+   */
+  scrollToBottom() {
+    const terminal = this.document.querySelector('#console-content py-terminal');
+    if (terminal) {
+      const viewport = terminal.querySelector('.xterm-viewport');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    }
+  }
+
+  /**
+   * Sets up autoscroll by hooking into xterm's write events.
+   * @returns {void}
+   */
+  setupAutoscroll() {
+    const term = this.document.getElementById("console-script")?.terminal;
+
+    if (!term) {
+      // Try again after a delay if terminal not ready yet
+      setTimeout(() => this.setupAutoscroll(), 500);
+      return;
+    }
+
+    // Hook into xterm's onWriteParsed event (fires after content is written)
+    term.onWriteParsed(() => {
+      this.scrollToBottom();
+    });
+
+    // Initial scroll to bottom
+    this.scrollToBottom();
   }
 }
