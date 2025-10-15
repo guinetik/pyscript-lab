@@ -17,7 +17,7 @@ from lib.nes.game_controller import GameController
 from lib.neural.neural_controller import SimpleNeuralController, NEATController, ConvNeuralController, ActionDecoder
 
 # Visualization update frequency (every N decisions)
-VIZ_UPDATE_FREQUENCY = 3
+VIZ_UPDATE_FREQUENCY = 4
 
 
 class PlayerAgent:

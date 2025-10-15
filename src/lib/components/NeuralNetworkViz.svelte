@@ -17,16 +17,22 @@
 
 	// Layout constants - HORIZONTAL LAYOUT (rows not columns)
 	const CANVAS_WIDTH = 1000;
-	const LAYER_SPACING = 120; // Vertical spacing between rows
 	const NODE_RADIUS = 3;
 	const MAX_NODES_PER_LAYER = 150; // Show all nodes
-	const NEURONS_PER_PILL = 5; // Group neurons into pills (hidden layers only)
+	const NEURONS_PER_PILL = 5; // Group neurons into pills for performance
 
-	// Dynamic height based on number of layers (fluid layout)
+	// Dynamic layout calculations
 	const canvasHeight = $derived(
 		vizData?.layer_sizes?.length
-			? 70 + (vizData.layer_sizes.length * LAYER_SPACING) + 90 // Extra space for output labels/bars
-			: 400 // Default height for empty state
+			? Math.max(400, vizData.layer_sizes.length * 180) // Scale with number of layers
+			: 400
+	);
+
+	// Dynamic spacing based on number of layers
+	const layerSpacing = $derived(
+		vizData?.layer_sizes?.length
+			? (canvasHeight - 140) / Math.max(1, vizData.layer_sizes.length - 1) // Distribute evenly
+			: 120
 	);
 
 	// Color scheme
@@ -54,7 +60,7 @@
 
 	function startAnimation() {
 		function animate() {
-			pulsePhase = (pulsePhase + 0.01) % (Math.PI * 2); // Slower pulse
+			pulsePhase = (pulsePhase + 0.01) % (Math.PI * 2);
 			drawNetwork();
 			animationFrameId = requestAnimationFrame(animate);
 		}
@@ -74,42 +80,27 @@
 		const layers = vizData.layer_sizes;
 		const activations = vizData.activations || [];
 
-		// Debug: log activation data structure
-		if (activations.length > 0 && !window._loggedActivations) {
-			const outputAct = activations[layers.length - 1];
-			console.log('🔍 Activation data:', {
-				hasActivations: activations.length > 0,
-				numLayers: layers.length,
-				numActivations: activations.length,
-				outputLayerActivation: outputAct,
-				outputHasValues: !!outputAct?.values,
-				outputValuesType: typeof outputAct?.values,
-				outputValuesIsArray: Array.isArray(outputAct?.values),
-				outputValuesLength: outputAct?.values?.length,
-				outputValues: outputAct?.values,
-				firstValue: outputAct?.values?.[0],
-				allActivations: activations
-			});
-			window._loggedActivations = true;
-		}
+		// Calculate dynamic vertical spacing
+		const topPadding = 70;
+		const bottomPadding = 70;
+		const availableHeight = canvasHeight - topPadding - bottomPadding;
+		const spacing = layers.length > 1 ? availableHeight / (layers.length - 1) : 0;
 
-		// Calculate node positions for each layer - HORIZONTAL LAYOUT
+		// Calculate node positions for each layer - FLUID HORIZONTAL LAYOUT
 		const layerPositions = layers.map((size, layerIdx) => {
-			const y = 70 + layerIdx * LAYER_SPACING; // Vertical position (row)
+			// Dynamic vertical position - evenly distributed
+			const y = topPadding + (layerIdx * spacing);
 
-			// Determine if this is a hidden layer (for pill grouping)
-			const isHidden = layerIdx > 0 && layerIdx < layers.length - 1;
-
-			// Only use pills if hidden layer has more than MAX_NODES_PER_LAYER neurons
-			const usePills = isHidden && size > MAX_NODES_PER_LAYER;
+			// Use pills for any layer with more than 100 neurons (for performance)
+			const PILL_THRESHOLD = 100;
+			const usePills = size > PILL_THRESHOLD;
 			const pillSize = usePills ? NEURONS_PER_PILL : 1;
 			const numPills = Math.ceil(size / pillSize);
 			const displaySize = Math.min(numPills, MAX_NODES_PER_LAYER);
 
-			// Calculate horizontal spacing to fit all nodes/pills with padding
-			const paddingX = 120; // More space for labels
-			const paddingRight = 120; // More space for active count
-			const availableWidth = CANVAS_WIDTH - paddingX - paddingRight;
+			// Dynamic horizontal spacing - use 80% of canvas width
+			const paddingX = CANVAS_WIDTH * 0.1; // 10% padding on each side
+			const availableWidth = CANVAS_WIDTH * 0.8; // 80% usable width
 			const nodeSpacing = displaySize > 1 ? availableWidth / (displaySize - 1) : 0;
 			const startX = paddingX;
 
@@ -141,19 +132,6 @@
 					} else {
 						// Regular neuron activation
 						activation = activations[layerIdx]?.values?.[actualIdx] || 0;
-					}
-
-					// Debug output layer node creation
-					if (!window._loggedNodeCreation && layerIdx === layers.length - 1 && nodeIdx < 6) {
-						console.log(`🔍 Creating output node ${nodeIdx}:`, {
-							layerIdx,
-							nodeIdx,
-							actualIdx,
-							hasActivations: !!activations[layerIdx],
-							activationValue: activation,
-							valuesArray: activations[layerIdx]?.values
-						});
-						if (nodeIdx === 5) window._loggedNodeCreation = true;
 					}
 
 					return {
@@ -219,16 +197,16 @@
 				const activation = node.activation;
 				const isActive = activation > 0.1;
 
-				// Draw pills for hidden layers, circles for input/output
+				// Draw pills for layers with >100 neurons, circles otherwise
 				if (layer.usePills) {
 					// Pill dimensions
-					const pillWidth = 14; // Wider pills
+					const pillWidth = 14;
 					const pillHeight = NODE_RADIUS * 2;
 					const pulse = Math.sin(pulsePhase) * 0.5;
 					const height = isActive
 						? pillHeight + pulse + (activation * 0.5)
 						: pillHeight;
-					const cornerRadius = height / 2; // Fully rounded ends
+					const cornerRadius = height / 2;
 
 					if (isActive) {
 						// Outer glow for active pills
@@ -275,7 +253,7 @@
 					);
 					ctx.fill();
 				} else {
-					// Regular circular nodes for input/output layers
+					// Regular circular nodes for layers with <=100 neurons
 					const baseRadius = NODE_RADIUS;
 					const pulse = Math.sin(pulsePhase) * 0.5;
 					const radius = isActive
@@ -325,7 +303,7 @@
 				}
 			});
 
-			// Layer labels - centered above each row
+			// Layer labels - positioned dynamically above each row
 			ctx.fillStyle = COLORS.text;
 			ctx.font = '13px monospace';
 			ctx.textAlign = 'center';
@@ -333,7 +311,7 @@
 			const layerNames = ['Input', ...Array(layers.length - 2).fill(0).map((_, i) => `Hidden ${i + 1}`), 'Output'];
 			const label = layerNames[layerIdx];
 
-			// Show pill count for hidden layers, node count otherwise
+			// Show pill count for layers using pills, node count otherwise
 			let nodeCount;
 			if (layer.usePills) {
 				const numPills = Math.ceil(layer.size / layer.pillSize);
@@ -346,19 +324,20 @@
 					: `${layer.size} Neurons`;
 			}
 
-			// Draw label centered at top of canvas, above the layer row
-			ctx.fillText(`${label} (${nodeCount})`, CANVAS_WIDTH / 2, layer.y - 10);
+			// Draw label centered horizontally, above the layer row
+			const labelY = layer.y - 15; // Positioned above nodes
+			ctx.fillText(`${label} (${nodeCount})`, CANVAS_WIDTH / 2, labelY);
 
-			// Show activation stats if available - on the right side
+			// Show activation stats if available - on the right side, aligned with label
 			if (activations[layerIdx]) {
 				const act = activations[layerIdx];
 				ctx.textAlign = 'right';
 				ctx.font = '12px monospace';
-				ctx.fillStyle = '#22d3ee'; // Bright cyan for visibility
+				ctx.fillStyle = '#22d3ee';
 				ctx.fillText(
 					`Active: ${act.active_count}/${layer.size}`,
 					CANVAS_WIDTH - 20,
-					layer.y - 10
+					labelY
 				);
 			}
 		});
@@ -373,41 +352,9 @@
 
 			// Only show if output layer has 6 nodes (button output)
 			if (outputLayer.size === 6) {
-				// Debug output layer activations once
-				if (!window._loggedOutputActivations && activations.length > 0) {
-					console.log('🎮 Output layer activations:', {
-						layerIdx: layers.length - 1,
-						nodes: outputLayer.nodes.map((n, i) => ({
-							button: buttons[i],
-							activation: n.activation,
-							actualIdx: n.actualIdx
-						})),
-						rawActivationData: activations[layers.length - 1]
-					});
-					window._loggedOutputActivations = true;
-				}
-
 				outputLayer.nodes.forEach((node, idx) => {
 					if (idx < buttons.length) {
 						const activation = node.activation || 0;
-
-						// Debug log ALL button activation values
-						if (!window._loggedButtonActivation) {
-							console.log('🔍 Button activation debug:', {
-								buttonIndex: idx,
-								button: buttons[idx],
-								nodeActivation: node.activation,
-								actualIdx: node.actualIdx,
-								outputLayerIdx: layers.length - 1,
-								hasActivations: !!activations[layers.length - 1],
-								activationObject: activations[layers.length - 1],
-								allValues: activations[layers.length - 1]?.values,
-								valueAtIndex: activations[layers.length - 1]?.values?.[idx]
-							});
-							if (idx === buttons.length - 1) {
-								window._loggedButtonActivation = true;
-							}
-						}
 
 						// Button label above node
 						ctx.fillStyle = activation > 0.5 ? '#ffffff' : COLORS.text;
