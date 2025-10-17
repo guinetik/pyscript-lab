@@ -482,6 +482,57 @@ def get_nearest_obstacle_distance(nes, max_scan_distance=10):
     return max_scan_distance
 
 
+def get_obstacle_height(nes, max_scan_distance=10):
+    """
+    Get the height of the nearest obstacle ahead that blocks Mario's path.
+    Only considers obstacles at or above Mario's height (not ground tiles below).
+    Helps the agent know if it needs to jump (and how high).
+
+    Args:
+        nes: JSNes instance
+        max_scan_distance: Maximum tiles to scan ahead
+
+    Returns:
+        int: Height of obstacle in tiles (0 if no obstacle or just flat ground)
+    """
+    mario_col, mario_row = get_mario_tile_position(nes)
+
+    # First find an obstacle at or above Mario's height
+    obstacle_col = None
+    obstacle_row = None
+
+    for distance in range(1, max_scan_distance + 1):
+        col = mario_col + distance
+
+        # Check at Mario's height and above (don't count ground below as obstacle)
+        tile_at_height = get_tile_at(nes, col, mario_row)
+        tile_above = get_tile_at(nes, col, mario_row - 1)
+
+        if is_solid_tile(tile_at_height):
+            obstacle_col = col
+            obstacle_row = mario_row
+            break
+        elif is_solid_tile(tile_above):
+            obstacle_col = col
+            obstacle_row = mario_row - 1
+            break
+
+    if obstacle_col is None:
+        return 0  # No obstacle blocking Mario's path
+
+    # Now measure how tall the obstacle extends upward from where we found it
+    height = 1  # Count the tile we found
+
+    # Scan upward to find the top of the obstacle
+    for check_row in range(obstacle_row - 1, max(0, obstacle_row - 5), -1):
+        if is_solid_tile(get_tile_at(nes, obstacle_col, check_row)):
+            height += 1
+        else:
+            break  # Found the top
+
+    return height
+
+
 def is_on_ground(nes):
     """
     Check if Mario is standing on solid ground.
@@ -505,15 +556,16 @@ def extract_context_features(nes):
     Extract high-level engineered features for better decision making.
 
     Returns:
-        list: Array of 8 normalized feature values [0.0-1.0]:
+        list: Array of 9 normalized feature values [0.0-1.0]:
               [enemy_left_dist, enemy_right_dist, ground_dist, pit_dist,
-               obstacle_dist, is_on_ground, mario_y_normalized, enemy_nearby]
+               obstacle_dist, obstacle_height, is_on_ground, mario_y_normalized, enemy_nearby]
     """
     # Distance features (normalize to 0-1 range)
     enemy_left, enemy_right = get_nearest_enemy_distance(nes, max_scan_distance=10)
     ground_dist = get_distance_to_ground(nes, max_scan_depth=8)
     pit_dist = get_nearest_pit_distance(nes, max_scan_distance=12)
     obstacle_dist = get_nearest_obstacle_distance(nes, max_scan_distance=10)
+    obstacle_height = get_obstacle_height(nes, max_scan_distance=10)
 
     # Normalize distances (inverse: closer = higher value)
     enemy_left_norm = 1.0 - (enemy_left / 10.0)
@@ -521,6 +573,7 @@ def extract_context_features(nes):
     ground_dist_norm = ground_dist / 8.0  # Higher = further from ground
     pit_dist_norm = 1.0 - (pit_dist / 12.0)  # Higher = pit is closer (danger!)
     obstacle_dist_norm = 1.0 - (obstacle_dist / 10.0)  # Higher = obstacle closer
+    obstacle_height_norm = max(0.0, min(1.0, obstacle_height / 3.0))  # 0-3 tiles = 0.0-1.0
 
     # Binary features
     on_ground = 1.0 if is_on_ground(nes) else 0.0
@@ -538,6 +591,7 @@ def extract_context_features(nes):
         ground_dist_norm,
         pit_dist_norm,
         obstacle_dist_norm,
+        obstacle_height_norm,  # NEW: tells agent how tall the obstacle is!
         on_ground,
         y_normalized,
         enemy_nearby

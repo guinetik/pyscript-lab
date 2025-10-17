@@ -61,8 +61,8 @@ class PlayerAgent:
 
         # Neural controller - handles decision making
         vision_size = vision_width * vision_height
-        context_size = 8 if use_context_features else 0
-        input_size = vision_size + context_size  # 112 vision + 8 context = 120
+        context_size = 9 if use_context_features else 0
+        input_size = vision_size + context_size  # 112 vision + 9 context = 121
 
         # Network will be created in _create_network()
         self.input_size = input_size
@@ -138,9 +138,9 @@ class PlayerAgent:
             # 4-button mode: [LEFT, RIGHT, A, B]
             self.output_size = 4
             self.behavioral_priors = {
-                'LEFT':  -2.0,    # Discourage (moving backward is bad)
-                'RIGHT': 2.0,    # Encourage (primary goal!)
-                'A':     1.5,    # Encourage jumping (essential for Mario)
+                'LEFT':  0.1,    # Discourage (moving backward is bad)
+                'RIGHT': 3.0,    # Encourage (primary goal!)
+                'A':     2.0,    # Encourage jumping (essential for Mario)
                 'B':     0.5     # Encourage running
             }
         else:
@@ -175,7 +175,7 @@ class PlayerAgent:
         elif network_type == 'conv' or network_type == 'conv-4button':
             return ConvNeuralController(
                 vision_shape=(7, 16),  # Height × Width
-                context_size=8 if self.use_context_features else 0,
+                context_size=9 if self.use_context_features else 0,
                 num_filters=4,
                 hidden_size=self.hidden_size,
                 output_size=self.output_size,
@@ -294,7 +294,7 @@ class PlayerAgent:
                 context_part = state[112:]
                 print(f"🔍 Vision part: {len(vision_part)} values")
                 print(f"🔍 Context features: {context_part}")
-                print(f"   [enemy_left, enemy_right, ground_dist, pit_dist, obstacle_dist, on_ground, y_pos, enemy_nearby]")
+                print(f"   [enemy_left, enemy_right, ground_dist, pit_dist, obstacle_dist, obstacle_height, on_ground, y_pos, enemy_nearby]")
 
             print(f"🔍 Raw output values (before threshold): {output}")
             if self.simple_controls:
@@ -449,10 +449,10 @@ class PlayerAgent:
             self.game.print_vision(vision_only)
 
             # Show context features too if enabled
-            if self.use_context_features and len(state) >= 120:
-                context_features = state[112:120]
+            if self.use_context_features and len(state) >= 121:
+                context_features = state[112:121]
                 print(f"🎯 Context features: {context_features}")
-                print(f"   [enemy_left={context_features[0]:.2f}, enemy_right={context_features[1]:.2f}, ground_dist={context_features[2]:.2f}, pit_dist={context_features[3]:.2f}, obstacle_dist={context_features[4]:.2f}, on_ground={context_features[5]:.2f}, y_pos={context_features[6]:.2f}, enemy_nearby={context_features[7]:.2f}]")
+                print(f"   [enemy_left={context_features[0]:.2f}, enemy_right={context_features[1]:.2f}, ground_dist={context_features[2]:.2f}, pit_dist={context_features[3]:.2f}, obstacle_dist={context_features[4]:.2f}, obstacle_height={context_features[5]:.2f}, on_ground={context_features[6]:.2f}, y_pos={context_features[7]:.2f}, enemy_nearby={context_features[8]:.2f}]")
 
             return False
 

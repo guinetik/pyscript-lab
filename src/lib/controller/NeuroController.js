@@ -54,7 +54,7 @@ export class NeuroController {
 
 			// Load neural network module first (exports to builtins, no ready signal)
 			this.logger.log('🔵 Loading neural network module...');
-			const neuralUrl = getLink('python/ml/rl/neural.py');
+			const neuralUrl = getLink('python/ml/neural/neural.py');
 
 			// Create script element for neural module (doesn't use PyScriptManager ready signal)
 			const neuralScript = document.createElement('script');
@@ -72,7 +72,7 @@ export class NeuroController {
 
 			// Load Mario agent with PyScriptManager
 			this.logger.log('🔵 Loading Mario agent module...');
-			const agentUrl = getLink('python/ml/rl/agent.py');
+			const agentUrl = getLink('python/ml/neural/agent.py');
 
 			try {
 				// PyScriptManager generates script ID automatically, 'body' means append to document.body

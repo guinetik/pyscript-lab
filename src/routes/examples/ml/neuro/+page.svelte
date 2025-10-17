@@ -110,6 +110,9 @@
 		statusMessage = 'Emulator ready. Click "Play Game" to test or "Start Training" to begin AI learning.';
 		status = 'ready';
 
+		// Reapply mute state after emulator restart (with delay for audioContext initialization)
+		setTimeout(() => applyMuteState(), 100);
+
 		// Check if we should auto-start playing after restart
 		const autoplay = sessionStorage.getItem('rl_autoplay');
 		if (autoplay === 'true') {
@@ -139,10 +142,17 @@
 		// Hide CTA after first training start
 		hasStartedTraining = true;
 
-		// If already running (playing or training), nuke and recreate emulator
+		// If already running (playing or training), stop Python and recreate emulator
 		const emulator = window.nesEmulator;
 		if (emulator && emulator.isRunning()) {
-			logger.log('🔄 Full restart: destroying and recreating emulator');
+			logger.log('🔄 Full restart: stopping Python and destroying emulator');
+
+			// Stop Python training loop first
+			if (status === 'training' && controller) {
+				logger.log('🛑 Stopping Python training...');
+				controller.stopTraining();
+			}
+
 			status = 'initializing';
 			statusMessage = 'Restarting emulator...';
 			emulatorReady = false;
@@ -154,6 +164,9 @@
 
 		// Pass selected neural network to Python
 		controller.startTraining(selectedNetwork);
+
+		// Apply mute state after training starts (audioContext may be initialized now)
+		setTimeout(() => applyMuteState(), 500);
 	}
 
 	function pauseGame() {
@@ -182,21 +195,19 @@
 	function toggleMute() {
 		isMuted = !isMuted;
 		logger.log(`🔊 ${isMuted ? 'Muting' : 'Unmuting'} audio`);
+		applyMuteState();
+	}
 
+	function applyMuteState() {
 		const emulator = window.nesEmulator;
 		if (emulator && emulator.controller && emulator.controller.speakers) {
 			const speakers = emulator.controller.speakers;
 			if (speakers.audioContext) {
-				// Create gain node if it doesn't exist
-				if (!speakers.gainNode) {
-					speakers.gainNode = speakers.audioContext.createGain();
-					speakers.scriptNode.disconnect();
-					speakers.scriptNode.connect(speakers.gainNode);
-					speakers.gainNode.connect(speakers.audioContext.destination);
+				if (isMuted) {
+					speakers.audioContext.suspend();
+				} else {
+					speakers.audioContext.resume();
 				}
-
-				// Set gain (0 = muted, 1 = full volume)
-				speakers.gainNode.gain.value = isMuted ? 0 : 1;
 			}
 		}
 	}
@@ -260,6 +271,9 @@
 
 			status = 'playing';
 			statusMessage = 'Manual play mode active! Use keyboard to control the Character.';
+
+			// Apply mute state after starting manual play
+			setTimeout(() => applyMuteState(), 200);
 		}
 	}
 
@@ -703,7 +717,7 @@
 		<p class="mt-6">
 			<a
 				class="text-sky-500"
-				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/rl/agent.py"
+				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/neural/agent.py"
 				target="_blank">View source (agent.py)</a
 			>
 		</p>
