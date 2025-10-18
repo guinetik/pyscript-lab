@@ -54,6 +54,12 @@ class GameController:
         self.vision_width = vision_width
         self.vision_height = vision_height
 
+        # Track previous button states to detect changes
+        self.prev_buttons = np.zeros(6, dtype=int)
+
+        # Track A button state for tap behavior (alternates press/release)
+        self.a_button_state = False  # False = released, True = pressed
+
         print("🎮 GameController initialized")
         print(f"   Vision: {vision_width}×{vision_height} tiles")
 
@@ -125,20 +131,20 @@ class GameController:
         Extract high-level engineered features.
 
         Returns:
-            np.ndarray: Array of 8 context features (normalized 0-1):
+            np.ndarray: Array of 9 context features (normalized 0-1):
                        [enemy_left_dist, enemy_right_dist, ground_dist, pit_dist,
-                        obstacle_dist, is_on_ground, mario_y_normalized, enemy_nearby]
+                        obstacle_dist, obstacle_height, is_on_ground, mario_y_normalized, enemy_nearby]
         """
         nes = self.get_nes()
         if not nes:
-            return np.zeros(8, dtype=np.float32)
+            return np.zeros(9, dtype=np.float32)
 
         try:
             features = extract_context_features(nes)
             return np.array(features, dtype=np.float32)
         except Exception as e:
             console.error(f"❌ Error extracting context features: {e}")
-            return np.zeros(8, dtype=np.float32)
+            return np.zeros(9, dtype=np.float32)
 
     def get_mario_position(self) -> tuple:
         """
@@ -225,14 +231,40 @@ class GameController:
                 self.BUTTON_B
             ]
 
-            # Release all buttons first
-            for button in button_map:
-                emulator.buttonUp(1, button)
-
-            # Press buttons that are active
+            # Handle button state changes
             for i in range(6):
-                if buttons[i]:
-                    emulator.buttonDown(1, button_map[i])
+                current_state = int(buttons[i])
+                prev_state = self.prev_buttons[i]
+
+                # A button (jump, index 4) needs special tap behavior
+                if i == 4:
+                    if current_state:
+                        # Agent wants to jump - alternate between press and release
+                        if not self.a_button_state:
+                            # Currently released, press it
+                            emulator.buttonDown(1, button_map[i])
+                            self.a_button_state = True
+                        else:
+                            # Currently pressed, release it (creates gap for next jump)
+                            emulator.buttonUp(1, button_map[i])
+                            self.a_button_state = False
+                    else:
+                        # Agent doesn't want to jump - ensure it's released
+                        if self.a_button_state:
+                            emulator.buttonUp(1, button_map[i])
+                            self.a_button_state = False
+                else:
+                    # Other buttons use hold behavior (only change on state transition)
+                    if current_state != prev_state:
+                        if current_state:
+                            # Button pressed (0 -> 1)
+                            emulator.buttonDown(1, button_map[i])
+                        else:
+                            # Button released (1 -> 0)
+                            emulator.buttonUp(1, button_map[i])
+
+            # Update previous state
+            self.prev_buttons = buttons.astype(int).copy()
         except Exception as e:
             console.error(f"❌ Error executing buttons: {e}")
 
