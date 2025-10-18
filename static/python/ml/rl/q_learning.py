@@ -118,9 +118,9 @@ class MazeEnvironment:
 
         # Try to move
         if not self.can_move(row, col, action):
-            # Hit wall - stay in place
+            # Hit wall - stay in place, higher penalty
             next_state = dict(state)
-            reward = -1  # Step penalty
+            reward = -1.0  # Penalty for hitting wall (worse than normal step)
             done = False
             return next_state, reward, done
 
@@ -142,7 +142,13 @@ class MazeEnvironment:
             reward = 100  # Goal reward
             done = True
         else:
-            reward = -1  # Step penalty
+            # Reward shaping: encourage moving closer to goal
+            current_dist = abs(row - self.end_pos['row']) + abs(col - self.end_pos['col'])
+            next_dist = abs(next_row - self.end_pos['row']) + abs(next_col - self.end_pos['col'])
+
+            # Small reward for getting closer, penalty for getting further
+            distance_reward = (current_dist - next_dist) * 0.1
+            reward = -0.5 + distance_reward  # Base penalty + distance incentive
             done = False
 
         return next_state, reward, done
@@ -160,7 +166,31 @@ class QLearningAgent:
     Uses the Bellman equation to update Q-values based on experience.
     """
 
-    def __init__(self, alpha=0.1, gamma=0.95, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01):
+    # Difficulty-based hyperparameters
+    DIFFICULTY_PARAMS = {
+        'easy': {
+            'alpha': 0.35,
+            'epsilon_decay': 0.96,
+            'epsilon_min': 0.001
+        },
+        'medium': {
+            'alpha': 0.3,
+            'epsilon_decay': 0.98,
+            'epsilon_min': 0.01
+        },
+        'hard': {
+            'alpha': 0.25,
+            'epsilon_decay': 0.985,
+            'epsilon_min': 0.05
+        },
+        'insane': {
+            'alpha': 0.2,
+            'epsilon_decay': 0.99,
+            'epsilon_min': 0.1
+        }
+    }
+
+    def __init__(self, alpha=0.3, gamma=0.95, epsilon=1.0, epsilon_decay=0.98, epsilon_min=0.01, difficulty='medium'):
         """
         Initialize Q-learning agent.
 
@@ -170,18 +200,28 @@ class QLearningAgent:
             epsilon: Initial exploration rate (0-1)
             epsilon_decay: Epsilon decay rate per episode
             epsilon_min: Minimum epsilon value
+            difficulty: Maze difficulty level (easy, medium, hard, insane)
         """
+        # Override with difficulty-specific params if difficulty is provided
+        if difficulty in self.DIFFICULTY_PARAMS:
+            params = self.DIFFICULTY_PARAMS[difficulty]
+            alpha = params['alpha']
+            epsilon_decay = params['epsilon_decay']
+            epsilon_min = params['epsilon_min']
+            console.log(f"[Python] Using difficulty-based params for '{difficulty}'")
+
         self.q_table = {}  # Q-table: "row,col:action" -> Q-value
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
+        self.difficulty = difficulty
 
         self.episodes = 0
         self.total_steps = 0
 
-        console.log(f"[Python] QLearningAgent initialized (α={alpha}, γ={gamma}, ε={epsilon})")
+        console.log(f"[Python] QLearningAgent initialized (difficulty={difficulty}, α={alpha}, γ={gamma}, ε={epsilon}, decay={epsilon_decay}, ε_min={epsilon_min})")
 
     def _state_key(self, state):
         """Convert state to string key."""
@@ -301,17 +341,23 @@ class MazeRLTrainer:
 
         console.log("[Python] MazeRLTrainer initialized")
 
-    def set_maze(self, maze_data):
-        """Initialize environment with new maze."""
+    def set_maze(self, maze_data, difficulty='medium'):
+        """
+        Initialize environment with new maze.
+
+        Args:
+            maze_data: Maze structure from JavaScript
+            difficulty: Difficulty level (easy, medium, hard, insane)
+        """
         self.env = MazeEnvironment(maze_data)
-        self.agent = QLearningAgent()
+        self.agent = QLearningAgent(difficulty=difficulty)
 
         # Reset statistics
         self.current_episode = 0
         self.success_count = 0
         self.episode_rewards = []
 
-        console.log(f"[Python] Maze set, ready to train")
+        console.log(f"[Python] Maze set (difficulty={difficulty}), ready to train")
 
     async def run_episode(self, max_steps=1000, visualize_every=5):
         """
@@ -351,12 +397,13 @@ class MazeRLTrainer:
             # Visualize agent movement (throttled)
             if steps % visualize_every == 0 and hasattr(window, 'mazeRLCallbacks'):
                 if hasattr(window.mazeRLCallbacks, 'onAgentMove'):
-                    window.mazeRLCallbacks.onAgentMove(to_js({
-                        'position': {'row': state['row'], 'col': state['col']},
+                    move_data = {
+                        'position': {'row': int(state['row']), 'col': int(state['col'])},
                         'action': action,
-                        'reward': episode_reward,
-                        'steps': steps
-                    }, dict_converter=Object.fromEntries))
+                        'reward': float(episode_reward),
+                        'steps': int(steps)
+                    }
+                    window.mazeRLCallbacks.onAgentMove(to_js(move_data, dict_converter=Object.fromEntries))
                     # Small delay to allow visualization
                     await asyncio.sleep(0.01)
 
@@ -375,23 +422,26 @@ class MazeRLTrainer:
         if hasattr(window, 'mazeRLCallbacks') and hasattr(window.mazeRLCallbacks, 'onMetricsUpdate'):
             success_rate = (self.success_count / self.current_episode * 100) if self.current_episode > 0 else 0
 
-            window.mazeRLCallbacks.onMetricsUpdate(to_js({
-                'episode': self.current_episode,
-                'steps': steps,
-                'reward': episode_reward,
-                'epsilon': self.agent.epsilon,
+            metrics = {
+                'episode': int(self.current_episode),
+                'steps': int(steps),
+                'reward': float(episode_reward),
+                'epsilon': float(self.agent.epsilon),
                 'successRate': f"{success_rate:.1f}",
-                'qValues': to_js(self.agent.get_q_values_for_visualization())
-            }))
+                'qValues': self.agent.get_q_values_for_visualization()
+            }
+            console.log(f"[Python] Sending metrics: reward={metrics['reward']}, epsilon={metrics['epsilon']}, type={type(metrics['reward'])}")
+            window.mazeRLCallbacks.onMetricsUpdate(to_js(metrics, dict_converter=Object.fromEntries))
 
         # Episode end callback
         if hasattr(window, 'mazeRLCallbacks') and hasattr(window.mazeRLCallbacks, 'onEpisodeEnd'):
-            window.mazeRLCallbacks.onEpisodeEnd(to_js({
-                'episode': self.current_episode,
-                'steps': steps,
-                'reward': episode_reward,
-                'reachedGoal': reached_goal
-            }))
+            episode_data = {
+                'episode': int(self.current_episode),
+                'steps': int(steps),
+                'reward': float(episode_reward),
+                'reachedGoal': bool(reached_goal)
+            }
+            window.mazeRLCallbacks.onEpisodeEnd(to_js(episode_data, dict_converter=Object.fromEntries))
 
         return {
             'episode': self.current_episode,
@@ -485,24 +535,27 @@ class MazeRLTrainer:
 
         # Reset agent to start position in UI
         if hasattr(window, 'mazeRLCallbacks') and hasattr(window.mazeRLCallbacks, 'onAgentMove'):
-            window.mazeRLCallbacks.onAgentMove(to_js({
-                'position': {'row': state['row'], 'col': state['col']},
+            move_data = {
+                'position': {'row': int(state['row']), 'col': int(state['col'])},
                 'action': 'NONE',
-                'reward': 0,
+                'reward': 0.0,
                 'steps': 0
-            }, dict_converter=Object.fromEntries))
+            }
+            window.mazeRLCallbacks.onAgentMove(to_js(move_data, dict_converter=Object.fromEntries))
             await asyncio.sleep(0.5)  # Brief pause to show reset
 
         # Notify UI of demo start
         if hasattr(window, 'mazeRLCallbacks') and hasattr(window.mazeRLCallbacks, 'onMetricsUpdate'):
-            window.mazeRLCallbacks.onMetricsUpdate(to_js({
-                'episode': self.current_episode,
+            success_rate = (self.success_count / max(self.current_episode, 1) * 100)
+            metrics = {
+                'episode': int(self.current_episode),
                 'steps': 0,
-                'reward': 0,
+                'reward': 0.0,
                 'epsilon': 0.0,
-                'successRate': f"{(self.success_count / max(self.current_episode, 1) * 100):.1f}",
-                'qValues': to_js(self.agent.get_q_values_for_visualization())
-            }))
+                'successRate': f"{success_rate:.1f}",
+                'qValues': self.agent.get_q_values_for_visualization()
+            }
+            window.mazeRLCallbacks.onMetricsUpdate(to_js(metrics, dict_converter=Object.fromEntries))
         episode_reward = 0
         steps = 0
         reached_goal = False
@@ -511,6 +564,8 @@ class MazeRLTrainer:
         # Track start time for elapsed calculation
         from js import Date
         start_time = Date.now()
+
+        console.log(f"[Python] Starting demo loop: is_demo={self.is_demo}, max_steps={max_steps}")
 
         while steps < max_steps and self.is_demo:
             # Choose best action (no exploration)
@@ -528,14 +583,16 @@ class MazeRLTrainer:
 
             # Visualize every step during demo (slower, more visible)
             if hasattr(window, 'mazeRLCallbacks') and hasattr(window.mazeRLCallbacks, 'onAgentMove'):
-                window.mazeRLCallbacks.onAgentMove(to_js({
-                    'position': {'row': state['row'], 'col': state['col']},
+                move_data = {
+                    'position': {'row': int(state['row']), 'col': int(state['col'])},
                     'action': action,
-                    'reward': episode_reward,
-                    'steps': steps
-                }, dict_converter=Object.fromEntries))
-                # Slower delay for demo visibility (400ms per step)
-                await asyncio.sleep(0.4)
+                    'reward': float(episode_reward),
+                    'steps': int(steps)
+                }
+                window.mazeRLCallbacks.onAgentMove(to_js(move_data, dict_converter=Object.fromEntries))
+                console.log(f"[Python] Demo move: row={state['row']}, col={state['col']}, step={steps}")
+                # Faster delay for demo visibility (250ms per step)
+                await asyncio.sleep(0.25)
 
             if done:
                 reached_goal = True
@@ -556,20 +613,22 @@ class MazeRLTrainer:
         # Notify UI of demo completion with elapsed time
         if hasattr(window, 'mazeRLCallbacks'):
             if hasattr(window.mazeRLCallbacks, 'onDemoComplete'):
-                window.mazeRLCallbacks.onDemoComplete(to_js({
-                    'steps': steps,
-                    'reward': episode_reward,
-                    'reachedGoal': reached_goal,
-                    'elapsedTime': elapsed_sec
-                }))
+                demo_data = {
+                    'steps': int(steps),
+                    'reward': float(episode_reward),
+                    'reachedGoal': bool(reached_goal),
+                    'elapsedTime': float(elapsed_sec)
+                }
+                window.mazeRLCallbacks.onDemoComplete(to_js(demo_data, dict_converter=Object.fromEntries))
 
             if hasattr(window.mazeRLCallbacks, 'onEpisodeEnd'):
-                window.mazeRLCallbacks.onEpisodeEnd(to_js({
-                    'episode': self.current_episode,
-                    'steps': steps,
-                    'reward': episode_reward,
-                    'reachedGoal': reached_goal
-                }))
+                episode_data = {
+                    'episode': int(self.current_episode),
+                    'steps': int(steps),
+                    'reward': float(episode_reward),
+                    'reachedGoal': bool(reached_goal)
+                }
+                window.mazeRLCallbacks.onEpisodeEnd(to_js(episode_data, dict_converter=Object.fromEntries))
 
         return {
             'steps': steps,
@@ -583,9 +642,15 @@ _trainer = MazeRLTrainer()
 
 
 # Exposed functions for JavaScript to call
-def set_maze(maze_data):
-    """Set maze for training (called from JavaScript)."""
-    _trainer.set_maze(maze_data)
+def set_maze(maze_data, difficulty='medium'):
+    """
+    Set maze for training (called from JavaScript).
+
+    Args:
+        maze_data: Maze structure from JavaScript
+        difficulty: Difficulty level (easy, medium, hard, insane)
+    """
+    _trainer.set_maze(maze_data, difficulty)
 
 
 def start_training():
@@ -618,14 +683,15 @@ def reset_training():
 
     # Send reset metrics to JavaScript
     if hasattr(window, 'mazeRLCallbacks') and hasattr(window.mazeRLCallbacks, 'onMetricsUpdate'):
-        window.mazeRLCallbacks.onMetricsUpdate(to_js({
+        metrics = {
             'episode': 0,
             'steps': 0,
-            'reward': 0,
+            'reward': 0.0,
             'epsilon': 1.0,
             'successRate': '0.0',
-            'qValues': to_js({})
-        }))
+            'qValues': {}
+        }
+        window.mazeRLCallbacks.onMetricsUpdate(to_js(metrics, dict_converter=Object.fromEntries))
 
 
 def run_demo():
@@ -636,9 +702,15 @@ def run_demo():
     _trainer.stop()
     _trainer.is_demo = False  # Stop any running demo
 
+    # Give training loop time to actually stop
+    async def delayed_demo():
+        import asyncio
+        await asyncio.sleep(0.2)  # Small delay to ensure training stops
+        await _trainer.run_demo()
+
     # Run demo in background
     import asyncio
-    asyncio.ensure_future(_trainer.run_demo())
+    asyncio.ensure_future(delayed_demo())
 
 
 # Initialize PyScriptManager and signal ready

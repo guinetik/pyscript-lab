@@ -161,7 +161,7 @@ export class AgentActor {
 		this.targetPosition = { ...position };
 		this.isMoving = false;
 		this.moveProgress = 0;
-		this.moveSpeed = 0.2; // 0 to 1 per frame
+		this.moveSpeed = 0.08; // 0 to 1 per frame (smoother tweening across 250ms moves)
 	}
 
 	setTarget(newPosition) {
@@ -269,10 +269,10 @@ export class MazeRLController {
 		const mazeData = this.environment.generate();
 		this.actor = new AgentActor(mazeData.startPos);
 
-		// Send maze to Python
+		// Send maze to Python with difficulty level
 		if (this.pythonExports && this.pythonExports.setMaze) {
-			this.pythonExports.setMaze(mazeData);
-			console.log('[MazeRLController] Maze sent to Python');
+			this.pythonExports.setMaze(mazeData, difficulty);
+			console.log('[MazeRLController] Maze sent to Python with difficulty:', difficulty);
 		}
 
 		// Callback to UI
@@ -320,6 +320,18 @@ export class MazeRLController {
 		this.isTraining = true;
 		console.log('[MazeRLController] Resuming Python training...');
 		this.pythonExports.resumeTraining();
+	}
+
+	// Stop training (calls Python)
+	stopTraining() {
+		if (!this.pythonExports || !this.pythonExports.stopTraining) {
+			console.error('[MazeRLController] Python not loaded!');
+			return;
+		}
+
+		this.isTraining = false;
+		console.log('[MazeRLController] Stopping Python training...');
+		this.pythonExports.stopTraining();
 	}
 
 	// Reset training (calls Python)

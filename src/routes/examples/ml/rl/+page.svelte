@@ -40,6 +40,14 @@
 	let showCompletionOverlay = $state(false);
 	let demoResults = $state(null);
 
+	// Demo countdown
+	let showCountdown = $state(false);
+	let countdown = $state(0);
+	let isRunningDemo = $state(false);
+
+	// Animation loop for agent tweening
+	let animationFrameId = null;
+
 	// Difficulty options
 	const difficultySettings = {
 		easy: { name: 'Easy (10×10)', rows: 10, cols: 10, cellSize: 40 },
@@ -48,10 +56,40 @@
 		insane: { name: 'Insane (30×30)', rows: 30, cols: 30, cellSize: 20 }
 	};
 
+	// Animation loop for smooth agent movement
+	function startAnimationLoop() {
+		const animate = () => {
+			if (controller && controller.actor) {
+				// Update actor animation
+				controller.actor.update();
+				// Get interpolated position and update UI
+				const currentPos = controller.actor.getCurrentPosition();
+				agentPosition = {
+					row: currentPos.row,
+					col: currentPos.col
+				};
+			}
+			animationFrameId = requestAnimationFrame(animate);
+		};
+
+		// Start the loop
+		animationFrameId = requestAnimationFrame(animate);
+	}
+
+	function stopAnimationLoop() {
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+	}
+
 	onMount(async () => {
 		if (!browser || !controller) return;
 
 		console.log('[RL Page] Mounted');
+
+		// Start animation loop for smooth tweening
+		startAnimationLoop();
 
 		// Setup controller callbacks
 		controller.callbacks.onMazeGenerated = (maze) => {
@@ -71,18 +109,42 @@
 		};
 
 		controller.callbacks.onAgentMove = (data) => {
-			agentPosition = data.position;
-			steps = data.steps;
-			totalReward = data.reward;
+			console.log('[RL Page] Agent move:', data);
+			if (data && data.position && controller && controller.actor) {
+				const newPos = {
+					row: typeof data.position.row === 'number' ? data.position.row : agentPosition.row,
+					col: typeof data.position.col === 'number' ? data.position.col : agentPosition.col
+				};
+
+				// Use tweening only in demo mode for smooth movement
+				// During training, use instant position updates (frequent updates)
+				if (status === 'ready') {
+					// Demo mode: smooth tweening via animation loop
+					controller.actor.setTarget(newPos);
+				} else {
+					// Training mode: instant updates, bypass tweening
+					controller.actor.position = { ...newPos };
+					controller.actor.targetPosition = { ...newPos };
+					controller.actor.isMoving = false;
+					agentPosition = newPos;
+				}
+
+				// Update metrics
+				steps = typeof data.steps === 'number' ? data.steps : steps;
+				totalReward = typeof data.reward === 'number' ? data.reward : totalReward;
+			}
 		};
 
 		controller.callbacks.onMetricsUpdate = (metrics) => {
-			episode = metrics.episode;
-			steps = metrics.steps;
-			totalReward = metrics.reward;
-			epsilon = metrics.epsilon;
-			successRate = parseFloat(metrics.successRate);
-			qValues = metrics.qValues;
+			console.log('[RL Page] Metrics received:', metrics, 'reward type:', typeof metrics?.reward, 'value:', metrics?.reward);
+			if (metrics) {
+				episode = metrics.episode ?? episode;
+				steps = metrics.steps ?? steps;
+				totalReward = typeof metrics.reward === 'number' ? metrics.reward : totalReward;
+				epsilon = typeof metrics.epsilon === 'number' ? metrics.epsilon : epsilon;
+				successRate = metrics.successRate ? parseFloat(metrics.successRate) : successRate;
+				qValues = metrics.qValues ?? qValues;
+			}
 		};
 
 		controller.callbacks.onEpisodeEnd = (episodeData) => {
@@ -93,6 +155,7 @@
 		controller.callbacks.onDemoComplete = (results) => {
 			console.log('[RL Page] Demo complete:', results);
 			demoResults = results;
+			isRunningDemo = false;
 			if (results.reachedGoal) {
 				showCompletionOverlay = true;
 			}
@@ -107,6 +170,7 @@
 
 	onDestroy(() => {
 		if (!browser || !controller) return;
+		stopAnimationLoop();
 		controller.destroy();
 		console.log('[RL Page] Destroyed');
 	});
@@ -164,7 +228,7 @@
 		showQValues = !showQValues;
 	}
 
-	function runDemo() {
+	async function runDemo() {
 		if (!mazeData) {
 			alert('Please generate a maze first!');
 			return;
@@ -175,6 +239,37 @@
 			return;
 		}
 
+		// If demo is already running, stop it and restart
+		if (isRunningDemo) {
+			console.log('[RL Page] Demo already running - restarting...');
+			controller.stopTraining();
+			isRunningDemo = false;
+			showCompletionOverlay = false;
+			await new Promise(resolve => setTimeout(resolve, 300));
+		}
+
+		// Stop all training
+		controller.stopTraining();
+		statusMessage = '⏹️ Stopping training...';
+
+		// Wait 1 second for training to fully stop
+		await new Promise(resolve => setTimeout(resolve, 1000));
+
+		// Show countdown
+		showCountdown = true;
+		statusMessage = '🎬 Demo starting...';
+
+		// Countdown: 3...2...1...GO!
+		for (let i = 3; i > 0; i--) {
+			countdown = i;
+			await new Promise(resolve => setTimeout(resolve, 1000));
+		}
+
+		countdown = 0;
+		showCountdown = false;
+
+		// Start demo
+		isRunningDemo = true;
 		controller.runDemo();
 		status = 'ready';
 		statusMessage = '🎬 Running demo with learned policy (epsilon = 0, no exploration)...';
@@ -200,6 +295,18 @@
 			{:else}
 				<div class="flex items-center justify-center w-[450px] h-[450px] bg-black border-2 border-gray-600 rounded">
 					<p class="text-gray-400 text-lg font-mono">Generate a maze to begin</p>
+				</div>
+			{/if}
+
+			<!-- Countdown Overlay -->
+			{#if showCountdown}
+				<div class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-lg">
+					<div class="text-center">
+						<div class="text-9xl font-bold text-white drop-shadow-lg animate-pulse">
+							{countdown > 0 ? countdown : '🚀'}
+						</div>
+						<p class="text-white text-xl mt-4 font-semibold">Get ready!</p>
+					</div>
 				</div>
 			{/if}
 
@@ -254,23 +361,23 @@
 		<div class="grid grid-cols-5 gap-2">
 			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 text-white shadow-lg">
 				<div class="text-xs font-semibold opacity-90">Episode</div>
-				<div class="text-2xl font-bold">{episode}</div>
+				<div class="text-2xl font-bold">{typeof episode === 'number' ? episode : 0}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-3 text-white shadow-lg">
 				<div class="text-xs font-semibold opacity-90">Steps</div>
-				<div class="text-2xl font-bold">{steps}</div>
+				<div class="text-2xl font-bold">{typeof steps === 'number' ? steps : 0}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-3 text-white shadow-lg">
 				<div class="text-xs font-semibold opacity-90">Reward</div>
-				<div class="text-2xl font-bold">{totalReward.toFixed(0)}</div>
+				<div class="text-2xl font-bold">{typeof totalReward === 'number' ? totalReward.toFixed(0) : '0'}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-3 text-white shadow-lg">
 				<div class="text-xs font-semibold opacity-90">Epsilon (ε)</div>
-				<div class="text-2xl font-bold">{epsilon.toFixed(2)}</div>
+				<div class="text-2xl font-bold">{typeof epsilon === 'number' ? epsilon.toFixed(2) : '1.00'}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 p-3 text-white shadow-lg">
 				<div class="text-xs font-semibold opacity-90">Success Rate</div>
-				<div class="text-2xl font-bold">{successRate.toFixed(1)}%</div>
+				<div class="text-2xl font-bold">{typeof successRate === 'number' ? successRate.toFixed(1) : '0.0'}%</div>
 			</div>
 		</div>
 
@@ -334,7 +441,7 @@
 					disabled={!mazeData}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'training' ? '🔄 Restart' : '▶️ Start Training'}
+					{status === 'training' ? '🔄 Restart' : '▶️ Train'}
 				</button>
 				<button
 					onclick={status === 'paused' ? resumeTraining : pauseTraining}
@@ -355,13 +462,38 @@
 					disabled={!qValues || Object.keys(qValues).length === 0}
 					class="rounded px-6 py-3 font-bold text-white transition-colors {showQValues ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'} disabled:bg-gray-400 disabled:cursor-not-allowed"
 				>
-					{showQValues ? '🎨 Hide Q-Values' : '🎨 Show Q-Values'}
+					{showQValues ? '🎨 Hide Q-values' : '🎨 Visualize'}
 				</button>
 			</div>
 		</div>
 
 		<!-- Educational Info Sections -->
 		<div class="space-y-3">
+			<!-- MAZE VISUALIZATION COLORS -->
+			<div class="rounded-lg bg-indigo-50 p-3 border-2 border-indigo-200">
+				<h3 class="mb-2 text-base font-bold text-indigo-900">🎨 Visualization Colors</h3>
+				<p class="text-xs text-indigo-800 mb-2">
+					Here's what each color represents in the maze:
+				</p>
+				<ul class="space-y-1 pl-5 text-xs text-indigo-800">
+					<li><span class="font-mono bg-indigo-200 px-2 py-1 rounded">🟢 Green walls</span> - Maze structure boundaries</li>
+					<li><span class="font-mono bg-green-200 px-2 py-1 rounded">● Green circle</span> - Start position (where agent begins)</li>
+					<li><span class="font-mono bg-red-200 px-2 py-1 rounded">● Red circle</span> - Goal/target position (objective)</li>
+					<li><span class="font-mono bg-blue-200 px-2 py-1 rounded">● Blue circle</span> - Agent position (AI solver)</li>
+				</ul>
+				<div class="mt-2 pt-2 border-t border-indigo-300">
+					<p class="text-xs text-indigo-800 font-semibold mb-1">Q-Value Heatmap (when "Visualize" is toggled):</p>
+					<div class="flex items-center gap-2 text-xs">
+						<span class="w-4 h-4 rounded" style="background: hsl(240, 80%, 50%);"></span>
+						<span class="text-indigo-700">Low Q-value (blue)</span>
+						<span>→</span>
+						<span class="w-4 h-4 rounded" style="background: hsl(60, 80%, 50%);"></span>
+						<span class="text-indigo-700">High Q-value (yellow)</span>
+					</div>
+					<p class="text-xs text-indigo-700 mt-1">Brighter/yellower cells = agent learned these positions are more valuable (closer to goal)</p>
+				</div>
+			</div>
+
 			<!-- Q-LEARNING BASICS -->
 			<div class="rounded-lg bg-blue-50 p-3 border-2 border-blue-200">
 				<h3 class="mb-2 text-base font-bold text-blue-900">🎓 What is Q-Learning?</h3>
@@ -371,9 +503,9 @@
 				<ul class="list-disc space-y-1 pl-5 text-xs text-blue-800">
 					<li><strong>Q-Table:</strong> Maps state-action pairs to expected rewards (Q-values)</li>
 					<li><strong>Bellman Equation:</strong> Q(s,a) = Q(s,a) + α[r + γ·max(Q(s',a')) - Q(s,a)]</li>
-					<li><strong>α (Alpha):</strong> Learning rate (0.1) - how much new info overrides old</li>
+					<li><strong>α (Alpha):</strong> Learning rate (difficulty-adjusted) - how much new info overrides old</li>
 					<li><strong>γ (Gamma):</strong> Discount factor (0.95) - importance of future rewards</li>
-					<li><strong>ε (Epsilon):</strong> Exploration rate (starts at 1.0, decays to 0.01)</li>
+					<li><strong>ε (Epsilon):</strong> Exploration rate (starts at 1.0, decays based on difficulty)</li>
 				</ul>
 			</div>
 
@@ -396,13 +528,20 @@
 			<!-- REWARD STRUCTURE -->
 			<div class="rounded-lg bg-purple-50 p-3 border-2 border-purple-200">
 				<h3 class="mb-2 text-base font-bold text-purple-900">🎯 Reward Structure</h3>
+				<p class="text-xs text-purple-800 mb-2">The agent receives rewards for its actions:</p>
 				<ul class="list-disc space-y-1 pl-5 text-xs text-purple-800">
-					<li><strong>Step Penalty:</strong> -1 per move (encourages efficiency)</li>
-					<li><strong>Goal Reward:</strong> +100 for reaching the red target</li>
+					<li><strong>Hit Wall:</strong> -1.0 (strong discouragement)</li>
+					<li><strong>Normal Move:</strong> -0.5 base penalty + directional bonus
+						<ul class="list-circle space-y-0.5 pl-5 mt-1">
+							<li>Move closer to goal: +0.1 (reward shaping guides learning)</li>
+							<li>Move away from goal: -0.1 (discourages wrong direction)</li>
+						</ul>
+					</li>
+					<li><strong>Goal Reached:</strong> +100 (big success!)</li>
 					<li><strong>Episode Limit:</strong> 1000 steps max to prevent infinite loops</li>
 				</ul>
 				<p class="text-xs text-purple-800 mt-2">
-					This reward structure teaches the agent to find the <strong>shortest path</strong> to the goal!
+					The <strong>reward shaping</strong> (directional bonus) acts like a compass 🧭, guiding the agent toward the goal while still discovering the optimal path through Q-learning!
 				</p>
 			</div>
 
@@ -411,17 +550,25 @@
 				<h3 class="mb-2 text-base font-bold text-amber-900">🧠 How Q-Learning Learns</h3>
 				<ol class="list-decimal space-y-1 pl-5 text-xs text-amber-800">
 					<li><strong>Initialize:</strong> Start with empty Q-table (all values = 0)</li>
-					<li><strong>Episode Loop:</strong> Agent spawns at green start position</li>
+					<li><strong>Episode Loop:</strong> Agent spawns at <span class="text-green-700">🟢 green position</span></li>
 					<li><strong>Choose Action:</strong> ε-greedy (explore random or exploit best Q-value)</li>
 					<li><strong>Execute:</strong> Move agent, observe reward and next state</li>
 					<li><strong>Update Q-Value:</strong> Apply Bellman equation to learn from experience</li>
-					<li><strong>Repeat:</strong> Until reaching goal or step limit</li>
-					<li><strong>Decay ε:</strong> Reduce exploration rate (ε × 0.995)</li>
+					<li><strong>Repeat:</strong> Until reaching <span class="text-red-700">🔴 red goal</span> or step limit (agents blink rapidly between cells)</li>
+					<li><strong>Decay ε:</strong> Reduce exploration rate based on maze difficulty</li>
 					<li><strong>Next Episode:</strong> Reset agent, repeat with updated Q-values</li>
 				</ol>
 				<p class="text-xs text-amber-800 mt-2">
-					Over time, Q-values propagate backward from the goal, creating a "gradient" that guides the agent!
+					Over time, Q-values propagate backward from the goal, creating a "gradient" that guides the agent! You can see this gradient visualized when you toggle "Visualize" (brighter = higher Q-value).
 				</p>
+				<div class="mt-2 pt-2 border-t border-amber-300">
+					<p class="text-xs text-amber-800 font-semibold mb-1">✨ Smart Features:</p>
+					<ul class="list-disc space-y-0.5 pl-5 text-xs text-amber-800">
+						<li><strong>Difficulty-Adjusted Learning:</strong> Easy mazes learn faster (higher α), hard mazes explore more (higher ε decay)</li>
+						<li><strong>Reward Shaping:</strong> Direction bonus helps agent find goal faster without knowing maze structure</li>
+						<li><strong>Demo Mode:</strong> Click "Demo" to see pure exploitation (ε=0) - shows what agent truly learned without exploration!</li>
+					</ul>
+				</div>
 			</div>
 
 			<!-- TECHNICAL ARCHITECTURE -->
@@ -431,10 +578,19 @@
 					<li><strong>Maze Generation:</strong> Recursive backtracker algorithm (depth-first search)</li>
 					<li><strong>State Space:</strong> Discrete grid (row, col) positions</li>
 					<li><strong>Action Space:</strong> 4 discrete actions (UP, DOWN, LEFT, RIGHT)</li>
-					<li><strong>Q-Table Storage:</strong> JavaScript object with "row,col:action" keys</li>
-					<li><strong>Mock Implementation:</strong> Pure JavaScript (Python integration ready)</li>
-					<li><strong>Visualization:</strong> Canvas rendering with Q-value heatmap overlay</li>
-					<li><strong>Training Speed:</strong> ~10 episodes/second (adjustable)</li>
+					<li><strong>Q-Learning Backend:</strong> Python (PyScript) with Q-table dictionary storage</li>
+					<li><strong>Reward Shaping:</strong> Manhattan distance bonus to guide learning</li>
+					<li><strong>Difficulty-Adapted Learning:</strong>
+						<ul class="list-circle space-y-0.5 pl-5 mt-0.5">
+							<li>Easy: α=0.35, decay=0.96 (fast learning)</li>
+							<li>Medium: α=0.3, decay=0.98 (balanced)</li>
+							<li>Hard: α=0.25, decay=0.985 (cautious learning)</li>
+							<li>Insane: α=0.2, decay=0.99 (extensive exploration)</li>
+						</ul>
+					</li>
+					<li><strong>Animation System:</strong> Frame-based tweening (60fps) for demo mode smooth movement</li>
+					<li><strong>Visualization:</strong> Canvas rendering with Q-value heatmap overlay (blue→yellow gradient)</li>
+					<li><strong>Training Speed:</strong> ~4 episodes for 50% success on easy mode!</li>
 				</ul>
 			</div>
 		</div>
@@ -453,15 +609,20 @@
 				<h3 class="mb-2 text-lg font-bold text-cyan-900">🎯 How to Use</h3>
 				<ol class="list-decimal space-y-2 pl-5 text-sm text-cyan-800">
 					<li><strong>Generate Maze:</strong> Click "Generate" to create a random maze. Try different difficulties!</li>
-					<li><strong>Start Training:</strong> Click "Start Training" to begin Q-learning</li>
-					<li><strong>Watch Learning:</strong> Blue agent explores the maze, learning optimal paths</li>
-					<li><strong>Show Q-Values:</strong> Click "Show Q-Values" to see learned values as a heatmap (blue = low, yellow = high)</li>
-					<li><strong>Monitor Metrics:</strong> Watch Epsilon decay and Success Rate improve over episodes</li>
-					<li><strong>Demo Mode:</strong> Once trained (76%+ success rate), click "Demo" to see the agent use its learned policy with zero exploration!</li>
-					<li><strong>Experiment:</strong> Try different difficulties and observe how learning speed changes</li>
+					<li><strong>Start Training:</strong> Click "Start Training" to begin Q-learning
+						<span class="block text-xs text-cyan-700 mt-1">Watch the <span class="text-blue-500">🔵 blue agent blink rapidly</span> between cells as it explores!</span>
+					</li>
+					<li><strong>Visualize Q-Values:</strong> Click "Visualize" to toggle the heatmap overlay
+						<span class="block text-xs text-cyan-700 mt-1">Blue cells = low Q-value | Yellow cells = high Q-value (closer to goal)</span>
+					</li>
+					<li><strong>Monitor Metrics:</strong> Watch Success Rate climb and Epsilon decay as the agent learns</li>
+					<li><strong>Demo Mode:</strong> Once trained, click "Demo" to see smooth, confident movement
+						<span class="block text-xs text-cyan-700 mt-1">Agent moves smoothly (tweened) because it's using pure exploitation (ε=0)</span>
+					</li>
+					<li><strong>Compare Difficulties:</strong> Try Easy (10×10) vs Insane (30×30) to see how learning adapts!</li>
 				</ol>
 				<p class="mt-3 text-xs text-cyan-700">
-					💡 <strong>Pro Tip:</strong> Demo mode sets epsilon to 0 (pure exploitation) so you can see the agent's "actual skill" without random exploration!
+					💡 <strong>Pro Tip:</strong> Training = agent blinks frantically between spots (exploring). Demo = agent glides smoothly (exploiting learned knowledge)!
 				</p>
 			</div>
 

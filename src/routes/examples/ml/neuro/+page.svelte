@@ -487,7 +487,7 @@
 					disabled={status === 'initializing'}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'training' ? '🔄 Restart' : '▶️ Start Training'}
+					{status === 'training' ? '🔄 Restart' : '▶️ Train'}
 				</button>
 				<select
 					bind:value={selectedNetwork}

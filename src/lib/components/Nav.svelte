@@ -116,15 +116,9 @@
                 </div>
             </div>
             <div class="hidden items-center space-x-1 md:flex">
-                <a href="https://github.com/guinetik/python-ds">
+                <a href="https://github.com/guinetik/pyscript-lab">
                     <img
-                        src="https://img.shields.io/badge/-View Source-gray?style=flat-square&logo=github&logoColor=white&link=https://github.com/guinetik"
-                        alt="Visits"
-                    /></a
-                >
-                <a href="https://guinetik.github.io/python-ds/">
-                    <img
-                        src={`https://img.shields.io/static/v1?label=&message=${visits} Visitors&color=blueviolet&style=flat-square`}
+                        src="https://img.shields.io/badge/-View Source-gray?style=flat-square&logo=github&logoColor=white&link=https://github.com/guinetik/pyscript-lab"
                         alt="Visits"
                     /></a
                 >
