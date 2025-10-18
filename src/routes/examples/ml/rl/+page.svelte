@@ -48,6 +48,11 @@
 	// Animation loop for agent tweening
 	let animationFrameId = null;
 
+	// Demo stuck detection
+	let positionHistory = $state([]);
+	const MAX_HISTORY = 10;
+	const OSCILLATION_THRESHOLD = 3; // If same position appears 3+ times in recent history = stuck
+
 	// Difficulty options
 	const difficultySettings = {
 		easy: { name: 'Easy (10×10)', rows: 10, cols: 10, cellSize: 40 },
@@ -55,6 +60,22 @@
 		hard: { name: 'Hard (20×20)', rows: 20, cols: 20, cellSize: 25 },
 		insane: { name: 'Insane (30×30)', rows: 30, cols: 30, cellSize: 20 }
 	};
+
+	// Detect if agent is oscillating (stuck in a loop)
+	function isAgentOscillating(position) {
+		const posKey = `${position.row},${position.col}`;
+
+		// Add current position to history
+		positionHistory = [...positionHistory, posKey].slice(-MAX_HISTORY);
+
+		// Count how many times current position appears in recent history
+		const count = positionHistory.filter(p => p === posKey).length;
+
+		console.log('[RL Page] Position history:', positionHistory, 'Current:', posKey, 'Count:', count);
+
+		// If same position appears 3+ times in last 10 moves, agent is oscillating
+		return count >= OSCILLATION_THRESHOLD;
+	}
 
 	// Animation loop for smooth agent movement
 	function startAnimationLoop() {
@@ -116,6 +137,27 @@
 					col: typeof data.position.col === 'number' ? data.position.col : agentPosition.col
 				};
 
+				// Check for oscillation during demo
+				if (isRunningDemo && isAgentOscillating(newPos)) {
+					console.log('[RL Page] 🔄 Agent oscillating detected! Stopping demo immediately...');
+					// Stop demo immediately from Python
+					if (controller.pythonExports && controller.pythonExports.stopDemo) {
+						controller.pythonExports.stopDemo();
+					}
+					isRunningDemo = false;
+					// Simulate demo complete with stuck state
+					demoResults = {
+						steps: data.steps,
+						reward: data.reward,
+						reachedGoal: false,
+						elapsedTime: 0,
+						oscillationDetected: true
+					};
+					showCompletionOverlay = true;
+					statusMessage = '⏹️ Demo stopped - agent got stuck oscillating';
+					return;
+				}
+
 				// Use tweening only in demo mode for smooth movement
 				// During training, use instant position updates (frequent updates)
 				if (status === 'ready') {
@@ -156,7 +198,11 @@
 			console.log('[RL Page] Demo complete:', results);
 			demoResults = results;
 			isRunningDemo = false;
+
 			if (results.reachedGoal) {
+				showCompletionOverlay = true;
+			} else {
+				// Agent got stuck - show stuck detection overlay
 				showCompletionOverlay = true;
 			}
 		};
@@ -241,11 +287,14 @@
 
 		// If demo is already running, stop it and restart
 		if (isRunningDemo) {
-			console.log('[RL Page] Demo already running - restarting...');
-			controller.stopTraining();
+			console.log('[RL Page] Demo already running - restarting immediately...');
+			// Stop demo immediately from Python
+			if (controller.pythonExports && controller.pythonExports.stopDemo) {
+				controller.pythonExports.stopDemo();
+			}
 			isRunningDemo = false;
 			showCompletionOverlay = false;
-			await new Promise(resolve => setTimeout(resolve, 300));
+			await new Promise(resolve => setTimeout(resolve, 200));
 		}
 
 		// Stop all training
@@ -267,6 +316,9 @@
 
 		countdown = 0;
 		showCountdown = false;
+
+		// Reset position history for oscillation detection
+		positionHistory = [];
 
 		// Start demo
 		isRunningDemo = true;
@@ -310,8 +362,8 @@
 				</div>
 			{/if}
 
-			<!-- Completion Overlay -->
-			{#if showCompletionOverlay && demoResults}
+			<!-- Completion Overlay - Success -->
+			{#if showCompletionOverlay && demoResults && demoResults.reachedGoal}
 				<div class="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-lg">
 					<div class="bg-white rounded-xl shadow-2xl p-8 max-w-md text-center">
 						<div class="text-6xl mb-4">🎉</div>
@@ -352,6 +404,45 @@
 						>
 							Close
 						</button>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Completion Overlay - Agent Stuck -->
+			{#if showCompletionOverlay && demoResults && !demoResults.reachedGoal}
+				<div class="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-lg">
+					<div class="bg-white rounded-lg shadow-2xl p-5 max-w-sm text-center">
+						<div class="text-5xl mb-2">{demoResults.oscillationDetected ? '🔄' : '🤔'}</div>
+						<h2 class="text-2xl font-bold text-gray-900 mb-1">
+							{demoResults.oscillationDetected ? 'Stuck Oscillating' : 'Got Stuck'}
+						</h2>
+						<p class="text-xs text-gray-600 mb-4">
+							{demoResults.oscillationDetected
+								? 'Agent bouncing between cells - needs more training!'
+								: `Agent took ${demoResults.steps} steps but hit max limit`}
+						</p>
+
+						<!-- Buttons -->
+						<div class="flex gap-2">
+							<button
+								onclick={() => { showCompletionOverlay = false; startTraining(); }}
+								class="flex-1 rounded bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600 transition-all"
+							>
+								📚 Train
+							</button>
+							<button
+								onclick={() => { showCompletionOverlay = false; runDemo(); }}
+								class="flex-1 rounded bg-purple-500 px-4 py-2 text-sm font-bold text-white hover:bg-purple-600 transition-all"
+							>
+								🎬 Retry
+							</button>
+							<button
+								onclick={() => showCompletionOverlay = false}
+								class="rounded bg-gray-200 px-4 py-2 text-sm font-bold text-gray-700 hover:bg-gray-300 transition-all"
+							>
+								✕
+							</button>
+						</div>
 					</div>
 				</div>
 			{/if}

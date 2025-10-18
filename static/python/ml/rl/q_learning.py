@@ -185,8 +185,8 @@ class QLearningAgent:
         },
         'insane': {
             'alpha': 0.2,
-            'epsilon_decay': 0.99,
-            'epsilon_min': 0.1
+            'epsilon_decay': 0.995,  # Even slower decay to maximize exploration
+            'epsilon_min': 0.15      # Stay more exploratory longer
         }
     }
 
@@ -327,12 +327,21 @@ class MazeRLTrainer:
     communicates progress to JavaScript.
     """
 
+    # Max steps per episode, scaled by difficulty
+    DIFFICULTY_MAX_STEPS = {
+        'easy': 300,
+        'medium': 1000,
+        'hard': 1500,
+        'insane': 2500
+    }
+
     def __init__(self):
         self.env = None
         self.agent = None
         self.is_training = False
         self.is_paused = False
         self.is_demo = False  # Demo mode flag
+        self.difficulty = 'medium'  # Track current difficulty
 
         # Statistics
         self.current_episode = 0
@@ -351,13 +360,15 @@ class MazeRLTrainer:
         """
         self.env = MazeEnvironment(maze_data)
         self.agent = QLearningAgent(difficulty=difficulty)
+        self.difficulty = difficulty
 
         # Reset statistics
         self.current_episode = 0
         self.success_count = 0
         self.episode_rewards = []
 
-        console.log(f"[Python] Maze set (difficulty={difficulty}), ready to train")
+        max_steps = self.DIFFICULTY_MAX_STEPS.get(difficulty, 1000)
+        console.log(f"[Python] Maze set (difficulty={difficulty}, max_steps={max_steps}), ready to train")
 
     async def run_episode(self, max_steps=1000, visualize_every=5):
         """
@@ -460,7 +471,10 @@ class MazeRLTrainer:
         self.is_training = True
         self.is_paused = False
 
-        console.log(f"[Python] Training started")
+        console.log(f"[Python] Training started (difficulty={self.difficulty})")
+
+        # Get difficulty-specific max steps
+        max_steps = self.DIFFICULTY_MAX_STEPS.get(self.difficulty, 1000)
 
         episode_count = 0
         while self.is_training:
@@ -468,8 +482,8 @@ class MazeRLTrainer:
                 await asyncio.sleep(0.1)
                 continue
 
-            # Run episode
-            await self.run_episode()
+            # Run episode with difficulty-based max steps
+            await self.run_episode(max_steps=max_steps)
 
             # Check if we should stop
             episode_count += 1
@@ -508,13 +522,13 @@ class MazeRLTrainer:
 
         console.log("[Python] Training reset")
 
-    async def run_demo(self, max_steps=1000):
+    async def run_demo(self, max_steps=None):
         """
         Run demonstration using learned policy (epsilon = 0).
         Shows what the agent has learned without exploration or Q-value updates.
 
         Args:
-            max_steps: Maximum steps per demo
+            max_steps: Maximum steps per demo (uses difficulty-based if None)
 
         Returns:
             dict: Demo statistics
@@ -523,7 +537,11 @@ class MazeRLTrainer:
             console.error("[Python] No environment set!")
             return None
 
-        console.log("[Python] Starting demo mode (pure exploitation, no learning)")
+        # Use difficulty-based max steps if not specified
+        if max_steps is None:
+            max_steps = self.DIFFICULTY_MAX_STEPS.get(self.difficulty, 1000)
+
+        console.log(f"[Python] Starting demo mode (difficulty={self.difficulty}, max_steps={max_steps})")
 
         # Save current epsilon and set to 0 for pure exploitation
         original_epsilon = self.agent.epsilon
@@ -677,6 +695,13 @@ def stop_training():
     _trainer.stop()
 
 
+def stop_demo():
+    """Stop demo immediately (called from JavaScript)."""
+    _trainer.is_demo = False
+    _trainer.is_training = False
+    console.log("[Python] Demo stopped immediately")
+
+
 def reset_training():
     """Reset training (called from JavaScript)."""
     _trainer.reset()
@@ -723,6 +748,7 @@ manager.signal_ready(extra_exports={
     'pauseTraining': pause_training,
     'resumeTraining': resume_training,
     'stopTraining': stop_training,
+    'stopDemo': stop_demo,
     'resetTraining': reset_training,
     'runDemo': run_demo
 })
