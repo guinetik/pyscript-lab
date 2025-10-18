@@ -1,0 +1,61 @@
+{
+  "title": "Bokeh + Pandas",
+  "intro": "Esses gráficos interativos analisam mais de 20.000 listagens do AirBnb usando a biblioteca Pandas do Python e as ferramentas de visualização Bokeh.",
+  "heatmap": {
+    "title": "📊 Mapa de Calor de Correlação",
+    "description": "Mostra como diferentes características das listagens se relacionam. Quadrados amarelos indicam fortes relações positivas (quando um aumenta, o outro também), enquanto quadrados roxos mostram relações negativas.",
+    "code": "Análise de correlação usando Pandas e Bokeh:"
+  },
+  "pie": {
+    "title": "🥧 Distribuição de Tipo de Quarto",
+    "description": "Um gráfico de pizza mostrando a divisão de diferentes tipos de acomodação (casas inteiras, quartos privados, quartos compartilhados). Isso ajuda a entender que tipos de espaços são mais comumente listados.",
+    "code": "Distribuição de quartos usando os MESMOS dados em cache:"
+  },
+  "jitter": {
+    "title": "💰 Análise de Preços",
+    "description": "Exibe como os preços variam em diferentes tipos de quartos. Cada ponto representa uma listagem, permitindo que você veja a faixa de preço e a distribuição para cada categoria de acomodação.",
+    "code": "Distribuição de preço com scatter tremulante:"
+  },
+  "bar": {
+    "title": "🏠 Principais Anfitriões",
+    "description": "Gráfico de barras mostrando os 10 anfitriões mais ativos por número de listagens. Isso revela quais anfitriões gerenciam a maioria das propriedades na plataforma.",
+    "code": "Top 10 anfitriões por contagem de listagens:"
+  },
+  "lollipop": {
+    "title": "📍 Atividade do Bairro",
+    "description": "Gráfico de pirulito exibindo contagens de listagens por bairro. O comprimento de cada linha mostra quantas propriedades estão disponíveis em diferentes áreas da cidade.",
+    "code": "Listagens por grupo de vizinhança:"
+  },
+  "whatPandas": {
+    "title": "🐼 O Que é Pandas?",
+    "description": "Pandas é a biblioteca de análise de dados mais popular do Python. Fornece DataFrames - estruturas poderosas semelhantes a tabelas que facilitam a limpeza, transformação e análise de grandes conjuntos de dados. Pense nisso como Excel nos esteroides, mas programável e capaz de lidar com milhões de linhas."
+  },
+  "dataset": {
+    "title": "📊 O Conjunto de Dados",
+    "intro": "Estamos analisando 20.837 listagens do AirBnb de um conjunto de dados do mundo real. Cada linha contém informações como:",
+    "hostId": "ID do anfitrião e contagem de listagens",
+    "neighborhood": "Bairro e distrito",
+    "roomType": "Tipo de quarto (casa inteira, quarto privado, compartilhado)",
+    "price": "Preço por noite",
+    "reviews": "Número de avaliações e pontuações de avaliação",
+    "availability": "Disponibilidade ao longo do ano"
+  },
+  "patterns": {
+    "title": "🔍 Padrões de Análise de Dados",
+    "intro": "Cada gráfico demonstra operações comuns de Pandas:",
+    "correlation": "Correlação: df.corr() encontra relações entre colunas numéricas",
+    "valueCounts": "Contagens de Valores: df.column.value_counts() agrega categorias",
+    "filtering": "Filtragem: df[df.price < 500] seleciona subconjuntos de dados",
+    "grouping": "Agrupamento: df.groupby('room_type').mean() agrega por categoria",
+    "sorting": "Classificação: df.sort_values('price') ordena linhas"
+  },
+  "loading": {
+    "title": "💡 Carregando Dados",
+    "description": "O CSV é carregado usando a função read_csv() do Pandas com busca HTTP do PyScript. O primeiro gráfico carrega os dados, então os gráficos subsequentes reutilizam o DataFrame em cache - nenhuma solicitação de rede redundante!"
+  },
+  "whyBokeh": {
+    "title": "🎨 Por Que Bokeh?",
+    "description": "Bokeh se destaca na criação de visualizações interativas diretamente de DataFrames do Pandas. Diferentemente de gráficos estáticos, gráficos Bokeh permitem que você faça pan, zoom e hover para explorar os dados. É perfeito para análise exploratória de dados e painéis."
+  },
+  "viewSource": "Ver arquivos de origem"
+}

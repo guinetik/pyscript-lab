@@ -1,12 +1,39 @@
 <script>
 	import '../app.css';
 	import Nav from '../lib/components/Nav.svelte';
+	import { initializeI18n } from '$lib/i18n';
+	import { isLoading } from 'svelte-i18n';
 
 	let { children } = $props();
+
+	// Initialize i18n
+	initializeI18n();
+
+	// Update HTML lang attribute when locale changes
+	$effect(() => {
+		if (!$isLoading && typeof document !== 'undefined') {
+			import('svelte-i18n').then(({ locale }) => {
+				locale.subscribe(value => {
+					if (value) {
+						document.documentElement.lang = value;
+					}
+				});
+			});
+		}
+	});
 </script>
 
-<Nav />
+{#if $isLoading}
+	<div class="flex h-screen w-full items-center justify-center">
+		<div class="text-center">
+			<div class="mb-4 text-4xl">🐍</div>
+			<div class="text-xl font-semibold text-gray-700">Loading...</div>
+		</div>
+	</div>
+{:else}
+	<Nav />
 
-<main class="flex h-[calc(100%-120px)] w-full flex-col justify-center">
-	{@render children()}
-</main>
+	<main class="flex h-[calc(100%-120px)] w-full flex-col justify-center">
+		{@render children()}
+	</main>
+{/if}

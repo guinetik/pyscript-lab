@@ -7,8 +7,53 @@
     import { getLink } from '../utils';
     import SiteMapStore from '../stores/SiteMapStore';
     import SiteMapLink from './SiteMapLink.svelte';
+    import LanguageSwitcher from './LanguageSwitcher.svelte';
     import { page } from '$app/stores';
     import { beforeUpdate } from 'svelte';
+    import { t } from 'svelte-i18n';
+
+    // Mapping from page IDs to translation keys
+    const pageIdToTranslationKey = {
+        'basics': 'nav.basicExamples',
+        'hello-world': 'nav.helloWorld',
+        'repl': 'nav.repl',
+        'interop': 'nav.interop',
+        'encoder': 'nav.encoder',
+        'matplotlib': 'nav.matplotlib',
+        'matplotlib_intro': 'nav.matplotlibIntro',
+        'matplotlib_charts': 'nav.matplotlibCharts',
+        'matplotlib_maps': 'nav.matplotlibMaps',
+        'bokeh_index': 'nav.bokeh',
+        'bokeh_0': 'nav.bokehIntro',
+        'bokeh_1': 'nav.bokehPandas',
+        'bokeh_2': 'nav.bokehNetworks',
+        'bokeh_3': 'nav.bokehCommunities',
+        'diagrams': 'nav.diagrams',
+        'diagrams_gallery': 'nav.diagramsGallery',
+        'diagrams_create': 'nav.diagramsCreate',
+        'ml': 'nav.machineLearning',
+        'ml_digit': 'nav.digitRecognition',
+        'sentiment': 'nav.sentimentAnalysis',
+        'ml_rl': 'nav.reinforcementLearning',
+        'ml_neuro': 'nav.neuralNetworks',
+        'github': 'nav.github',
+        'twitter': 'nav.github'
+    };
+
+    /**
+     * Get translated page title by page ID
+     * Falls back to page.title if no translation key found
+     * @param {string} pageId - The page ID
+     * @param {string} fallback - Fallback title
+     * @returns {string} Translated title
+     */
+    function getPageTitle(pageId, fallback) {
+        const translationKey = pageIdToTranslationKey[pageId];
+        if (translationKey) {
+            return $t(translationKey);
+        }
+        return fallback;
+    }
 
     /** @type {SiteMap | null} */
     let siteMap = null;
@@ -84,7 +129,7 @@
                                 <button
                                     class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 {currentPath.startsWith(link.page.url) ? 'text-yellow-500 font-bold' : 'text-gray-700'}"
                                 >
-                                    {link.page.title}
+                                    {getPageTitle(link.page.id, link.page.title)}
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                     </svg>
@@ -97,7 +142,7 @@
                                                 href={child.url}
                                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 {currentPath === child.url ? 'bg-yellow-50 text-yellow-500 font-bold' : ''}"
                                             >
-                                                {child.title}
+                                                {getPageTitle(child.id, child.title)}
                                             </a>
                                         {/each}
                                     </div>
@@ -115,11 +160,14 @@
                     {/each}
                 </div>
             </div>
-            <div class="hidden items-center space-x-1 md:flex">
+            <div class="hidden items-center space-x-3 md:flex">
+                <!-- Language Switcher -->
+                <LanguageSwitcher />
+
                 <a href="https://github.com/guinetik/pyscript-lab">
                     <img
-                        src="https://img.shields.io/badge/-View Source-gray?style=flat-square&logo=github&logoColor=white&link=https://github.com/guinetik/pyscript-lab"
-                        alt="Visits"
+                        src="https://img.shields.io/badge/-{$t('nav.viewSource')}-gray?style=flat-square&logo=github&logoColor=white&link=https://github.com/guinetik/pyscript-lab"
+                        alt={$t('nav.viewSource')}
                     /></a
                 >
                 <a href="https://linkedin.com/in/guinetik">
@@ -133,7 +181,7 @@
                 <button
                     class="h-6 w-6"
                     on:click={toggleMenu}
-                    aria-label="Toggle menu"
+                    aria-label={$t('nav.toggleMenu')}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -167,6 +215,9 @@
                 ? 'translate-x-0'
                 : 'translate-x-full'} absolute top-0 right-0 bottom-0 z-10 bg-white drop-shadow-2xl transition-all duration-500"
         >
+            <div class="border-b border-inherit p-4">
+                <LanguageSwitcher />
+            </div>
             <div>
                 <a
                     href={getLink('/')}
@@ -179,14 +230,14 @@
                 <li class="border-b border-inherit">
                     {#if link.page.hasChildren()}
                         <!-- Mobile dropdown for pages with children -->
-                        <div class="block p-4 text-gray-700 font-bold">{link.page.title}</div>
+                        <div class="block p-4 text-gray-700 font-bold">{getPageTitle(link.page.id, link.page.title)}</div>
                         {#each link.page.children as child}
                             <a
                                 href={child.url}
                                 on:click={closeMenu}
                                 class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 {currentPath === child.url ? 'bg-yellow-50 text-yellow-500 font-bold' : ''}"
                             >
-                                {child.title}
+                                {getPageTitle(child.id, child.title)}
                             </a>
                         {/each}
                     {:else}
@@ -205,7 +256,7 @@
 
         <!-- Close Button -->
         <button
-            aria-label="Close menu"
+            aria-label={$t('nav.closeMenu')}
             class="absolute top-0 right-0 bottom-0 left-0 {toggleBurgerMenu
                 ? 'opacity-100'
                 : 'opacity-0'}"

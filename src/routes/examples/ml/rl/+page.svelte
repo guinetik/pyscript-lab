@@ -4,16 +4,17 @@
 	import { MazeRLController } from '$lib/controller/MazeRLController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
-	// Page metadata
-	let name = 'Q-Learning Maze Solver';
+	// Get translated content
+	const exampleText = exampleTranslationStore('ml-rl');
 
 	// Controller instance
 	let controller = browser ? new MazeRLController() : null;
 
 	// UI State
 	let status = $state('ready'); // 'ready' | 'training' | 'paused' | 'error'
-	let statusMessage = $state('Click "Generate Maze" to begin');
+	let statusMessage = $state($exampleText.ui?.readyMessage || 'Click "Generate Maze" to begin');
 
 	// Maze state
 	let mazeData = $state(null);
@@ -60,6 +61,11 @@
 		hard: { name: 'Hard (20×20)', rows: 20, cols: 20, cellSize: 25 },
 		insane: { name: 'Insane (30×30)', rows: 30, cols: 30, cellSize: 20 }
 	};
+
+	// Function to get difficulty name
+	function getDifficultyName(key) {
+		return difficultySettings[key]?.name || key;
+	}
 
 	// Detect if agent is oscillating (stuck in a loop)
 	function isAgentOscillating(position) {
@@ -126,7 +132,7 @@
 			canvasWidth = settings.cols * settings.cellSize;
 			canvasHeight = settings.rows * settings.cellSize;
 
-			statusMessage = 'Maze generated! Click "Start Training" to begin Q-learning.';
+			statusMessage = $exampleText.ui?.generatedMessage || 'Maze generated! Click "Start Training" to begin Q-learning.';
 		};
 
 		controller.callbacks.onAgentMove = (data) => {
@@ -154,7 +160,7 @@
 						oscillationDetected: true
 					};
 					showCompletionOverlay = true;
-					statusMessage = '⏹️ Demo stopped - agent got stuck oscillating';
+					statusMessage = $exampleText.ui?.stuckOscillatingMessage || '⏹️ Demo stopped - agent got stuck oscillating';
 					return;
 				}
 
@@ -243,31 +249,31 @@
 			// Restart training
 			controller.resetTraining();
 			controller.startTraining();
-			statusMessage = 'Training restarted';
+			statusMessage = $exampleText.ui?.trainingRestartedMessage || 'Training restarted';
 		} else {
 			controller.startTraining();
 			status = 'training';
-			statusMessage = 'Q-learning in progress...';
+			statusMessage = $exampleText.ui?.trainingMessage || 'Q-learning in progress...';
 		}
 	}
 
 	function pauseTraining() {
 		controller.pauseTraining();
 		status = 'paused';
-		statusMessage = 'Training paused. Click "Resume" to continue.';
+		statusMessage = $exampleText.ui?.pausedMessage || 'Training paused. Click "Resume" to continue.';
 	}
 
 	function resumeTraining() {
 		controller.resumeTraining();
 		status = 'training';
-		statusMessage = 'Training resumed...';
+		statusMessage = $exampleText.ui?.resumedMessage || 'Training resumed...';
 	}
 
 	function resetTraining() {
 		controller.resetTraining();
 		agentPosition = { ...startPosition };
 		status = 'ready';
-		statusMessage = 'Training reset. Click "Start Training" to begin.';
+		statusMessage = $exampleText.ui?.resetMessage || 'Training reset. Click "Start Training" to begin.';
 	}
 
 	function toggleQValues() {
@@ -299,14 +305,14 @@
 
 		// Stop all training
 		controller.stopTraining();
-		statusMessage = '⏹️ Stopping training...';
+		statusMessage = $exampleText.ui?.stoppingTrainingMessage || '⏹️ Stopping training...';
 
 		// Wait 1 second for training to fully stop
 		await new Promise(resolve => setTimeout(resolve, 1000));
 
 		// Show countdown
 		showCountdown = true;
-		statusMessage = '🎬 Demo starting...';
+		statusMessage = $exampleText.ui?.demoStartingMessage || '🎬 Demo starting...';
 
 		// Countdown: 3...2...1...GO!
 		for (let i = 3; i > 0; i--) {
@@ -324,7 +330,7 @@
 		isRunningDemo = true;
 		controller.runDemo();
 		status = 'ready';
-		statusMessage = '🎬 Running demo with learned policy (epsilon = 0, no exploration)...';
+		statusMessage = $exampleText.ui?.demoRunningMessage || '🎬 Running demo with learned policy (epsilon = 0, no exploration)...';
 	}
 </script>
 
@@ -451,23 +457,23 @@
 		<!-- Metrics Display -->
 		<div class="grid grid-cols-5 gap-2">
 			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 text-white shadow-lg">
-				<div class="text-xs font-semibold opacity-90">Episode</div>
+				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricEpisode || 'Episode'}</div>
 				<div class="text-2xl font-bold">{typeof episode === 'number' ? episode : 0}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-3 text-white shadow-lg">
-				<div class="text-xs font-semibold opacity-90">Steps</div>
+				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricSteps || 'Steps'}</div>
 				<div class="text-2xl font-bold">{typeof steps === 'number' ? steps : 0}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-3 text-white shadow-lg">
-				<div class="text-xs font-semibold opacity-90">Reward</div>
+				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricReward || 'Reward'}</div>
 				<div class="text-2xl font-bold">{typeof totalReward === 'number' ? totalReward.toFixed(0) : '0'}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-3 text-white shadow-lg">
-				<div class="text-xs font-semibold opacity-90">Epsilon (ε)</div>
+				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricEpsilon || 'Epsilon (ε)'}</div>
 				<div class="text-2xl font-bold">{typeof epsilon === 'number' ? epsilon.toFixed(2) : '1.00'}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 p-3 text-white shadow-lg">
-				<div class="text-xs font-semibold opacity-90">Success Rate</div>
+				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricSuccessRate || 'Success Rate'}</div>
 				<div class="text-2xl font-bold">{typeof successRate === 'number' ? successRate.toFixed(1) : '0.0'}%</div>
 			</div>
 		</div>
@@ -504,7 +510,7 @@
 					disabled={status === 'training'}
 					class="rounded bg-blue-500 px-6 py-3 font-bold text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					🎲 Generate
+					{$exampleText.ui?.generateButton || '🎲 Generate'}
 				</button>
 				<select
 					bind:value={difficulty}
@@ -521,7 +527,7 @@
 					disabled={status !== 'training' && status !== 'paused'}
 					class="rounded bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					🔄 Reset
+					{$exampleText.ui?.resetButton || '🔄 Reset'}
 				</button>
 			</div>
 
@@ -532,28 +538,28 @@
 					disabled={!mazeData}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'training' ? '🔄 Restart' : '▶️ Train'}
+					{status === 'training' ? ($exampleText.ui?.restartButton || '🔄 Restart') : ($exampleText.ui?.trainButton || '▶️ Train')}
 				</button>
 				<button
 					onclick={status === 'paused' ? resumeTraining : pauseTraining}
 					disabled={status !== 'training' && status !== 'paused'}
 					class="rounded bg-yellow-500 px-6 py-3 font-bold text-white hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'paused' ? '▶️ Resume' : '⏸️ Pause'}
+					{status === 'paused' ? ($exampleText.ui?.resumeButton || '▶️ Resume') : ($exampleText.ui?.pauseButton || '⏸️ Pause')}
 				</button>
 				<button
 					onclick={runDemo}
 					disabled={!mazeData || episode === 0}
 					class="rounded bg-purple-500 px-6 py-3 font-bold text-white hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					🎬 Demo
+					{$exampleText.ui?.demoButton || '🎬 Demo'}
 				</button>
 				<button
 					onclick={toggleQValues}
 					disabled={!qValues || Object.keys(qValues).length === 0}
 					class="rounded px-6 py-3 font-bold text-white transition-colors {showQValues ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'} disabled:bg-gray-400 disabled:cursor-not-allowed"
 				>
-					{showQValues ? '🎨 Hide Q-values' : '🎨 Visualize'}
+					{showQValues ? ($exampleText.ui?.hideQValuesButton || '🎨 Hide Q-values') : ($exampleText.ui?.visualizeButton || '🎨 Visualize')}
 				</button>
 			</div>
 		</div>
@@ -562,189 +568,189 @@
 		<div class="space-y-3">
 			<!-- MAZE VISUALIZATION COLORS -->
 			<div class="rounded-lg bg-indigo-50 p-3 border-2 border-indigo-200">
-				<h3 class="mb-2 text-base font-bold text-indigo-900">🎨 Visualization Colors</h3>
+				<h3 class="mb-2 text-base font-bold text-indigo-900">{$exampleText.ui?.visualizationTitle || '🎨 Visualization Colors'}</h3>
 				<p class="text-xs text-indigo-800 mb-2">
-					Here's what each color represents in the maze:
+					{$exampleText.ui?.visualizationDesc || 'Here\'s what each color represents in the maze:'}
 				</p>
 				<ul class="space-y-1 pl-5 text-xs text-indigo-800">
-					<li><span class="font-mono bg-indigo-200 px-2 py-1 rounded">🟢 Green walls</span> - Maze structure boundaries</li>
-					<li><span class="font-mono bg-green-200 px-2 py-1 rounded">● Green circle</span> - Start position (where agent begins)</li>
-					<li><span class="font-mono bg-red-200 px-2 py-1 rounded">● Red circle</span> - Goal/target position (objective)</li>
-					<li><span class="font-mono bg-blue-200 px-2 py-1 rounded">● Blue circle</span> - Agent position (AI solver)</li>
+					<li><span class="font-mono bg-indigo-200 px-2 py-1 rounded">🟢</span> {$exampleText.ui?.colorGreenWalls || 'Green walls - Maze structure boundaries'}</li>
+					<li><span class="font-mono bg-green-200 px-2 py-1 rounded">●</span> {$exampleText.ui?.colorGreenCircle || 'Green circle - Start position (where agent begins)'}</li>
+					<li><span class="font-mono bg-red-200 px-2 py-1 rounded">●</span> {$exampleText.ui?.colorRedCircle || 'Red circle - Goal/target position (objective)'}</li>
+					<li><span class="font-mono bg-blue-200 px-2 py-1 rounded">●</span> {$exampleText.ui?.colorBlueCircle || 'Blue circle - Agent position (AI solver)'}</li>
 				</ul>
 				<div class="mt-2 pt-2 border-t border-indigo-300">
-					<p class="text-xs text-indigo-800 font-semibold mb-1">Q-Value Heatmap (when "Visualize" is toggled):</p>
+					<p class="text-xs text-indigo-800 font-semibold mb-1">{$exampleText.ui?.qValueHeatmap || 'Q-Value Heatmap (when "Visualize" is toggled):'}</p>
 					<div class="flex items-center gap-2 text-xs">
 						<span class="w-4 h-4 rounded" style="background: hsl(240, 80%, 50%);"></span>
-						<span class="text-indigo-700">Low Q-value (blue)</span>
+						<span class="text-indigo-700">{$exampleText.ui?.qValueLow || 'Low Q-value (blue)'}</span>
 						<span>→</span>
 						<span class="w-4 h-4 rounded" style="background: hsl(60, 80%, 50%);"></span>
-						<span class="text-indigo-700">High Q-value (yellow)</span>
+						<span class="text-indigo-700">{$exampleText.ui?.qValueHigh || 'High Q-value (yellow)'}</span>
 					</div>
-					<p class="text-xs text-indigo-700 mt-1">Brighter/yellower cells = agent learned these positions are more valuable (closer to goal)</p>
+					<p class="text-xs text-indigo-700 mt-1">{$exampleText.ui?.qValueDesc || 'Brighter/yellower cells = agent learned these positions are more valuable (closer to goal)'}</p>
 				</div>
 			</div>
 
 			<!-- Q-LEARNING BASICS -->
 			<div class="rounded-lg bg-blue-50 p-3 border-2 border-blue-200">
-				<h3 class="mb-2 text-base font-bold text-blue-900">🎓 What is Q-Learning?</h3>
+				<h3 class="mb-2 text-base font-bold text-blue-900">{$exampleText.sections?.whatIsQLearning?.title || '🎓 What is Q-Learning?'}</h3>
 				<p class="text-xs text-blue-800 mb-2">
-					<strong>Q-Learning</strong> is a value-based reinforcement learning algorithm that learns the optimal action to take in each state by maintaining a Q-table:
+					{$exampleText.sections?.whatIsQLearning?.description || 'Q-Learning is a value-based reinforcement learning algorithm that learns the optimal action to take in each state by maintaining a Q-table:'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-xs text-blue-800">
-					<li><strong>Q-Table:</strong> Maps state-action pairs to expected rewards (Q-values)</li>
-					<li><strong>Bellman Equation:</strong> Q(s,a) = Q(s,a) + α[r + γ·max(Q(s',a')) - Q(s,a)]</li>
-					<li><strong>α (Alpha):</strong> Learning rate (difficulty-adjusted) - how much new info overrides old</li>
-					<li><strong>γ (Gamma):</strong> Discount factor (0.95) - importance of future rewards</li>
-					<li><strong>ε (Epsilon):</strong> Exploration rate (starts at 1.0, decays based on difficulty)</li>
+					<li>{$exampleText.sections?.whatIsQLearning?.qTable || 'Q-Table: Maps state-action pairs to expected rewards (Q-values)'}</li>
+					<li>{$exampleText.sections?.whatIsQLearning?.bellman || 'Bellman Equation: Q(s,a) = Q(s,a) + α[r + γ·max(Q(s\',a\')) - Q(s,a)]'}</li>
+					<li>{$exampleText.sections?.whatIsQLearning?.alpha || 'α (Alpha): Learning rate (difficulty-adjusted) - how much new info overrides old'}</li>
+					<li>{$exampleText.sections?.whatIsQLearning?.gamma || 'γ (Gamma): Discount factor (0.95) - importance of future rewards'}</li>
+					<li>{$exampleText.sections?.whatIsQLearning?.epsilon || 'ε (Epsilon): Exploration rate (starts at 1.0, decays based on difficulty)'}</li>
 				</ul>
 			</div>
 
 			<!-- EXPLORATION VS EXPLOITATION -->
 			<div class="rounded-lg bg-green-50 p-3 border-2 border-green-200">
-				<h3 class="mb-2 text-base font-bold text-green-900">🔍 Exploration vs Exploitation</h3>
+				<h3 class="mb-2 text-base font-bold text-green-900">{$exampleText.sections?.explorationVsExploitation?.title || '🔍 Exploration vs Exploitation'}</h3>
 				<p class="text-xs text-green-800 mb-2">
-					The agent uses an <strong>epsilon-greedy</strong> strategy to balance learning and performance:
+					{$exampleText.sections?.explorationVsExploitation?.description || 'The agent uses an epsilon-greedy strategy to balance learning and performance:'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-xs text-green-800">
-					<li><strong>Exploration (ε = 1.0 → 0.01):</strong> Take random actions to discover new paths</li>
-					<li><strong>Exploitation (1 - ε):</strong> Use learned Q-values to take best known action</li>
-					<li><strong>Epsilon Decay:</strong> Gradually shift from exploration to exploitation as agent learns</li>
+					<li>{$exampleText.sections?.explorationVsExploitation?.exploration || 'Exploration (ε = 1.0 → 0.01): Take random actions to discover new paths'}</li>
+					<li>{$exampleText.sections?.explorationVsExploitation?.exploitation || 'Exploitation (1 - ε): Use learned Q-values to take best known action'}</li>
+					<li>{$exampleText.sections?.explorationVsExploitation?.decay || 'Epsilon Decay: Gradually shift from exploration to exploitation as agent learns'}</li>
 				</ul>
 				<p class="text-xs text-green-800 mt-2">
-					Watch the Epsilon (ε) metric decrease over time - as it approaches 0.01, the agent transitions from random exploration to exploiting learned strategies!
+					{$exampleText.sections?.explorationVsExploitation?.note || 'Watch the Epsilon (ε) metric decrease over time - as it approaches 0.01, the agent transitions from random exploration to exploiting learned strategies!'}
 				</p>
 			</div>
 
 			<!-- REWARD STRUCTURE -->
 			<div class="rounded-lg bg-purple-50 p-3 border-2 border-purple-200">
-				<h3 class="mb-2 text-base font-bold text-purple-900">🎯 Reward Structure</h3>
-				<p class="text-xs text-purple-800 mb-2">The agent receives rewards for its actions:</p>
+				<h3 class="mb-2 text-base font-bold text-purple-900">{$exampleText.sections?.rewardStructure?.title || '🎯 Reward Structure'}</h3>
+				<p class="text-xs text-purple-800 mb-2">{$exampleText.sections?.rewardStructure?.description || 'The agent receives rewards for its actions:'}</p>
 				<ul class="list-disc space-y-1 pl-5 text-xs text-purple-800">
-					<li><strong>Hit Wall:</strong> -1.0 (strong discouragement)</li>
-					<li><strong>Normal Move:</strong> -0.5 base penalty + directional bonus
+					<li>{$exampleText.sections?.rewardStructure?.hitWall || 'Hit Wall: -1.0 (strong discouragement)'}</li>
+					<li>{$exampleText.sections?.rewardStructure?.normalMove || 'Normal Move: -0.5 base penalty + directional bonus'}
 						<ul class="list-circle space-y-0.5 pl-5 mt-1">
-							<li>Move closer to goal: +0.1 (reward shaping guides learning)</li>
-							<li>Move away from goal: -0.1 (discourages wrong direction)</li>
+							<li>{$exampleText.sections?.rewardStructure?.closer || 'Move closer to goal: +0.1 (reward shaping guides learning)'}</li>
+							<li>{$exampleText.sections?.rewardStructure?.away || 'Move away from goal: -0.1 (discourages wrong direction)'}</li>
 						</ul>
 					</li>
-					<li><strong>Goal Reached:</strong> +100 (big success!)</li>
-					<li><strong>Episode Limit:</strong> 1000 steps max to prevent infinite loops</li>
+					<li>{$exampleText.sections?.rewardStructure?.goalReached || 'Goal Reached: +100 (big success!)'}</li>
+					<li>{$exampleText.sections?.rewardStructure?.episodeLimit || 'Episode Limit: 1000 steps max to prevent infinite loops'}</li>
 				</ul>
 				<p class="text-xs text-purple-800 mt-2">
-					The <strong>reward shaping</strong> (directional bonus) acts like a compass 🧭, guiding the agent toward the goal while still discovering the optimal path through Q-learning!
+					{$exampleText.sections?.rewardStructure?.shaping || 'The reward shaping (directional bonus) acts like a compass 🧭, guiding the agent toward the goal while still discovering the optimal path through Q-learning!'}
 				</p>
 			</div>
 
 			<!-- HOW IT LEARNS -->
 			<div class="rounded-lg bg-amber-50 p-3 border-2 border-amber-200">
-				<h3 class="mb-2 text-base font-bold text-amber-900">🧠 How Q-Learning Learns</h3>
+				<h3 class="mb-2 text-base font-bold text-amber-900">{$exampleText.sections?.howQLearningLearns?.title || '🧠 How Q-Learning Learns'}</h3>
 				<ol class="list-decimal space-y-1 pl-5 text-xs text-amber-800">
-					<li><strong>Initialize:</strong> Start with empty Q-table (all values = 0)</li>
-					<li><strong>Episode Loop:</strong> Agent spawns at <span class="text-green-700">🟢 green position</span></li>
-					<li><strong>Choose Action:</strong> ε-greedy (explore random or exploit best Q-value)</li>
-					<li><strong>Execute:</strong> Move agent, observe reward and next state</li>
-					<li><strong>Update Q-Value:</strong> Apply Bellman equation to learn from experience</li>
-					<li><strong>Repeat:</strong> Until reaching <span class="text-red-700">🔴 red goal</span> or step limit (agents blink rapidly between cells)</li>
-					<li><strong>Decay ε:</strong> Reduce exploration rate based on maze difficulty</li>
-					<li><strong>Next Episode:</strong> Reset agent, repeat with updated Q-values</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step1 || 'Initialize: Start with empty Q-table (all values = 0)'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step2 || 'Episode Loop: Agent spawns at 🟢 green position'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step3 || 'Choose Action: ε-greedy (explore random or exploit best Q-value)'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step4 || 'Execute: Move agent, observe reward and next state'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step5 || 'Update Q-Value: Apply Bellman equation to learn from experience'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step6 || 'Repeat: Until reaching 🔴 red goal or step limit (agents blink rapidly between cells)'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step7 || 'Decay ε: Reduce exploration rate based on maze difficulty'}</li>
+					<li>{$exampleText.sections?.howQLearningLearns?.step8 || 'Next Episode: Reset agent, repeat with updated Q-values'}</li>
 				</ol>
 				<p class="text-xs text-amber-800 mt-2">
-					Over time, Q-values propagate backward from the goal, creating a "gradient" that guides the agent! You can see this gradient visualized when you toggle "Visualize" (brighter = higher Q-value).
+					{$exampleText.sections?.howQLearningLearns?.insight || 'Over time, Q-values propagate backward from the goal, creating a "gradient" that guides the agent! You can see this gradient visualized when you toggle "Visualize" (brighter = higher Q-value).'}
 				</p>
 				<div class="mt-2 pt-2 border-t border-amber-300">
-					<p class="text-xs text-amber-800 font-semibold mb-1">✨ Smart Features:</p>
+					<p class="text-xs text-amber-800 font-semibold mb-1">{$exampleText.sections?.howQLearningLearns?.smartFeaturesTitle || '✨ Smart Features:'}</p>
 					<ul class="list-disc space-y-0.5 pl-5 text-xs text-amber-800">
-						<li><strong>Difficulty-Adjusted Learning:</strong> Easy mazes learn faster (higher α), hard mazes explore more (higher ε decay)</li>
-						<li><strong>Reward Shaping:</strong> Direction bonus helps agent find goal faster without knowing maze structure</li>
-						<li><strong>Demo Mode:</strong> Click "Demo" to see pure exploitation (ε=0) - shows what agent truly learned without exploration!</li>
+						<li>{$exampleText.sections?.howQLearningLearns?.smartFeature1 || 'Difficulty-Adjusted Learning: Easy mazes learn faster (higher α), hard mazes explore more (higher ε decay)'}</li>
+						<li>{$exampleText.sections?.howQLearningLearns?.smartFeature2 || 'Reward Shaping: Direction bonus helps agent find goal faster without knowing maze structure'}</li>
+						<li>{$exampleText.sections?.howQLearningLearns?.smartFeature3 || 'Demo Mode: Click "Demo" to see pure exploitation (ε=0) - shows what agent truly learned without exploration!'}</li>
 					</ul>
 				</div>
 			</div>
 
 			<!-- TECHNICAL ARCHITECTURE -->
 			<div class="rounded-lg bg-red-50 p-3 border-2 border-red-200">
-				<h3 class="mb-2 text-base font-bold text-red-900">⚡ Technical Architecture</h3>
+				<h3 class="mb-2 text-base font-bold text-red-900">{$exampleText.sections?.technicalArchitecture?.title || '⚡ Technical Architecture'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-xs text-red-800">
-					<li><strong>Maze Generation:</strong> Recursive backtracker algorithm (depth-first search)</li>
-					<li><strong>State Space:</strong> Discrete grid (row, col) positions</li>
-					<li><strong>Action Space:</strong> 4 discrete actions (UP, DOWN, LEFT, RIGHT)</li>
-					<li><strong>Q-Learning Backend:</strong> Python (PyScript) with Q-table dictionary storage</li>
-					<li><strong>Reward Shaping:</strong> Manhattan distance bonus to guide learning</li>
-					<li><strong>Difficulty-Adapted Learning:</strong>
+					<li>{$exampleText.sections?.technicalArchitecture?.mazeGeneration || 'Maze Generation: Recursive backtracker algorithm (depth-first search)'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.stateSpace || 'State Space: Discrete grid (row, col) positions'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.actionSpace || 'Action Space: 4 discrete actions (UP, DOWN, LEFT, RIGHT)'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.backend || 'Q-Learning Backend: Python (PyScript) with Q-table dictionary storage'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.rewardShaping || 'Reward Shaping: Manhattan distance bonus to guide learning'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.difficultyAdapted || 'Difficulty-Adapted Learning:'}
 						<ul class="list-circle space-y-0.5 pl-5 mt-0.5">
-							<li>Easy: α=0.35, decay=0.96 (fast learning)</li>
-							<li>Medium: α=0.3, decay=0.98 (balanced)</li>
-							<li>Hard: α=0.25, decay=0.985 (cautious learning)</li>
-							<li>Insane: α=0.2, decay=0.99 (extensive exploration)</li>
+							<li>{$exampleText.sections?.technicalArchitecture?.easy || 'Easy: α=0.35, decay=0.96 (fast learning)'}</li>
+							<li>{$exampleText.sections?.technicalArchitecture?.medium || 'Medium: α=0.3, decay=0.98 (balanced)'}</li>
+							<li>{$exampleText.sections?.technicalArchitecture?.hard || 'Hard: α=0.25, decay=0.985 (cautious learning)'}</li>
+							<li>{$exampleText.sections?.technicalArchitecture?.insane || 'Insane: α=0.2, decay=0.99 (extensive exploration)'}</li>
 						</ul>
 					</li>
-					<li><strong>Animation System:</strong> Frame-based tweening (60fps) for demo mode smooth movement</li>
-					<li><strong>Visualization:</strong> Canvas rendering with Q-value heatmap overlay (blue→yellow gradient)</li>
-					<li><strong>Training Speed:</strong> ~4 episodes for 50% success on easy mode!</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.animation || 'Animation System: Frame-based tweening (60fps) for demo mode smooth movement'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.visualization || 'Visualization: Canvas rendering with Q-value heatmap overlay (blue→yellow gradient)'}</li>
+					<li>{$exampleText.sections?.technicalArchitecture?.trainingSpeed || 'Training Speed: ~4 episodes for 50% success on easy mode!'}</li>
 				</ul>
 			</div>
 		</div>
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Q-Learning Maze Solver'}</h2>
 
 		<div class="prose max-w-none space-y-4">
 			<p class="text-sm">
-				Watch an AI agent learn to solve mazes using <strong>Q-Learning</strong>, the classic tabular reinforcement learning algorithm. Perfect introduction to RL fundamentals!
+				{$exampleText.description || 'Watch an AI agent learn to solve mazes using Q-Learning, the classic tabular reinforcement learning algorithm. Perfect introduction to RL fundamentals!'}
 			</p>
 
 			<!-- HOW TO USE -->
 			<div class="rounded-lg bg-cyan-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-cyan-900">🎯 How to Use</h3>
+				<h3 class="mb-2 text-lg font-bold text-cyan-900">{$exampleText.howToUse?.title || '🎯 How to Use'}</h3>
 				<ol class="list-decimal space-y-2 pl-5 text-sm text-cyan-800">
-					<li><strong>Generate Maze:</strong> Click "Generate" to create a random maze. Try different difficulties!</li>
-					<li><strong>Start Training:</strong> Click "Start Training" to begin Q-learning
-						<span class="block text-xs text-cyan-700 mt-1">Watch the <span class="text-blue-500">🔵 blue agent blink rapidly</span> between cells as it explores!</span>
+					<li><strong>{$exampleText.howToUse?.step1Title || 'Generate Maze:'}​</strong> {$exampleText.howToUse?.step1Desc || 'Click "Generate" to create a random maze. Try different difficulties!'}</li>
+					<li><strong>{$exampleText.howToUse?.step2Title || 'Start Training:'}​</strong> {$exampleText.howToUse?.step2Desc || 'Click "Start Training" to begin Q-learning'}
+						<span class="block text-xs text-cyan-700 mt-1">{$exampleText.howToUse?.step2Note || 'Watch the 🔵 blue agent blink rapidly between cells as it explores!'}</span>
 					</li>
-					<li><strong>Visualize Q-Values:</strong> Click "Visualize" to toggle the heatmap overlay
-						<span class="block text-xs text-cyan-700 mt-1">Blue cells = low Q-value | Yellow cells = high Q-value (closer to goal)</span>
+					<li><strong>{$exampleText.howToUse?.step3Title || 'Visualize Q-Values:'}​</strong> {$exampleText.howToUse?.step3Desc || 'Click "Visualize" to toggle the heatmap overlay'}
+						<span class="block text-xs text-cyan-700 mt-1">{$exampleText.howToUse?.step3Note || 'Blue cells = low Q-value | Yellow cells = high Q-value (closer to goal)'}</span>
 					</li>
-					<li><strong>Monitor Metrics:</strong> Watch Success Rate climb and Epsilon decay as the agent learns</li>
-					<li><strong>Demo Mode:</strong> Once trained, click "Demo" to see smooth, confident movement
-						<span class="block text-xs text-cyan-700 mt-1">Agent moves smoothly (tweened) because it's using pure exploitation (ε=0)</span>
+					<li><strong>{$exampleText.howToUse?.step4Title || 'Monitor Metrics:'}​</strong> {$exampleText.howToUse?.step4Desc || 'Watch Success Rate climb and Epsilon decay as the agent learns'}</li>
+					<li><strong>{$exampleText.howToUse?.step5Title || 'Demo Mode:'}​</strong> {$exampleText.howToUse?.step5Desc || 'Once trained, click "Demo" to see smooth, confident movement'}
+						<span class="block text-xs text-cyan-700 mt-1">{$exampleText.howToUse?.step5Note || 'Agent moves smoothly (tweened) because it\'s using pure exploitation (ε=0)'}</span>
 					</li>
-					<li><strong>Compare Difficulties:</strong> Try Easy (10×10) vs Insane (30×30) to see how learning adapts!</li>
+					<li><strong>{$exampleText.howToUse?.step6Title || 'Compare Difficulties:'}​</strong> {$exampleText.howToUse?.step6Desc || 'Try Easy (10×10) vs Insane (30×30) to see how learning adapts!'}</li>
 				</ol>
 				<p class="mt-3 text-xs text-cyan-700">
-					💡 <strong>Pro Tip:</strong> Training = agent blinks frantically between spots (exploring). Demo = agent glides smoothly (exploiting learned knowledge)!
+					{$exampleText.howToUse?.proTip || '💡 Pro Tip: Training = agent blinks frantically between spots (exploring). Demo = agent glides smoothly (exploiting learned knowledge)!'}
 				</p>
 			</div>
 
 			<!-- WHY Q-LEARNING -->
 			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-green-900">🌟 Why Q-Learning?</h3>
+				<h3 class="mb-2 text-lg font-bold text-green-900">{$exampleText.whyQLearning?.title || '🌟 Why Q-Learning?'}</h3>
 				<p class="text-sm text-green-800 mb-2">
-					Q-Learning is the <strong>perfect introduction to reinforcement learning</strong> because:
+					{$exampleText.whyQLearning?.intro || 'Q-Learning is the perfect introduction to reinforcement learning because:'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-green-800">
-					<li><strong>Intuitive:</strong> Easy to visualize and understand</li>
-					<li><strong>Model-Free:</strong> No knowledge of maze structure needed</li>
-					<li><strong>Off-Policy:</strong> Learns optimal policy while exploring</li>
-					<li><strong>Guaranteed Convergence:</strong> Proven to find optimal solution</li>
-					<li><strong>Foundation for Deep RL:</strong> Basis for DQN, Double DQN, etc.</li>
+					<li>{$exampleText.whyQLearning?.intuitive || 'Intuitive: Easy to visualize and understand'}</li>
+					<li>{$exampleText.whyQLearning?.modelFree || 'Model-Free: No knowledge of maze structure needed'}</li>
+					<li>{$exampleText.whyQLearning?.offPolicy || 'Off-Policy: Learns optimal policy while exploring'}</li>
+					<li>{$exampleText.whyQLearning?.convergence || 'Guaranteed Convergence: Proven to find optimal solution'}</li>
+					<li>{$exampleText.whyQLearning?.foundation || 'Foundation for Deep RL: Basis for DQN, Double DQN, etc.'}</li>
 				</ul>
 			</div>
 
 			<!-- LIMITATIONS -->
 			<div class="rounded-lg bg-yellow-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-yellow-900">⚠️ Q-Table Limitations</h3>
+				<h3 class="mb-2 text-lg font-bold text-yellow-900">{$exampleText.limitations?.title || '⚠️ Q-Table Limitations'}</h3>
 				<p class="text-sm text-yellow-800 mb-2">
-					Q-tables work great for discrete, small state spaces like mazes. But they don't scale:
+					{$exampleText.limitations?.intro || 'Q-tables work great for discrete, small state spaces like mazes. But they don\'t scale:'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-yellow-800">
-					<li><strong>Memory:</strong> A 30×30 maze has 900 states × 4 actions = 3,600 Q-values</li>
-					<li><strong>Continuous States:</strong> Can't handle pixel inputs or continuous observations</li>
-					<li><strong>Generalization:</strong> Each state learned independently, no transfer</li>
+					<li>{$exampleText.limitations?.memory || 'Memory: A 30×30 maze has 900 states × 4 actions = 3,600 Q-values'}</li>
+					<li>{$exampleText.limitations?.continuous || 'Continuous States: Can\'t handle pixel inputs or continuous observations'}</li>
+					<li>{$exampleText.limitations?.generalization || 'Generalization: Each state learned independently, no transfer'}</li>
 				</ul>
 				<p class="text-sm text-yellow-800 mt-2">
-					That's why complex games like Mario use <strong>neural networks</strong> (function approximation) instead of Q-tables. Check out the Neuroevolution example to see how!
+					{$exampleText.limitations?.conclusion || 'That\'s why complex games like Mario use neural networks (function approximation) instead of Q-tables. Check out the Neuroevolution example to see how!'}
 				</p>
 			</div>
 		</div>

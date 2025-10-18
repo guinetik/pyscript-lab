@@ -1,0 +1,44 @@
+{
+  "title": "Introdução ao Matplotlib",
+  "description": "Matplotlib é a biblioteca de plotagem mais popular do Python, e com PyScript, você pode executá-la diretamente no seu navegador! Crie visualizações interativas, gráficos e diagramas sem nenhum processamento no servidor—tudo alimentado por WebAssembly e Pyodide.",
+  "examples": {
+    "example1": "Exemplo 1: Gráfico de Linha Simples",
+    "example2": "Exemplo 2: Gráfico de Barras",
+    "example3": "Exemplo 3: Gráfico de Dispersão",
+    "lineChart": "Um gráfico de linha básico com matplotlib:",
+    "barChart": "Um gráfico de barras colorido:",
+    "scatterPlot": "Visualização de correlação de dados:"
+  },
+  "keyFeatures": {
+    "title": "Características Principais:",
+    "fullSupport": "Suporte Completo ao Matplotlib:",
+    "fullSupportDesc": "Acesse a API completa do matplotlib no navegador",
+    "numpyIntegration": "Integração NumPy:",
+    "numpyIntegrationDesc": "Use arrays NumPy para manipulação de dados",
+    "interactiveCharts": "Gráficos Interativos:",
+    "interactiveChartsDesc": "Crie gráficos de linha, gráficos de barras, gráficos de dispersão e muito mais",
+    "customization": "Personalização:",
+    "customizationDesc": "Controle total sobre cores, estilos, rótulos e layout",
+    "zeroBackend": "Zero Backend:",
+    "zeroBackendDesc": "Toda a renderização acontece no lado do cliente"
+  },
+  "theExamples": {
+    "title": "Os Exemplos:",
+    "example1": "Gráfico de Linha - Mostra uma onda senoidal com estilo personalizado",
+    "example2": "Gráfico de Barras - Demonstra visualização de dados categóricos",
+    "example3": "Gráfico de Dispersão - Visualiza correlação de dados com mapeamento de cores"
+  },
+  "gettingStarted": {
+    "title": "Começando:",
+    "description": "Para usar Matplotlib no PyScript, você precisa especificá-lo na sua configuração:",
+    "note": "Nota:",
+    "noteDesc": "Gráficos Matplotlib são renderizados como imagens estáticas no PyScript. Para gráficos interativos, considere usar Bokeh (veja exemplos de Bokeh)."
+  },
+  "useCases": {
+    "title": "Casos de Uso:",
+    "dashboards": "Painéis de visualização de dados",
+    "scientific": "Demonstrações científicas e educacionais",
+    "statistical": "Apresentações de análise estatística",
+    "reporting": "Geração de relatórios com gráficos"
+  }
+}

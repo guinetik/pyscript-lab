@@ -1,0 +1,34 @@
+{
+  "title": "Bokeh",
+  "loading": "🐍 Loading Python chart...",
+  "whatIsBokeh": {
+    "title": "🎨 What is Bokeh?",
+    "description": "Bokeh is a powerful Python library for creating interactive, browser-based visualizations. It's designed to make it easy to create elegant, publication-quality plots that work seamlessly in web browsers without requiring you to write any JavaScript code."
+  },
+  "howBokeh": {
+    "title": "⚙️ How Does Bokeh Generate Charts?",
+    "step1": "Python API: You write Python code using Bokeh's high-level API (figures, glyphs, tools).",
+    "step2": "JSON Serialization: Bokeh converts your Python objects into a JSON specification that describes the visualization.",
+    "step3": "BokehJS Rendering: The JSON is sent to BokehJS (JavaScript library) which renders the actual chart in the browser using HTML5 Canvas or WebGL.",
+    "step4": "Interactivity: BokehJS handles all user interactions (pan, zoom, hover) entirely in the browser for smooth performance."
+  },
+  "whyBokeh": {
+    "title": "🐍 Why Use Bokeh with Python Instead of Pure JavaScript?",
+    "intro": "Even though Bokeh ultimately renders using JavaScript:",
+    "dataProcessing": "Data Processing Power: Python excels at data manipulation with Pandas, NumPy, and NetworkX. Process millions of rows before visualization.",
+    "scientific": "Scientific Ecosystem: Leverage Python's rich scientific libraries (SciPy, scikit-learn, statsmodels) for analysis before plotting.",
+    "highLevel": "High-Level API: Bokeh's Python API is more intuitive and expressive than writing raw JavaScript visualization code.",
+    "reusability": "Code Reusability: Same Python code works in Jupyter notebooks, web apps, and scripts - write once, visualize anywhere.",
+    "abstraction": "Complexity Abstraction: Bokeh handles the tedious JavaScript plumbing (event handlers, canvas drawing, scale calculations) for you.",
+    "pyscript": "With PyScript: Run this Python code directly in the browser - no backend server needed! Best of both worlds."
+  },
+  "workflow": {
+    "title": "🔄 The PyScript + Bokeh Workflow",
+    "description": "In this example, PyScript runs the Python code in your browser using WebAssembly. The Python code creates a Bokeh plot, which gets serialized to JSON. BokehJS (already loaded in the page) receives the JSON and renders the interactive chart. The result: you get the power of Python's data processing and JavaScript's rendering performance, all without a backend server!"
+  },
+  "interactive": {
+    "title": "💡 Interactive Features",
+    "description": "Try interacting with the chart above! You can: pan (click and drag), zoom (mouse wheel or box zoom tool), hover (see exact values), and reset (return to original view). All these features work entirely in the browser thanks to BokehJS."
+  },
+  "viewSource": "View source"
+}

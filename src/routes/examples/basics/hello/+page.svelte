@@ -6,74 +6,75 @@
 	import { page } from '$app/stores';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
-	export let name = 'HELLO WORLD';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
+
+	// Reactive store that updates when locale changes
+	const exampleText = exampleTranslationStore('hello');
 </script>
 
 <ExperimentCard props={{ previousPage: '/', nextPage: '/examples/basics/repl' }}>
 	<div slot="py_slot">
 		<section class="pyscript p-5">
-            <h1>Example 1</h1>
-            <PyExample title="Print hello world:">
+			<h1>{$exampleText.examples?.example1 || 'Example 1'}</h1>
+			<PyExample title={$exampleText.examples?.printHelloWorld || 'Print hello world:'}>
 				<script type="py" id="hello-world-script">
                     print("hello world")
 				</script>
 			</PyExample>
-            <button class="open-console-btn" onclick={() => window.openConsole()}>🖥️ Open Console to see script output</button>
-            <hr class="my-4" />
-            <h1>Example 2</h1>
-			<PyExample title="Current date and time, as computed by Python:">
+			<button class="open-console-btn" onclick={() => window.openConsole()}>🖥️ Open Console to see script output</button>
+			<hr class="my-4" />
+			<h1>{$exampleText.examples?.example2 || 'Example 2'}</h1>
+			<PyExample title={$exampleText.examples?.currentDateTime || 'Current date and time, as computed by Python:'}>
 				<script type="py" src="{base}/python/basic/date.py" id="date-script">
 				</script>
 			</PyExample>
-            <hr class="my-4" />
-            <h1>Example 3</h1>
-            <PyExample title="Fibonacci sequence, computed by Python:">
-                <script type="py" src="{base}/python/basic/fibo.py" id="fibonacci-script">
-                </script>
-            </PyExample>
-            <hr class="my-4" />
-            <h1>Example 4</h1>
+			<hr class="my-4" />
+			<h1>{$exampleText.examples?.example3 || 'Example 3'}</h1>
+			<PyExample title={$exampleText.examples?.fibonacci || 'Fibonacci sequence, computed by Python:'}>
+				<script type="py" src="{base}/python/basic/fibo.py" id="fibonacci-script">
+				</script>
+			</PyExample>
+			<hr class="my-4" />
+			<h1>{$exampleText.examples?.example4 || 'Example 4'}</h1>
 			<div id="matrix-container"></div>
-            <PyExample title="Snake traversal, computed by Python:">
-                <script type="py" src="{base}/python/basic/snek.py" id="snek-script">
-                </script>
-            </PyExample>
+			<PyExample title={$exampleText.examples?.snakeTraversal || 'Snake traversal, computed by Python:'}>
+				<script type="py" src="{base}/python/basic/snek.py" id="snek-script">
+				</script>
+			</PyExample>
 		</section>
 	</div>
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'HELLO WORLD'}</h2>
 
 		<div class="prose max-w-none">
 			<p class="mb-4">
-				PyScript allows you to run Python code directly in your web browser without any server-side
-				processing. These examples demonstrate Python's capabilities, from basic "Hello World" output
-				to date handling, Fibonacci sequences, and matrix traversals—all running entirely in your browser.
+				{$exampleText.description || 'PyScript allows you to run Python code directly in your web browser without any server-side processing.'}
 			</p>
 
 			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">Key Features:</h3>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.keyFeatures?.title || 'Key Features:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
-					<li><strong>Zero Server Setup:</strong> Python runs entirely in the browser using WebAssembly</li>
-					<li><strong>Standard Library Access:</strong> Use familiar Python modules like <code class="rounded bg-white px-1">datetime</code>, <code class="rounded bg-white px-1">sys</code>, and more</li>
-					<li><strong>Simple Integration:</strong> Add Python with just a <code class="rounded bg-white px-1">&lt;script type="py"&gt;</code> tag</li>
-					<li><strong>External Scripts:</strong> Load Python code from files using the <code class="rounded bg-white px-1">src</code> attribute</li>
-					<li><strong>Console Output:</strong> View results in the browser console or write to the DOM</li>
+					<li><strong>{$exampleText.keyFeatures?.zeroSetup || 'Zero Server Setup:'}</strong> {$exampleText.keyFeatures?.zeroSetupDesc || 'Python runs entirely in the browser using WebAssembly'}</li>
+					<li><strong>{$exampleText.keyFeatures?.stdLib || 'Standard Library Access:'}</strong> {$exampleText.keyFeatures?.stdLibDesc || 'Use familiar Python modules like datetime, sys, and more'}</li>
+					<li><strong>{$exampleText.keyFeatures?.simpleIntegration || 'Simple Integration:'}</strong> {$exampleText.keyFeatures?.simpleIntegrationDesc || 'Add Python with just a tag'}</li>
+					<li><strong>{$exampleText.keyFeatures?.externalScripts || 'External Scripts:'}</strong> {$exampleText.keyFeatures?.externalScriptsDesc || 'Load Python code from files using the src attribute'}</li>
+					<li><strong>{$exampleText.keyFeatures?.consoleOutput || 'Console Output:'}</strong> {$exampleText.keyFeatures?.consoleOutputDesc || 'View results in the browser console or write to the DOM'}</li>
 				</ul>
 			</div>
 
 			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">The Examples:</h3>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.theExamples?.title || 'The Examples:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
-					<li><strong>Example 1:</strong> Classic "Hello World" - The simplest PyScript program</li>
-					<li><strong>Example 2:</strong> Current date/time - Demonstrates external Python scripts and datetime module</li>
-					<li><strong>Example 3:</strong> Fibonacci sequence - Shows algorithmic computation and list comprehension</li>
-					<li><strong>Example 4:</strong> Snake traversal - Matrix manipulation and DOM manipulation from Python</li>
+					<li><strong>{$exampleText.examples?.example1 || 'Example 1'}</strong>: {$exampleText.theExamples?.example1 || 'Classic "Hello World" - The simplest PyScript program'}</li>
+					<li><strong>{$exampleText.examples?.example2 || 'Example 2'}</strong>: {$exampleText.theExamples?.example2 || 'Current date/time - Demonstrates external Python scripts and datetime module'}</li>
+					<li><strong>{$exampleText.examples?.example3 || 'Example 3'}</strong>: {$exampleText.theExamples?.example3 || 'Fibonacci sequence - Shows algorithmic computation and list comprehension'}</li>
+					<li><strong>{$exampleText.examples?.example4 || 'Example 4'}</strong>: {$exampleText.theExamples?.example4 || 'Snake traversal - Matrix manipulation and DOM manipulation from Python'}</li>
 				</ul>
 			</div>
 
 			<div class="mb-4 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">Getting Started:</h3>
-				<p class="mb-2">The basic pattern for running Python in the browser is simple:</p>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.gettingStarted?.title || 'Getting Started:'}</h3>
+				<p class="mb-2">{$exampleText.gettingStarted?.description || 'The basic pattern for running Python in the browser is simple:'}</p>
 				<pre class="rounded bg-white p-3 text-sm overflow-x-auto"><code>&lt;script type="py"&gt;
   print("Hello from Python!")
 &lt;/script&gt;
@@ -81,9 +82,9 @@
 &lt;!-- Or load from a file --&gt;
 &lt;script type="py" src="/path/to/script.py"&gt;&lt;/script&gt;</code></pre>
 				<p class="mt-3 text-sm">
-					Click the "🖥️ Open Console" button above to see the output of these Python scripts!
+					{$exampleText.gettingStarted?.footer || 'Click the "🖥️ Open Console" button above to see the output of these Python scripts!'}
 				</p>
 			</div>
 		</div>
 	</article>
-</ExperimentCard> 
+</ExperimentCard>

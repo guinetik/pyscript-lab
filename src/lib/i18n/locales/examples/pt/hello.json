@@ -1,0 +1,39 @@
+{
+  "title": "OLÁ MUNDO",
+  "description": "PyScript permite que você execute código Python diretamente no seu navegador sem nenhum processamento no servidor. Esses exemplos demonstram as capacidades do Python, desde a saída básica de \"Olá Mundo\" até manipulação de datas, sequências de Fibonacci e travessias de matrizes—tudo executando completamente no seu navegador.",
+  "examples": {
+    "example1": "Exemplo 1",
+    "example2": "Exemplo 2",
+    "example3": "Exemplo 3",
+    "example4": "Exemplo 4",
+    "printHelloWorld": "Imprimir olá mundo:",
+    "currentDateTime": "Data e hora atuais, conforme calculado por Python:",
+    "fibonacci": "Sequência de Fibonacci, calculada por Python:",
+    "snakeTraversal": "Travessia da serpente, calculada por Python:"
+  },
+  "keyFeatures": {
+    "title": "Características Principais:",
+    "zeroSetup": "Configuração Zero do Servidor:",
+    "zeroSetupDesc": "Python é executado inteiramente no navegador usando WebAssembly",
+    "stdLib": "Acesso à Biblioteca Padrão:",
+    "stdLibDesc": "Use módulos Python familiares como datetime, sys e muito mais",
+    "simpleIntegration": "Integração Simples:",
+    "simpleIntegrationDesc": "Adicione Python com apenas uma tag <py-script>",
+    "externalScripts": "Scripts Externos:",
+    "externalScriptsDesc": "Carregue código Python de arquivos usando o atributo src",
+    "consoleOutput": "Saída do Console:",
+    "consoleOutputDesc": "Visualize resultados no console do navegador ou escreva no DOM"
+  },
+  "theExamples": {
+    "title": "Os Exemplos:",
+    "example1": "\"Olá Mundo\" clássico - O programa PyScript mais simples",
+    "example2": "Data/hora atual - Demonstra scripts Python externos e o módulo datetime",
+    "example3": "Sequência de Fibonacci - Mostra computação algorítmica e compreensão de lista",
+    "example4": "Travessia da serpente - Manipulação de matriz e manipulação do DOM a partir do Python"
+  },
+  "gettingStarted": {
+    "title": "Começando:",
+    "description": "O padrão básico para executar Python no navegador é simples:",
+    "footer": "Clique no botão \"🖥️ Abrir Console\" acima para ver a saída destes scripts Python!"
+  }
+}

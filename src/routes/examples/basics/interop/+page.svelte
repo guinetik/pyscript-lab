@@ -3,9 +3,10 @@
 	import { InteropController } from '$lib/controller/InteropController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
-	// Page metadata
-	let name = 'Interoperability (JS to Python)';
+	// Translation store
+	const exampleText = exampleTranslationStore('interop');
 
 	// Controller instance
 	let controller = browser ? new InteropController() : null;
@@ -107,9 +108,7 @@
 						{greetingData.greeting}, <span class="text-blue-600">{greetingData.name}</span>! 👋
 					</p>
 					<p class="text-gray-600 mb-4">
-						Age: {greetingData.age} | Category: <span class="font-semibold capitalize"
-							>{greetingData.category}</span
-						>
+						{$exampleText.ageDescription?.replace('{age}', greetingData.age)?.replace('{category}', greetingData.category) || `Age: ${greetingData.age} | Category: ${greetingData.category}`}
 					</p>
 				</div>
 
@@ -120,7 +119,7 @@
 
 					{#if greetingData.years_coding > 0}
 						<p class="text-sm text-gray-500 mt-4">
-							🎂 Potential coding years: ~{greetingData.years_coding}
+							{$exampleText.potentialCoding?.replace('{years}', greetingData.years_coding) || `🎂 Potential coding years: ~${greetingData.years_coding}`}
 						</p>
 					{/if}
 
@@ -135,24 +134,21 @@
 		{#if !readyState && !greetingData && !errorMessage}
 			<div class="w-full rounded-lg bg-gray-100 p-6 text-center border-2 border-gray-300">
 				<p class="text-3xl mb-2 animate-pulse">⏳</p>
-				<p class="font-bold mb-1">Loading Python...</p>
-				<p class="text-sm text-gray-600">Initializing interoperability demo</p>
+				<p class="font-bold mb-1">{$exampleText.loadingTitle || 'Loading Python...'}</p>
+				<p class="text-sm text-gray-600">{$exampleText.loadingSubtitle || 'Initializing interoperability demo'}</p>
 			</div>
 		{/if}
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Interoperability (JS to Python)'}</h2>
 
 		<p class="mb-4">
-			PyScript's interoperability allows seamless communication between Python and JavaScript,
-			enabling you to leverage both languages' strengths in a single application. Call Python
-			functions from JavaScript, access browser APIs from Python, and share data bidirectionally.
+			{$exampleText.description || "PyScript's interoperability allows seamless communication between Python and JavaScript..."}
 		</p>
 
 		<p class="mb-4 text-sm text-gray-600">
-			<strong>Try it:</strong> Enter your name and age below. The form data will be sent to a Python
-			function that processes it and generates a personalized greeting.
+			<strong>{$exampleText.tryIt?.split(':')[0]}:</strong> {$exampleText.tryIt?.split(':')[1] || 'Enter your name and age below...'}
 		</p>
 
 		<div class="mb-8 flex items-center justify-center bg-white">
@@ -160,50 +156,49 @@
 				<label
 					class="bg-white px-2 text-grey-darker"
 					style="position: absolute; top: -10px; left: 8px;"
-					for="txt_name">Name</label
+					for="txt_name">{$exampleText.nameLabel || 'Name'}</label
 				>
 				<input
 					bind:value={inputName}
 					id="txt_name"
 					type="text"
 					class="w-full rounded border-2 border-white py-2 leading-tight text-grey-darker focus:border-white focus:bg-white focus:outline-none"
-					placeholder="Who are you?"
+					placeholder={$exampleText.namePlaceholder || 'Who are you?'}
 				/>
 			</div>
 			<div class="relative ml-16 rounded border-2 border-red px-1 py-2">
 				<label
 					class="bg-white px-2 text-red"
 					style="position: absolute; top: -10px; left: 8px;"
-					for="txt_age">Age</label
+					for="txt_age">{$exampleText.ageLabel || 'Age'}</label
 				>
 				<input
 					bind:value={inputAge}
 					id="txt_age"
 					type="number"
 					class="w-full rounded border-2 border-white py-2 leading-tight text-grey-darker focus:border-white focus:bg-white focus:outline-none"
-					placeholder="How old are you?"
+					placeholder={$exampleText.agePlaceholder || 'How old are you?'}
 				/>
 			</div>
 		</div>
 		<button class="mt-2 w-full flex-grow bg-green-400 px-3 py-2" type="button" onclick={callPython}
-			>Run</button
+			>{$exampleText.runButton || 'Run'}</button
 		>
 
 		<div class="mt-6 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">🏗️ Architecture Highlights</h3>
+			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.architecture?.title || '🏗️ Architecture Highlights'}</h3>
 			<p class="text-sm text-orange-800 mb-2">
-				This example demonstrates proper separation of concerns:
+				{$exampleText.architecture?.description || 'This example demonstrates proper separation of concerns:'}
 			</p>
 			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
 				<li>
-					<strong>Python</strong> - Pure business logic, sends only data via window callbacks (no
-					innerHTML!)
+					<strong>Python</strong> - {$exampleText.architecture?.python?.split(' - ')[1] || 'Pure business logic, sends only data via window callbacks (no innerHTML!)'}
 				</li>
 				<li>
-					<strong>InteropController</strong> - Manages Python lifecycle and communication layer
+					<strong>InteropController</strong> - {$exampleText.architecture?.controller?.split(' - ')[1] || 'Manages Python lifecycle and communication layer'}
 				</li>
 				<li>
-					<strong>Svelte UIHandler</strong> - Pure UI rendering with reactive state based on data received
+					<strong>Svelte UIHandler</strong> - {$exampleText.architecture?.ui?.split(' - ')[1] || 'Pure UI rendering with reactive state based on data received'}
 				</li>
 			</ul>
 		</div>
@@ -212,34 +207,34 @@
 			<a
 				class="text-sky-500"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/interop.py"
-				target="_blank">View Python source</a
+				target="_blank">{$exampleText.viewSource || 'View Python source'}</a
 			>
 		</p>
 
 		<div class="prose max-w-none mt-8">
 			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">How It Works:</h3>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.howWorks?.title || 'How It Works:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
 					<li>
-						<strong>Controller Pattern:</strong> InteropController manages Python setup and callbacks
+						<strong>Controller Pattern:</strong> {$exampleText.howWorks?.pattern?.split(': ')[1] || 'InteropController manages Python setup and callbacks'}
 					</li>
 					<li>
-						<strong>Data-Only Communication:</strong> Python sends plain objects, Svelte renders the UI
+						<strong>Data-Only Communication:</strong> {$exampleText.howWorks?.dataOnly?.split(': ')[1] || 'Python sends plain objects, Svelte renders the UI'}
 					</li>
 					<li>
-						<strong>Reactive UI:</strong> Svelte automatically updates when data changes
+						<strong>Reactive UI:</strong> {$exampleText.howWorks?.reactive?.split(': ')[1] || 'Svelte automatically updates when data changes'}
 					</li>
-					<li><strong>Event-Driven:</strong> User interactions trigger Python functions</li>
+					<li><strong>Event-Driven:</strong> {$exampleText.howWorks?.eventDriven?.split(': ')[1] || 'User interactions trigger Python functions'}</li>
 				</ul>
 			</div>
 
 			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">Use Cases:</h3>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.useCases?.title || 'Use Cases:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
-					<li>Process form data with Python's powerful libraries</li>
-					<li>Update UI dynamically based on Python computations</li>
-					<li>Combine JavaScript frameworks (like Svelte) with Python logic</li>
-					<li>Access Python's data science ecosystem from web interfaces</li>
+					<li>{$exampleText.useCases?.formData || 'Process form data with Python\'s powerful libraries'}</li>
+					<li>{$exampleText.useCases?.dynamicUI || 'Update UI dynamically based on Python computations'}</li>
+					<li>{$exampleText.useCases?.combine || 'Combine JavaScript frameworks (like Svelte) with Python logic'}</li>
+					<li>{$exampleText.useCases?.dataSci || 'Access Python\'s data science ecosystem from web interfaces'}</li>
 				</ul>
 			</div>
 		</div>

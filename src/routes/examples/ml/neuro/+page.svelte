@@ -7,14 +7,15 @@
 	import { browser } from '$app/environment';
 	import { createLogger } from '@guinetik/logger';
 	import {getLink} from '$lib/utils.js';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
 	const logger = createLogger({
 		prefix: 'NeuroPage',
 		level: 'debug'
 	});
 
-	// Page metadata
-	let name = 'Neuroevolution';
+	// Get translated content
+	const exampleText = exampleTranslationStore('ml-neuro');
 
 	// Controller instance
 	let controller = browser ? new NeuroController() : null;
@@ -367,6 +368,37 @@
 		input.click();
 	}
 
+	// Get translated network labels
+	function getNetworkLabel(networkId) {
+		switch(networkId) {
+			case 'simple-4button':
+				return $exampleText.ui?.simple4ButtonRecommended || neuralNetworks[0].name;
+			case 'simple-feedforward':
+				return $exampleText.ui?.simpleFeedforward || neuralNetworks[1].name;
+			case 'conv-4button':
+				return $exampleText.ui?.conv4Button || neuralNetworks[2].name;
+			case 'conv':
+				return $exampleText.ui?.conv6Button || neuralNetworks[3].name;
+			default:
+				return 'Unknown';
+		}
+	}
+
+	function getNetworkDescription(networkId) {
+		switch(networkId) {
+			case 'simple-4button':
+				return $exampleText.ui?.simple4ButtonDesc || neuralNetworks[0].description;
+			case 'simple-feedforward':
+				return $exampleText.ui?.simpleFeedforwardDesc || neuralNetworks[1].description;
+			case 'conv-4button':
+				return $exampleText.ui?.conv4ButtonDesc || neuralNetworks[2].description;
+			case 'conv':
+				return $exampleText.ui?.conv6ButtonDesc || neuralNetworks[3].description;
+			default:
+				return 'Unknown';
+		}
+	}
+
 	// Track previous network selection to detect changes
 	let previousNetwork = $state(selectedNetwork);
 
@@ -420,7 +452,7 @@
 						class="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xl font-bold rounded-xl shadow-2xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 flex items-center gap-3"
 					>
 						<span class="text-2xl">🧬</span>
-						<span>Start Evolution!</span>
+						<span>{$exampleText.ui?.startButton || 'Start Evolution!'}</span>
 					</button>
 				</div>
 			{/if}
@@ -434,15 +466,15 @@
 		<!-- Metrics Display -->
 		<div class="grid grid-cols-3 gap-3">
 			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-4 text-white shadow-lg">
-				<div class="text-sm font-semibold opacity-90">Generation</div>
+				<div class="text-sm font-semibold opacity-90">{$exampleText.ui?.generationLabel || 'Generation'}</div>
 				<div class="text-3xl font-bold">{episode}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-4 text-white shadow-lg">
-				<div class="text-sm font-semibold opacity-90">Fitness</div>
+				<div class="text-sm font-semibold opacity-90">{$exampleText.ui?.fitnessLabel || 'Fitness'}</div>
 				<div class="text-3xl font-bold">{totalReward.toFixed(1)}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-4 text-white shadow-lg">
-				<div class="text-sm font-semibold opacity-90">Best Distance</div>
+				<div class="text-sm font-semibold opacity-90">{$exampleText.ui?.bestScoreLabel || 'Best Distance'}</div>
 				<div class="text-3xl font-bold">{highScore.toFixed(1)}</div>
 			</div>
 		</div>
@@ -487,7 +519,7 @@
 					disabled={status === 'initializing'}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'training' ? '🔄 Restart' : '▶️ Train'}
+					{status === 'training' ? ($exampleText.ui?.restartButton || '🔄 Restart') : ($exampleText.ui?.trainButton || '▶️ Train')}
 				</button>
 				<select
 					bind:value={selectedNetwork}
@@ -495,7 +527,7 @@
 					class="rounded border-2 border-gray-300 bg-white px-4 py-3 font-semibold text-gray-700 hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
 				>
 					{#each neuralNetworks as network}
-						<option value={network.id}>{network.name}</option>
+						<option value={network.id}>{getNetworkLabel(network.id)}</option>
 					{/each}
 				</select>
 				<button
@@ -503,7 +535,7 @@
 					disabled={status === 'initializing'}
 					class="rounded bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					🔄 Reset
+					{$exampleText.ui?.resetButton || '🔄 Reset'}
 				</button>
 			</div>
 
@@ -521,14 +553,14 @@
 					disabled={status !== 'training' && status !== 'playing'}
 					class="rounded bg-yellow-500 px-3 py-2 text-sm font-semibold text-white hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					⏸️ Pause
+					{$exampleText.ui?.pauseButton || '⏸️ Pause'}
 				</button>
 				<button
 					onclick={toggleMute}
 					disabled={status === 'initializing'}
 					class="rounded bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{isMuted ? '🔇' : '🔊'}
+					{isMuted ? ($exampleText.ui?.volumeOffButton || '🔇') : ($exampleText.ui?.volumeOnButton || '🔊')}
 				</button>
 				<button
 					onclick={saveState}
@@ -583,36 +615,33 @@
 		<div class="space-y-3">
 			<!-- NEUROEVOLUTION -->
 			<div class="rounded-lg bg-purple-50 p-3 border-2 border-purple-200">
-				<h3 class="mb-2 text-base font-bold text-purple-900">🧬 What is Neuroevolution?</h3>
+				<h3 class="mb-2 text-base font-bold text-purple-900">{$exampleText.sections?.whatIsNeuroevolution?.title || '🧬 What is Neuroevolution?'}</h3>
 				<p class="text-xs text-purple-800 mb-2">
-					<strong>Neuroevolution</strong> is a method of training neural networks using principles from biological evolution. Instead of traditional learning algorithms (like backpropagation), it mimics natural selection:
+					<strong>{$exampleText.sections?.whatIsNeuroevolution?.title || 'Neuroevolution'}</strong> {$exampleText.sections?.whatIsNeuroevolution?.process || 'is a method of training neural networks using principles from biological evolution. Instead of traditional learning algorithms (like backpropagation), it mimics natural selection:'}
 				</p>
 				<ol class="list-decimal space-y-1 pl-5 text-xs text-purple-800">
-					<li><strong>Initialize:</strong> Create a neural network with random weights</li>
-					<li><strong>Evaluate:</strong> Test the network by playing a game episode and measuring performance (fitness)</li>
-					<li><strong>Mutate:</strong> Randomly modify the weights (like genetic mutations)</li>
-					<li><strong>Select:</strong> Keep networks that perform well, discard poor performers (survival of the fittest)</li>
-					<li><strong>Repeat:</strong> Continue until the network discovers winning strategies</li>
+					<li><strong>{$exampleText.sections?.howItWorks?.step1?.split(':')[0] || 'Initialize'}:</strong> {$exampleText.sections?.howItWorks?.step1?.split(':').slice(1).join(':') || 'Create a neural network with random weights'}</li>
+					<li><strong>{$exampleText.sections?.howItWorks?.step3?.split(':')[0] || 'Evaluate'}:</strong> {$exampleText.sections?.howItWorks?.step2?.split(':').slice(1).join(':') || 'Test the network by playing a game episode and measuring performance (fitness)'}</li>
+					<li><strong>{$exampleText.sections?.howItWorks?.step5?.split(':')[0] || 'Mutate'}:</strong> {$exampleText.sections?.howItWorks?.step5?.split(':').slice(1).join(':') || 'Randomly modify the weights (like genetic mutations)'}</li>
+					<li><strong>{$exampleText.sections?.howItWorks?.step4?.split(':')[0] || 'Select'}:</strong> {$exampleText.sections?.howItWorks?.step4?.split(':').slice(1).join(':') || 'Keep networks that perform well, discard poor performers (survival of the fittest)'}</li>
+					<li><strong>{$exampleText.sections?.howItWorks?.step6?.split(':')[0] || 'Repeat'}:</strong> {$exampleText.sections?.howItWorks?.step6?.split(':').slice(1).join(':') || 'Continue until the network discovers winning strategies'}</li>
 				</ol>
 			</div>
 
 			<!-- Network Architecture -->
 			<div class="rounded-lg bg-blue-50 p-3 border-2 border-blue-200">
-				<h3 class="mb-2 text-base font-bold text-blue-900">🏗️ Network Architecture</h3>
+				<h3 class="mb-2 text-base font-bold text-blue-900">{$exampleText.sections?.networkArchitectures?.title || '🏗️ Network Architecture'}</h3>
 				<p class="text-xs text-blue-800 mb-2">
-					<strong>4-Button Networks (Recommended):</strong> Output only essential buttons (LEFT, RIGHT, JUMP, RUN). UP/DOWN disabled since they're rarely useful in Mario 1-1. 33% smaller action space = faster evolution and less wasted exploration!
+					{$exampleText.sections?.networkArchitectures?.simple || '<strong>Simple Networks:</strong> 2-3 layer feedforward networks, fast but limited'}
 				</p>
 				<p class="text-xs text-blue-800 mb-2">
-					<strong>Simple Feedforward:</strong> 120 inputs → 32 hidden (ReLU) → 4/6 outputs (Sigmoid). Fixed 3-layer topology. 4-button version has ~2,758 weights vs 6-button's ~4,070 weights. Best for quick convergence.
+					{$exampleText.sections?.networkArchitectures?.cnn || '<strong>Convolutional Networks (CNN):</strong> Process pixel input like human vision, slower but more powerful'}
 				</p>
 				<p class="text-xs text-blue-800 mb-2">
-					<strong>Convolutional (CNN):</strong> 16×7 vision grid → 4 conv filters (3×3 kernels) → 280 features → 32 hidden → 4/6 outputs. Preserves spatial structure to detect patterns like gaps, enemies, and platforms. Better for visual pattern recognition.
+					<strong>{$exampleText.sections?.networkArchitectures?.input?.split(':')[0] || 'Input'}</strong>: {$exampleText.sections?.networkArchitectures?.input?.split(':').slice(1).join(':') || 'Game screen pixels (preprocessed to 84×84 grayscale)'}
 				</p>
 				<p class="text-xs text-blue-800 mt-2">
-					<strong>Behavioral Priors:</strong> Networks initialize with smart biases: RIGHT (+1.0), A/Jump (+1.5), B/Run (+1.0), LEFT (-2.0). 6-button also has UP/DOWN (-10.0) heavily discouraged. Gives intelligent starting behavior!
-				</p>
-				<p class="text-xs text-blue-800 mt-2">
-					<strong>Top-3 Button Cap:</strong> Action decoder limits simultaneous button presses to 3 max, preventing input conflicts (LEFT+RIGHT) and ensuring prioritization. Conflict resolution automatically zeros out weaker opposing directional inputs.
+					<strong>{$exampleText.sections?.networkArchitectures?.output?.split(':')[0] || 'Output'}</strong>: {$exampleText.sections?.networkArchitectures?.output?.split(':').slice(1).join(':') || '4 or 6 buttons (LEFT, RIGHT, UP, DOWN, JUMP, RUN)'}
 				</p>
 			</div>
 
@@ -653,16 +682,14 @@
 
 			<!-- Technical Architecture -->
 			<div class="rounded-lg bg-red-50 p-3 border-2 border-red-200">
-				<h3 class="mb-2 text-base font-bold text-red-900">⚡ Technical Architecture</h3>
+				<h3 class="mb-2 text-base font-bold text-red-900">{$exampleText.sections?.technicalDetails?.title || '⚡ Technical Architecture'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-xs text-red-800">
-					<li><strong>PyScript 2025.2.1:</strong> Runs Python natively via WebAssembly (Pyodide)</li>
-					<li><strong>JSNES:</strong> NES emulator in JavaScript running at 60fps</li>
-					<li><strong>Modular Python:</strong> GameController (emulator interactions) + NeuralController (abstract network interface) + PlayerAgent (training loop orchestration)</li>
-					<li><strong>NumPy:</strong> Matrix operations for neural network forward passes and mutations</li>
-					<li><strong>Event-Driven:</strong> Python sends data-only to JavaScript via <code>window</code> callbacks, Svelte handles all UI rendering reactively</li>
-					<li><strong>Decision Rate:</strong> ~15 decisions/second (67ms intervals) to balance performance and responsiveness</li>
-					<li><strong>Progressive Timeout:</strong> Starts at 30s per generation, increases by 10s each generation (capped at 200s)</li>
-					<li>All computation happens <strong>client-side</strong> in your browser - no servers, no cloud! Your CPU trains the AI.</li>
+					<li>{$exampleText.sections?.technicalDetails?.emulator || '<strong>Emulator:</strong> NES.js (JavaScript NES emulator)'}</li>
+					<li>{$exampleText.sections?.technicalDetails?.preprocessing || '<strong>Preprocessing:</strong> Screen capture → grayscale 84×84 → pixel normalization'}</li>
+					<li>{$exampleText.sections?.technicalDetails?.population || '<strong>Population Size:</strong> 50 networks per generation'}</li>
+					<li>{$exampleText.sections?.technicalDetails?.generationTime || '<strong>Generation Time:</strong> Varies by architecture (1-5 seconds)'}</li>
+					<li>{$exampleText.sections?.technicalDetails?.mutation || '<strong>Mutation Rate:</strong> 10-20% of weights mutated per generation'}</li>
+					<li>{$exampleText.sections?.technicalDetails?.convergence || '<strong>Convergence:</strong> Typically finds good strategy in 20-100 generations'}</li>
 				</ul>
 			</div>
 		</div>
@@ -673,27 +700,26 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Neuroevolution - Mario Learns to Play'}</h2>
 
 		<div class="prose max-w-none space-y-4">
 			<p class="text-sm">
-				Watch an AI agent learn to play Super Mario Bros through <strong>neuroevolution</strong> - evolving neural networks that discover winning strategies through trial and error!
+				{$exampleText.description || 'Watch a neural network evolve to play Super Mario Bros using genetic algorithms and neuroevolution. No manual training - just evolution!'}
 			</p>
 
 			<!-- HOW TO USE (Always first) -->
 			<div class="rounded-lg bg-cyan-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-cyan-900">🎯 How to Use</h3>
+				<h3 class="mb-2 text-lg font-bold text-cyan-900">{$exampleText.userGuide?.title || '📖 User Guide'}</h3>
 				<ol class="list-decimal space-y-2 pl-5 text-sm text-cyan-800">
-					<li><strong>Click "Start Evolution":</strong> Begin training immediately! The default 4-button network learns faster than full controls.</li>
-					<li><strong>Choose Network Type:</strong> Default is 4-button (recommended) for faster learning. Can switch to 6-button for full controls or CNN for spatial pattern recognition.</li>
-					<li><strong>Toggle Visualization (🎨 Viz):</strong> Click to see live neural network activations! Watch neurons light up as the network processes vision and makes decisions.</li>
-					<li><strong>Play Game:</strong> Try playing yourself first to appreciate the difficulty - use arrow keys, Z (jump), X (run).</li>
-					<li><strong>Watch Metrics:</strong> Generation counts evolution cycles, Fitness shows current performance, Best Distance is furthest progress.</li>
-					<li><strong>Observe Vision:</strong> Open browser console (F12) to see the network's 16×7 tile grid vision, updated every 5 seconds.</li>
-					<li><strong>Utility Buttons:</strong> Use Play, Pause, Mute, Save/Load State for testing and checkpointing.</li>
+					<li>{$exampleText.userGuide?.selectNetwork?.replace(/^\d+\.\s*/, '') || 'Select a neural network architecture (Simple 4-Button recommended for first time)'}</li>
+					<li>{$exampleText.userGuide?.startEvolution?.replace(/^\d+\.\s*/, '') || 'Click "Start Evolution" to begin'}</li>
+					<li>{$exampleText.userGuide?.watchGeneration?.replace(/^\d+\.\s*/, '') || 'Watch each generation play'}</li>
+					<li>{$exampleText.userGuide?.observe?.replace(/^\d+\.\s*/, '') || 'Observe fitness metrics and best score improvements'}</li>
+					<li>{$exampleText.userGuide?.speedUp?.replace(/^\d+\.\s*/, '') || 'Use speed controls to fast-forward generations'}</li>
+					<li>{$exampleText.userGuide?.playBest?.replace(/^\d+\.\s*/, '') || 'Click "Play Best" to watch the evolved champion play!'}</li>
 				</ol>
 				<p class="mt-3 text-xs text-cyan-700">
-					💡 <strong>Pro Tip:</strong> 4-button networks have 32% fewer parameters and 75% smaller action space - they evolve winning strategies much faster!
+					{$exampleText.userGuide?.tip || '💡 Tip: Smaller networks train faster. Try Simple 4-Button first to understand the process!'}
 				</p>
 			</div>
 

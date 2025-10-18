@@ -1,0 +1,34 @@
+{
+  "title": "Bokeh",
+  "loading": "🐍 Carregando gráfico Python...",
+  "whatIsBokeh": {
+    "title": "🎨 O Que é Bokeh?",
+    "description": "Bokeh é uma poderosa biblioteca Python para criar visualizações interativas baseadas em navegador. É projetada para facilitar a criação de gráficos elegantes, de qualidade para publicação, que funcionam perfeitamente em navegadores da web sem exigir que você escreva nenhum código JavaScript."
+  },
+  "howBokeh": {
+    "title": "⚙️ Como Bokeh Gera Gráficos?",
+    "step1": "API Python: Você escreve código Python usando a API de alto nível do Bokeh (figuras, glifos, ferramentas).",
+    "step2": "Serialização JSON: Bokeh converte seus objetos Python em uma especificação JSON que descreve a visualização.",
+    "step3": "Renderização BokehJS: O JSON é enviado para BokehJS (biblioteca JavaScript) que renderiza o gráfico real no navegador usando HTML5 Canvas ou WebGL.",
+    "step4": "Interatividade: BokehJS manipula todas as interações do usuário (pan, zoom, hover) inteiramente no navegador para desempenho suave."
+  },
+  "whyBokeh": {
+    "title": "🐍 Por Que Usar Bokeh com Python em Vez de Pure JavaScript?",
+    "intro": "Embora Bokeh, em última análise, renderize usando JavaScript:",
+    "dataProcessing": "Poder de Processamento de Dados: Python se destaca na manipulação de dados com Pandas, NumPy e NetworkX. Processe milhões de linhas antes da visualização.",
+    "scientific": "Ecossistema Científico: Aproveite as ricas bibliotecas científicas do Python (SciPy, scikit-learn, statsmodels) para análise antes de traçar.",
+    "highLevel": "API de Alto Nível: A API Python do Bokeh é mais intuitiva e expressiva do que escrever código de visualização JavaScript puro.",
+    "reusability": "Reutilização de Código: O mesmo código Python funciona em notebooks Jupyter, aplicativos da web e scripts - escreva uma vez, visualize em qualquer lugar.",
+    "abstraction": "Abstração de Complexidade: Bokeh cuida do tedioso encanamento JavaScript (manipuladores de eventos, desenho de canvas, cálculos de escala) para você.",
+    "pyscript": "Com PyScript: Execute este código Python diretamente no navegador - nenhum servidor backend necessário! O melhor dos dois mundos."
+  },
+  "workflow": {
+    "title": "🔄 O Fluxo de Trabalho PyScript + Bokeh",
+    "description": "Neste exemplo, PyScript executa o código Python no seu navegador usando WebAssembly. O código Python cria um gráfico Bokeh, que é serializado em JSON. BokehJS (já carregado na página) recebe o JSON e renderiza o gráfico interativo. O resultado: você obtém o poder do processamento de dados do Python e o desempenho de renderização do JavaScript, tudo sem um servidor backend!"
+  },
+  "interactive": {
+    "title": "💡 Recursos Interativos",
+    "description": "Tente interagir com o gráfico acima! Você pode: pan (clique e arraste), zoom (roda do mouse ou ferramenta de zoom de caixa), hover (veja valores exatos) e reset (volte à visualização original). Todos esses recursos funcionam inteiramente no navegador graças ao BokehJS."
+  },
+  "viewSource": "Ver código-fonte"
+}

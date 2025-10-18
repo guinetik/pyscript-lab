@@ -3,9 +3,10 @@
 	import { BokehController } from '$lib/controller/BokehController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
-	// Page metadata
-	let name = 'Bokeh';
+	// Translation store
+	const exampleText = exampleTranslationStore('bokeh-intro');
 
 	// Controller instance
 	let controller = browser ? new BokehController() : null;
@@ -46,7 +47,7 @@
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">
 				<div class="rounded-lg bg-white p-4 shadow-lg">
-					<p class="text-lg">🐍 Loading Python chart...</p>
+					<p class="text-lg">{$exampleText.loading || '🐍 Loading Python chart...'}</p>
 				</div>
 			</div>
 		{/if}
@@ -60,96 +61,74 @@
 		<div id="chart" class="h-full w-full"></div>
 	</div>
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Bokeh'}</h2>
 
 		<div class="space-y-4">
 			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">🎨 What is Bokeh?</h3>
+				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.whatIsBokeh?.title || '🎨 What is Bokeh?'}</h3>
 				<p class="text-sm text-blue-800">
-					Bokeh is a powerful Python library for creating interactive, browser-based
-					visualizations. It's designed to make it easy to create elegant, publication-quality
-					plots that work seamlessly in web browsers without requiring you to write any
-					JavaScript code.
+					{$exampleText.whatIsBokeh?.description || 'Bokeh is a powerful Python library...'}
 				</p>
 			</div>
 
 			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">⚙️ How Does Bokeh Generate Charts?</h3>
+				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.howBokeh?.title || '⚙️ How Does Bokeh Generate Charts?'}</h3>
 				<p class="text-sm text-purple-800 space-y-2">
 					<span class="block"
-						><strong>1. Python API:</strong> You write Python code using Bokeh's high-level API (figures,
-						glyphs, tools).</span
+						><strong>1.</strong> {$exampleText.howBokeh?.step1 || 'Python API: You write Python code...'}</span
 					>
 					<span class="block"
-						><strong>2. JSON Serialization:</strong> Bokeh converts your Python objects into a JSON
-						specification that describes the visualization.</span
+						><strong>2.</strong> {$exampleText.howBokeh?.step2 || 'JSON Serialization...'}</span
 					>
 					<span class="block"
-						><strong>3. BokehJS Rendering:</strong> The JSON is sent to BokehJS (JavaScript library)
-						which renders the actual chart in the browser using HTML5 Canvas or WebGL.</span
+						><strong>3.</strong> {$exampleText.howBokeh?.step3 || 'BokehJS Rendering...'}</span
 					>
 					<span class="block"
-						><strong>4. Interactivity:</strong> BokehJS handles all user interactions (pan, zoom,
-						hover) entirely in the browser for smooth performance.</span
+						><strong>4.</strong> {$exampleText.howBokeh?.step4 || 'Interactivity...'}</span
 					>
 				</p>
 			</div>
 
 			<div class="rounded-lg bg-green-50 p-4">
 				<h3 class="mb-2 font-bold text-green-900">
-					🐍 Why Use Bokeh with Python Instead of Pure JavaScript?
+					{$exampleText.whyBokeh?.title || '🐍 Why Use Bokeh with Python Instead of Pure JavaScript?'}
 				</h3>
 				<div class="text-sm text-green-800 space-y-2">
-					<p class="font-semibold">Even though Bokeh ultimately renders using JavaScript:</p>
+					<p class="font-semibold">{$exampleText.whyBokeh?.intro || 'Even though Bokeh ultimately renders using JavaScript:'}</p>
 					<ul class="ml-4 list-disc space-y-1">
 						<li>
-							<strong>Data Processing Power:</strong> Python excels at data manipulation with Pandas,
-							NumPy, and NetworkX. Process millions of rows before visualization.
+							<strong>Data Processing Power:</strong> {$exampleText.whyBokeh?.dataProcessing?.split(': ')[1] || 'Python excels at data manipulation...'}
 						</li>
 						<li>
-							<strong>Scientific Ecosystem:</strong> Leverage Python's rich scientific libraries
-							(SciPy, scikit-learn, statsmodels) for analysis before plotting.
+							<strong>Scientific Ecosystem:</strong> {$exampleText.whyBokeh?.scientific?.split(': ')[1] || 'Leverage Python\'s rich scientific libraries...'}
 						</li>
 						<li>
-							<strong>High-Level API:</strong> Bokeh's Python API is more intuitive and expressive
-							than writing raw JavaScript visualization code.
+							<strong>High-Level API:</strong> {$exampleText.whyBokeh?.highLevel?.split(': ')[1] || 'Bokeh\'s Python API is more intuitive...'}
 						</li>
 						<li>
-							<strong>Code Reusability:</strong> Same Python code works in Jupyter notebooks, web
-							apps, and scripts - write once, visualize anywhere.
+							<strong>Code Reusability:</strong> {$exampleText.whyBokeh?.reusability?.split(': ')[1] || 'Same Python code works...'}
 						</li>
 						<li>
-							<strong>Complexity Abstraction:</strong> Bokeh handles the tedious JavaScript plumbing
-							(event handlers, canvas drawing, scale calculations) for you.
+							<strong>Complexity Abstraction:</strong> {$exampleText.whyBokeh?.abstraction?.split(': ')[1] || 'Bokeh handles the tedious...'}
 						</li>
 						<li>
-							<strong>With PyScript:</strong> Run this Python code directly in the browser - no
-							backend server needed! Best of both worlds.
+							<strong>With PyScript:</strong> {$exampleText.whyBokeh?.pyscript?.split(': ')[1] || 'Run this Python code directly...'}
 						</li>
 					</ul>
 				</div>
 			</div>
 
 			<div class="rounded-lg bg-orange-50 p-4">
-				<h3 class="mb-2 font-bold text-orange-900">🔄 The PyScript + Bokeh Workflow</h3>
+				<h3 class="mb-2 font-bold text-orange-900">{$exampleText.workflow?.title || '🔄 The PyScript + Bokeh Workflow'}</h3>
 				<p class="text-sm text-orange-800">
-					In this example, PyScript runs the Python code in your browser using WebAssembly. The
-					Python code creates a Bokeh plot, which gets serialized to JSON. BokehJS (already
-					loaded in the page) receives the JSON and renders the interactive chart. The result:
-					you get the power of Python's data processing <em>and</em> JavaScript's rendering
-					performance, all without a backend server!
+					{$exampleText.workflow?.description || 'In this example, PyScript runs the Python code...'}
 				</p>
 			</div>
 
 			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">💡 Interactive Features</h3>
+				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.interactive?.title || '💡 Interactive Features'}</h3>
 				<p class="text-sm text-amber-800">
-					Try interacting with the chart above! You can:
-					<strong>pan</strong> (click and drag),
-					<strong>zoom</strong> (mouse wheel or box zoom tool),
-					<strong>hover</strong> (see exact values), and
-					<strong>reset</strong> (return to original view). All these features work entirely in
-					the browser thanks to BokehJS.
+					{$exampleText.interactive?.description || 'Try interacting with the chart above!...'}
 				</p>
 			</div>
 		</div>
@@ -158,7 +137,7 @@
 			<a
 				class="text-sky-500"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh_index.py"
-				target="_blank">View source</a
+				target="_blank">{$exampleText.viewSource || 'View source'}</a
 			>
 		</p>
 	</article>

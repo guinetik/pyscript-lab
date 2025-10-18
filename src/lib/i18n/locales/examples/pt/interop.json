@@ -1,0 +1,37 @@
+{
+  "title": "Interoperabilidade (JS para Python)",
+  "description": "A interoperabilidade do PyScript permite comunicação contínua entre Python e JavaScript, permitindo que você aproveite os pontos fortes de ambas as linguagens em uma única aplicação. Chame funções Python do JavaScript, acesse APIs de navegador do Python e compartilhe dados bidirecionalmente.",
+  "tryIt": "Experimente: Digite seu nome e idade abaixo. Os dados do formulário serão enviados para uma função Python que os processa e gera uma saudação personalizada.",
+  "nameLabel": "Nome",
+  "namePlaceholder": "Quem é você?",
+  "ageLabel": "Idade",
+  "agePlaceholder": "Quantos anos você tem?",
+  "runButton": "Executar",
+  "loadingTitle": "Carregando Python...",
+  "loadingSubtitle": "Inicializando demonstração de interoperabilidade",
+  "architecture": {
+    "title": "🏗️ Destaques da Arquitetura",
+    "description": "Este exemplo demonstra separação adequada de responsabilidades:",
+    "python": "Python - Lógica de negócio pura, envia apenas dados via callbacks de janela (sem innerHTML!)",
+    "controller": "InteropController - Gerencia ciclo de vida do Python e camada de comunicação",
+    "ui": "Svelte UIHandler - Renderização pura de UI com estado reativo baseado nos dados recebidos"
+  },
+  "viewSource": "Ver código-fonte Python",
+  "howWorks": {
+    "title": "Como Funciona:",
+    "pattern": "Padrão de Controller: InteropController gerencia configuração do Python e callbacks",
+    "dataOnly": "Comunicação Apenas com Dados: Python envia objetos simples, Svelte renderiza a UI",
+    "reactive": "UI Reativa: Svelte atualiza automaticamente quando os dados mudam",
+    "eventDriven": "Orientado a Eventos: Interações do usuário acionam funções Python"
+  },
+  "useCases": {
+    "title": "Casos de Uso:",
+    "formData": "Processe dados de formulário com poderosas bibliotecas Python",
+    "dynamicUI": "Atualize a UI dinamicamente com base em cálculos Python",
+    "combine": "Combine frameworks JavaScript (como Svelte) com lógica Python",
+    "dataSci": "Acesse ecossistema de ciência de dados Python de interfaces web"
+  },
+  "ageDescription": "Idade: {age} | Categoria: {category}",
+  "potentialCoding": "🎂 Possível anos de programação: ~{years}",
+  "disclaimer": "{disclaimer}"
+}

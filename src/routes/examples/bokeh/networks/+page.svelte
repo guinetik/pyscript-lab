@@ -2,7 +2,9 @@
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
-	export let name = 'Bokeh + NetworkX';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
+
+	const exampleText = exampleTranslationStore('bokeh-networks');
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/bokeh/pandas', nextPage: '/examples/bokeh/communities' }}>
@@ -10,64 +12,50 @@
 		<section class="pyscript p-5 space-y-6">
 			<div class="mb-4 rounded-lg bg-slate-50 p-4">
 				<p class="text-sm text-slate-700">
-					These interactive network graphs visualize relationships between programming languages and
-					technologies on StackOverflow using NetworkX graph analysis.
+					{$exampleText.intro || 'These interactive network graphs visualize relationships...'}
 				</p>
 			</div>
 
 			<div class="space-y-4">
 				<div class="rounded-lg bg-blue-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-blue-900">🕸️ Full StackOverflow Network</h3>
+					<h3 class="mb-2 text-lg font-bold text-blue-900">{$exampleText.fullNetwork?.title || '🕸️ Full StackOverflow Network'}</h3>
 					<p class="text-sm text-blue-800 mb-3">
-						Shows all 115 programming languages and technologies as connected nodes. Each node
-						represents a language/technology, and lines (edges) connect related topics. Node colors
-						indicate different technology groups, and node size represents popularity/activity. Uses
-						Kamada-Kawai layout algorithm which optimizes node placement based on graph distances.
+						{$exampleText.fullNetwork?.description || 'Shows all 115 programming languages...'}
 					</p>
-					<PyExample title="Full network using Kamada-Kawai layout:">
+					<PyExample title={$exampleText.fullNetwork?.code || 'Full network using Kamada-Kawai layout:'}>
 						<script type="py" src="{base}/python/bokeh/bokeh_network_full.py" id="bokeh-network-full"></script>
 					</PyExample>
 					<div id="network-full-output" class="w-full"></div>
 				</div>
 
 				<div class="rounded-lg bg-purple-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-purple-900">🔗 Clique Analysis</h3>
+					<h3 class="mb-2 text-lg font-bold text-purple-900">{$exampleText.cliques?.title || '🔗 Clique Analysis'}</h3>
 					<p class="text-sm text-purple-800 mb-3">
-						A "clique" is a group of nodes where everyone is connected to everyone else - showing
-						technologies that are very tightly related. This chart identifies the strongest cliques
-						in the network, revealing which technologies are most commonly used together. For
-						example, web technologies like HTML, CSS, and JavaScript often form tight cliques.
+						{$exampleText.cliques?.description || 'A \"clique\" is a group of nodes...'}
 					</p>
-					<PyExample title="Clique detection using the SAME cached data:">
+					<PyExample title={$exampleText.cliques?.code || 'Clique detection using the SAME cached data:'}>
 						<script type="py" src="{base}/python/bokeh/bokeh_network_cliques.py" id="bokeh-network-cliques"></script>
 					</PyExample>
 					<div id="network-cliques-output" class="w-full"></div>
 				</div>
 
 				<div class="rounded-lg bg-orange-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-orange-900">⭐ Eigenvector Centrality</h3>
+					<h3 class="mb-2 text-lg font-bold text-orange-900">{$exampleText.centrality?.title || '⭐ Eigenvector Centrality'}</h3>
 					<p class="text-sm text-orange-800 mb-3">
-						Measures each node's influence in the network based on the quality of its connections.
-						Larger nodes are more "central" or influential - they're not just connected to many
-						nodes, but connected to other important nodes. This reveals which technologies are the
-						most important hubs in the ecosystem. Think of it like academic citations: being cited
-						by highly-cited papers matters more than being cited by obscure ones.
+						{$exampleText.centrality?.description || 'Measures each node\'s influence...'}
 					</p>
-					<PyExample title="Eigenvector centrality analysis:">
+					<PyExample title={$exampleText.centrality?.code || 'Eigenvector centrality analysis:'}>
 						<script type="py" src="{base}/python/bokeh/bokeh_network_centrality.py" id="bokeh-network-centrality"></script>
 					</PyExample>
 					<div id="network-centrality-output" class="w-full"></div>
 				</div>
 
 				<div class="rounded-lg bg-green-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-green-900">💻 Programming Languages Network</h3>
+					<h3 class="mb-2 text-lg font-bold text-green-900">{$exampleText.languages?.title || '💻 Programming Languages Network'}</h3>
 					<p class="text-sm text-green-800 mb-3">
-						Focuses specifically on major programming languages (Python, Java, C++, JavaScript, etc.)
-						and their immediate neighbors. This shows how these core languages relate to each other
-						and what technologies surround them. The layout helps you understand the ecosystem around
-						each language - which tools, frameworks, and technologies are commonly associated with it.
+						{$exampleText.languages?.description || 'Focuses specifically on major programming languages...'}
 					</p>
-					<PyExample title="Programming language subgraph:">
+					<PyExample title={$exampleText.languages?.code || 'Programming language subgraph:'}>
 						<script type="py" src="{base}/python/bokeh/bokeh_network_languages.py" id="bokeh-network-languages"></script>
 					</PyExample>
 					<div id="network-languages-output" class="w-full"></div>
@@ -77,66 +65,62 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Bokeh + NetworkX'}</h2>
 
 		<div class="space-y-4">
 			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">🕸️ What is NetworkX?</h3>
+				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.whatNetworkX?.title || '🕸️ What is NetworkX?'}</h3>
 				<p class="text-sm text-blue-800">
-					NetworkX is Python's most popular library for creating, analyzing, and visualizing complex
-					networks (graphs). A graph is a collection of nodes (points) connected by edges (lines).
-					NetworkX makes it easy to study relationships, find patterns, and compute network metrics
-					like centrality, clustering, and shortest paths.
+					{$exampleText.whatNetworkX?.description || 'NetworkX is Python\'s most popular library...'}
 				</p>
 			</div>
 
 			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 font-bold text-green-900">📊 The Dataset</h3>
+				<h3 class="mb-2 font-bold text-green-900">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
 				<p class="text-sm text-green-800 mb-2">
-					This network contains <strong>115 nodes</strong> (programming languages and technologies)
-					and their relationships based on StackOverflow tag co-occurrences. Each node has:
+					{$exampleText.dataset?.intro || 'This network contains 115 nodes...'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-green-800">
-					<li>Name (e.g., "python", "javascript", "django")</li>
-					<li>Group/category (color coding)</li>
-					<li>Node size (popularity/activity)</li>
-					<li>Edges connecting it to related technologies</li>
+					<li>{$exampleText.dataset?.name || 'Name (e.g., \"python\", \"javascript\", \"django\")'}</li>
+					<li>{$exampleText.dataset?.group || 'Group/category (color coding)'}</li>
+					<li>{$exampleText.dataset?.size || 'Node size (popularity/activity)'}</li>
+					<li>{$exampleText.dataset?.edges || 'Edges connecting it to related technologies'}</li>
 				</ul>
 			</div>
 
 			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">🔍 Network Analysis Concepts</h3>
+				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.concepts?.title || '🔍 Network Analysis Concepts'}</h3>
 				<p class="text-sm text-purple-800 mb-2">
-					Each visualization demonstrates key graph analysis techniques:
+					{$exampleText.concepts?.intro || 'Each visualization demonstrates key graph analysis techniques:'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
-					<li><strong>Degree:</strong> Number of connections each node has</li>
-					<li><strong>Cliques:</strong> Groups where every node connects to every other</li>
-					<li><strong>Centrality:</strong> How important/influential a node is</li>
-					<li><strong>Subgraphs:</strong> Extracting portions of the network</li>
-					<li><strong>Layouts:</strong> Algorithms that position nodes aesthetically</li>
+					<li>{$exampleText.concepts?.degree || 'Degree: Number of connections...'}</li>
+					<li>{$exampleText.concepts?.cliques || 'Cliques: Groups where every node...'}</li>
+					<li>{$exampleText.concepts?.centrality || 'Centrality: How important/influential...'}</li>
+					<li>{$exampleText.concepts?.subgraphs || 'Subgraphs: Extracting portions...'}</li>
+					<li>{$exampleText.concepts?.layouts || 'Layouts: Algorithms that position...'}</li>
 				</ul>
 			</div>
 
 			<div class="rounded-lg bg-orange-50 p-4">
-				<h3 class="mb-2 font-bold text-orange-900">🎨 Layout Algorithms</h3>
+				<h3 class="mb-2 font-bold text-orange-900">{$exampleText.layouts?.title || '🎨 Layout Algorithms'}</h3>
 				<p class="text-sm text-orange-800 mb-2">
-					Different layouts reveal different aspects of network structure:
+					{$exampleText.layouts?.intro || 'Different layouts reveal different aspects...'}
 				</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
-					<li><strong>Kamada-Kawai:</strong> Optimizes distances between nodes based on graph structure - great for revealing communities</li>
-					<li><strong>Spring (Fruchterman-Reingold):</strong> Force-directed layout where connected nodes attract and others repel</li>
+					<li>{$exampleText.layouts?.kamada || 'Kamada-Kawai: Optimizes distances...'}</li>
+					<li>{$exampleText.layouts?.spring || 'Spring (Fruchterman-Reingold): Force-directed...'}</li>
 				</ul>
 			</div>
 
 			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">💡 How to Read These Graphs</h3>
+				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.howToRead?.title || '💡 How to Read These Graphs'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm text-amber-800">
-					<li><strong>Nodes (circles):</strong> Technologies/languages. Hover to see names and stats.</li>
-					<li><strong>Edges (lines):</strong> Show relationships between technologies.</li>
-					<li><strong>Colors:</strong> Different groups/categories of technologies.</li>
-					<li><strong>Size:</strong> In full/clique/language graphs = popularity. In centrality graph = influence.</li>
-					<li><strong>Tools:</strong> Pan to move around, wheel zoom to zoom in/out, hover for details.</li>
+					<li>{$exampleText.howToRead?.nodes || 'Nodes (circles): Technologies/languages...'}</li>
+					<li>{$exampleText.howToRead?.edges || 'Edges (lines): Show relationships...'}</li>
+					<li>{$exampleText.howToRead?.colors || 'Colors: Different groups/categories...'}</li>
+					<li>{$exampleText.howToRead?.size || 'Size: In full/clique/language...'}</li>
+					<li>{$exampleText.howToRead?.tools || 'Tools: Pan to move around...'}</li>
 				</ul>
 			</div>
 		</div>
@@ -145,14 +129,14 @@
 			<a
 				class="text-sky-500"
 				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/bokeh"
-				target="_blank">View source files</a
+				target="_blank">{$exampleText.viewSource || 'View source files'}</a
 			>
 			<br />
 			<a
 				class="text-sky-500"
 				target="_blank"
 				href="https://www.kaggle.com/code/mayeesha/network-analysis-for-dummies-stackoverflow-data/notebook"
-				>Adapted from this Kaggle</a
+				>{$exampleText.kaggleLink || 'Adapted from this Kaggle'}</a
 			>
 		</p>
 	</article>

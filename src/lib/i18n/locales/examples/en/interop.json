@@ -1,0 +1,37 @@
+{
+  "title": "Interoperability (JS to Python)",
+  "description": "PyScript's interoperability allows seamless communication between Python and JavaScript, enabling you to leverage both languages' strengths in a single application. Call Python functions from JavaScript, access browser APIs from Python, and share data bidirectionally.",
+  "tryIt": "Try it: Enter your name and age below. The form data will be sent to a Python function that processes it and generates a personalized greeting.",
+  "nameLabel": "Name",
+  "namePlaceholder": "Who are you?",
+  "ageLabel": "Age",
+  "agePlaceholder": "How old are you?",
+  "runButton": "Run",
+  "loadingTitle": "Loading Python...",
+  "loadingSubtitle": "Initializing interoperability demo",
+  "architecture": {
+    "title": "🏗️ Architecture Highlights",
+    "description": "This example demonstrates proper separation of concerns:",
+    "python": "Python - Pure business logic, sends only data via window callbacks (no innerHTML!)",
+    "controller": "InteropController - Manages Python lifecycle and communication layer",
+    "ui": "Svelte UIHandler - Pure UI rendering with reactive state based on data received"
+  },
+  "viewSource": "View Python source",
+  "howWorks": {
+    "title": "How It Works:",
+    "pattern": "Controller Pattern: InteropController manages Python setup and callbacks",
+    "dataOnly": "Data-Only Communication: Python sends plain objects, Svelte renders the UI",
+    "reactive": "Reactive UI: Svelte automatically updates when data changes",
+    "eventDriven": "Event-Driven: User interactions trigger Python functions"
+  },
+  "useCases": {
+    "title": "Use Cases:",
+    "formData": "Process form data with Python's powerful libraries",
+    "dynamicUI": "Update UI dynamically based on Python computations",
+    "combine": "Combine JavaScript frameworks (like Svelte) with Python logic",
+    "dataSci": "Access Python's data science ecosystem from web interfaces"
+  },
+  "ageDescription": "Age: {age} | Category: {category}",
+  "potentialCoding": "🎂 Potential coding years: ~{years}",
+  "disclaimer": "{disclaimer}"
+}

@@ -1,0 +1,61 @@
+{
+  "title": "Bokeh + NetworkX",
+  "intro": "These interactive network graphs visualize relationships between programming languages and technologies on StackOverflow using NetworkX graph analysis.",
+  "fullNetwork": {
+    "title": "🕸️ Full StackOverflow Network",
+    "description": "Shows all 115 programming languages and technologies as connected nodes. Each node represents a language/technology, and lines (edges) connect related topics. Node colors indicate different technology groups, and node size represents popularity/activity. Uses Kamada-Kawai layout algorithm which optimizes node placement based on graph distances.",
+    "code": "Full network using Kamada-Kawai layout:"
+  },
+  "cliques": {
+    "title": "🔗 Clique Analysis",
+    "description": "A \"clique\" is a group of nodes where everyone is connected to everyone else - showing technologies that are very tightly related. This chart identifies the strongest cliques in the network, revealing which technologies are most commonly used together. For example, web technologies like HTML, CSS, and JavaScript often form tight cliques.",
+    "code": "Clique detection using the SAME cached data:"
+  },
+  "centrality": {
+    "title": "⭐ Eigenvector Centrality",
+    "description": "Measures each node's influence in the network based on the quality of its connections. Larger nodes are more \"central\" or influential - they're not just connected to many nodes, but connected to other important nodes. This reveals which technologies are the most important hubs in the ecosystem. Think of it like academic citations: being cited by highly-cited papers matters more than being cited by obscure ones.",
+    "code": "Eigenvector centrality analysis:"
+  },
+  "languages": {
+    "title": "💻 Programming Languages Network",
+    "description": "Focuses specifically on major programming languages (Python, Java, C++, JavaScript, etc.) and their immediate neighbors. This shows how these core languages relate to each other and what technologies surround them. The layout helps you understand the ecosystem around each language - which tools, frameworks, and technologies are commonly associated with it.",
+    "code": "Programming language subgraph:"
+  },
+  "whatNetworkX": {
+    "title": "🕸️ What is NetworkX?",
+    "description": "NetworkX is Python's most popular library for creating, analyzing, and visualizing complex networks (graphs). A graph is a collection of nodes (points) connected by edges (lines). NetworkX makes it easy to study relationships, find patterns, and compute network metrics like centrality, clustering, and shortest paths."
+  },
+  "dataset": {
+    "title": "📊 The Dataset",
+    "intro": "This network contains 115 nodes (programming languages and technologies) and their relationships based on StackOverflow tag co-occurrences. Each node has:",
+    "name": "Name (e.g., \"python\", \"javascript\", \"django\")",
+    "group": "Group/category (color coding)",
+    "size": "Node size (popularity/activity)",
+    "edges": "Edges connecting it to related technologies"
+  },
+  "concepts": {
+    "title": "🔍 Network Analysis Concepts",
+    "intro": "Each visualization demonstrates key graph analysis techniques:",
+    "degree": "Degree: Number of connections each node has",
+    "cliques": "Cliques: Groups where every node connects to every other",
+    "centrality": "Centrality: How important/influential a node is",
+    "subgraphs": "Subgraphs: Extracting portions of the network",
+    "layouts": "Layouts: Algorithms that position nodes aesthetically"
+  },
+  "layouts": {
+    "title": "🎨 Layout Algorithms",
+    "intro": "Different layouts reveal different aspects of network structure:",
+    "kamada": "Kamada-Kawai: Optimizes distances between nodes based on graph structure - great for revealing communities",
+    "spring": "Spring (Fruchterman-Reingold): Force-directed layout where connected nodes attract and others repel"
+  },
+  "howToRead": {
+    "title": "💡 How to Read These Graphs",
+    "nodes": "Nodes (circles): Technologies/languages. Hover to see names and stats.",
+    "edges": "Edges (lines): Show relationships between technologies.",
+    "colors": "Colors: Different groups/categories of technologies.",
+    "size": "Size: In full/clique/language graphs = popularity. In centrality graph = influence.",
+    "tools": "Tools: Pan to move around, wheel zoom to zoom in/out, hover for details."
+  },
+  "viewSource": "View source files",
+  "kaggleLink": "Adapted from this Kaggle"
+}

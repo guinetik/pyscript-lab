@@ -1,0 +1,56 @@
+{
+  "title": "Create Diagrams",
+  "description": "Create your own cloud architecture diagrams using Python code! This interactive editor lets you experiment with the Diagrams library and see results instantly.",
+  "ui": {
+    "quickStartTemplates": "Quick Start Templates:",
+    "diagramCode": "Diagram Code:",
+    "runDiagram": "▶️ Run Diagram",
+    "generating": "⏳ Generating...",
+    "saveSvg": "💾 Save SVG",
+    "yourDiagram": "Your Diagram:",
+    "placeholderDefault": "Click \"Run Diagram\" to see your visualization",
+    "placeholderEditor": "Enter your Diagrams code here...",
+    "templateLoaded": "Template loaded. Click \"Run Diagram\" to generate.",
+    "loadingDiagramCreator": "🐍 Loading diagram creator..."
+  },
+  "status": {
+    "ready": "Click \"Run Diagram\" to generate visualization",
+    "failed": "Failed to initialize. Please refresh the page."
+  },
+  "sections": {
+    "howToUse": {
+      "title": "How to Use:",
+      "step1": "Choose a template or write your own code",
+      "step2": "Edit the code in the editor",
+      "step3": "Click \"Run Diagram\" to generate the visualization",
+      "step4": "Iterate and experiment - try different providers and layouts!"
+    },
+    "availableProviders": {
+      "title": "Available Providers:",
+      "description": "You can use components from these cloud providers:",
+      "aws": "diagrams.aws.* - Amazon Web Services",
+      "azure": "diagrams.azure.* - Microsoft Azure",
+      "gcp": "diagrams.gcp.* - Google Cloud Platform",
+      "k8s": "diagrams.k8s.* - Kubernetes",
+      "onprem": "diagrams.onprem.* - On-Premise / Generic"
+    },
+    "tips": {
+      "title": "Tips:",
+      "tip1": "Use {dataFlow} to show data flow direction",
+      "tip2": "Use {connections} for bidirectional connections",
+      "tip3": "Use lists {parallelComponents} for parallel components",
+      "tip4": "Always set {showFalse} in the Diagram constructor",
+      "dataFlow": ">>",
+      "connections": "-",
+      "parallelComponents": "[service1, service2]",
+      "showFalse": "show=False"
+    },
+    "examplePattern": {
+      "title": "Example Pattern:",
+      "code": "from diagrams import Diagram\nfrom diagrams.aws.compute import EC2\nfrom diagrams.aws.database import RDS\n\nwith Diagram(\"My Architecture\", show=False):\n    web = EC2(\"web server\")\n    db = RDS(\"database\")\n    web >> db  # web connects to database"
+    }
+  },
+  "links": {
+    "creatorSource": "View Creator Source"
+  }
+}

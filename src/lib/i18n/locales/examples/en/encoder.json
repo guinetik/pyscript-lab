@@ -1,0 +1,52 @@
+{
+  "title": "Advanced Interop - Text Encoder",
+  "description": "This example demonstrates advanced PyScript interoperability using the new PyScriptManager system. Unlike polling-based approaches, this uses event-driven communication for instant Python module initialization.",
+  "inputLabel": "Input Text",
+  "inputPlaceholder": "Enter text to encode...",
+  "formatLabel": "Encoding Format",
+  "encodeButton": "Encode",
+  "clearButton": "Clear",
+  "copyButton": "Copy",
+  "outputLabel": "Output",
+  "outputPlaceholder": "Encoded result will appear here...",
+  "initializing": "Initializing Python module...",
+  "ready": "✅ Python module ready!",
+  "loadingError": "❌ Failed to load Python module",
+  "errorNotReady": "Error: Python module not ready yet",
+  "errorEmpty": "Please enter some text to encode",
+  "copiedFeedback": "✓ Copied to clipboard!",
+  "encodings": {
+    "title": "🔐 Available Encodings",
+    "md5": "MD5 Hash - 128-bit cryptographic hash (legacy, not secure)",
+    "sha1": "SHA-1 Hash - 160-bit cryptographic hash",
+    "sha256": "SHA-256 Hash - 256-bit secure cryptographic hash",
+    "base64": "Base64 Encode/Decode - Binary-to-text encoding",
+    "rot13": "ROT13 Cipher - Simple letter substitution cipher"
+  },
+  "whyPython": {
+    "title": "💡 Why Python?",
+    "description": "These operations are trivial in Python thanks to built-in libraries:",
+    "hashlib": "hashlib - Cryptographic hashing (MD5, SHA family)",
+    "base64": "base64 - Base64 encoding/decoding",
+    "codecs": "codecs - Text encoding transformations",
+    "footer": "In JavaScript, you'd need the Web Crypto API (async, verbose) or external libraries. Python's \"batteries included\" philosophy shines here!"
+  },
+  "pyscriptManager": {
+    "title": "🚀 What's New: PyScriptManager",
+    "description": "This example uses the new PyScriptManager system:",
+    "eventDriven": "Event-driven - No polling with setTimeout",
+    "instant": "Instant readiness - Python signals when ready",
+    "errorHandling": "Error handling - Captures and reports Python errors",
+    "multiple": "Multiple exports - 6 encoding functions loaded at once",
+    "footer": "Check the browser console to see the lifecycle events in action!"
+  },
+  "architecture": {
+    "title": "🏗️ Architecture",
+    "description": "Clean separation of concerns:",
+    "python": "Python (encoder.py) - Uses PyScriptManager to export functions",
+    "controller": "Controller (EncodingController.js) - Manages lifecycle with events",
+    "svelte": "Svelte - Pure UI rendering with reactive state"
+  },
+  "viewPythonSource": "View Python source",
+  "viewPyscriptManager": "View PyScriptManager"
+}

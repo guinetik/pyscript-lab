@@ -3,6 +3,7 @@
 	import { DigitRecognitionController } from '$lib/controller/DigitRecognitionController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 	import PredictionResult from '$lib/ml/PredictionResult.svelte';
 	import ModelVisualization from '$lib/ml/ModelVisualization.svelte';
 	import UIStatus from '$lib/ml/UIStatus.svelte';
@@ -14,8 +15,8 @@
 		resetStores
 	} from '$lib/stores/digitRecognitionStore.js';
 
-	// Page metadata
-	let name = 'Machine Learning - Digit Recognition';
+	// Get translated content
+	const exampleText = exampleTranslationStore('ml');
 
 	// Controller instance
 	let controller = browser ? new DigitRecognitionController() : null;
@@ -182,7 +183,7 @@
 <ExperimentCard props={{ previousPage: '/examples/diagrams/create', nextPage: '/' }}>
 	<div slot="py_slot" class="flex h-full w-full flex-col items-center justify-start p-5">
 		<!-- Heading -->
-		<h3 class="text-2xl font-bold mb-4 text-gray-800">Draw a Number</h3>
+		<h3 class="text-2xl font-bold mb-4 text-gray-800">{$exampleText.ui?.drawHeading || 'Draw a Number'}</h3>
 
 		<!-- Canvas for drawing -->
 		<div class="mb-4 rounded-lg border-4 border-gray-300 bg-white shadow-lg">
@@ -200,12 +201,12 @@
 			<button
 				class="flex-1 rounded bg-red-400 px-3 py-2 text-white hover:bg-red-500"
 				type="button"
-				onclick={clearCanvas}>Clear</button
+				onclick={clearCanvas}>{$exampleText.ui?.clearButton || 'Clear'}</button
 			>
 			<button
 				class="flex-1 rounded bg-green-400 px-3 py-2 text-white hover:bg-green-500"
 				type="button"
-				onclick={predictDigit}>Predict</button
+				onclick={predictDigit}>{$exampleText.ui?.predictButton || 'Predict'}</button
 			>
 		</div>
 
@@ -219,10 +220,9 @@
 		</div>
 	</div>
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Machine Learning - Digit Recognition'}</h2>
 		<p class="mb-4">
-			Draw a digit (0-9) on the canvas and click "Predict" to see what the machine learning
-			model thinks you drew!
+			{$exampleText.description || 'Draw a digit (0-9) on the canvas and click "Predict" to see what the machine learning model thinks you drew!'}
 		</p>
 
 		<!-- Model visualization - Svelte component -->
@@ -235,7 +235,7 @@
 			<button
 				onclick={showTrainingExamples}
 				class="rounded bg-purple-400 px-4 py-2 text-white hover:bg-purple-500 font-medium">
-				📚 Show Training Examples
+				{$exampleText.ui?.trainingExamplesButton || '📚 Show Training Examples'}
 			</button>
 		</div>
 
@@ -243,49 +243,49 @@
 		<TrainingExamples data={trainingExamplesData} onHide={hideTrainingExamples} />
 
 		<div class="mt-6 rounded-lg bg-blue-50 p-4">
-			<h3 class="mb-2 font-bold text-blue-900">How it works:</h3>
+			<h3 class="mb-2 font-bold text-blue-900">{$exampleText.sections?.howItWorks?.title || 'How it works:'}</h3>
 			<ul class="list-disc space-y-2 pl-5 text-sm text-blue-800">
-				<li>The model is trained on scikit-learn's digits dataset (1,797 samples of 8×8 images)</li>
-				<li>When you click Predict, your drawing is converted to base64</li>
-				<li>Python receives the image, preprocesses it to 8×8 grayscale with adaptive thresholding</li>
-				<li>A <strong>K-Nearest Neighbors (KNN)</strong> classifier predicts the digit using 5 neighbors</li>
-				<li><strong>Distance weighting</strong> gives more importance to closer neighbors for better accuracy</li>
-				<li><strong>Active learning:</strong> If the prediction is wrong, you can correct it and retrain the model live!</li>
-				<li>All processing happens in your browser using PyScript!</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet1 || "The model is trained on scikit-learn's digits dataset (1,797 samples of 8×8 images)"}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet2 || 'When you click Predict, your drawing is converted to base64'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet3 || 'Python receives the image, preprocesses it to 8×8 grayscale with adaptive thresholding'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet4 || 'A K-Nearest Neighbors (KNN) classifier predicts the digit using 5 neighbors'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet5 || 'Distance weighting gives more importance to closer neighbors for better accuracy'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet6 || 'Active learning: If the prediction is wrong, you can correct it and retrain the model live!'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet7 || 'All processing happens in your browser using PyScript!'}</li>
 			</ul>
 		</div>
 
 		<div class="mt-4 rounded-lg bg-green-50 p-4">
-			<h3 class="mb-2 font-bold text-green-900">💡 Active Learning with Positive & Negative Feedback</h3>
+			<h3 class="mb-2 font-bold text-green-900">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning with Positive & Negative Feedback'}</h3>
 			<p class="text-sm text-green-800">
-				This model learns from <strong>both</strong> correct and incorrect predictions! After each prediction, you can:
+				{$exampleText.sections?.activeLearning?.description || 'This model learns from both correct and incorrect predictions! After each prediction, you can:'}
 			</p>
 			<ul class="list-disc space-y-1 pl-5 text-sm text-green-800 mt-2">
-				<li><strong>Click YES</strong> if correct → Reinforces the model's understanding of your drawing style</li>
-				<li><strong>Click NO</strong> if wrong → Lets you correct it and retrain with the right label</li>
+				<li>{$exampleText.sections?.activeLearning?.feedbackYes || 'Click YES if correct → Reinforces the model\'s understanding of your drawing style'}</li>
+				<li>{$exampleText.sections?.activeLearning?.feedbackNo || 'Click NO if wrong → Lets you correct it and retrain with the right label'}</li>
 			</ul>
 			<p class="text-sm text-green-800 mt-2">
-				The more feedback you give (positive or negative), the better it gets at recognizing <em>your</em> handwriting!
+				{$exampleText.sections?.activeLearning?.conclusion || 'The more feedback you give (positive or negative), the better it gets at recognizing your handwriting!'}
 			</p>
 		</div>
 
 		<div class="mt-4 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">🏗️ Architecture</h3>
+			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
 			<p class="text-sm text-orange-800">
-				This example demonstrates proper separation of concerns with event-driven initialization:
+				{$exampleText.sections?.architecture?.description || 'This example demonstrates proper separation of concerns with event-driven initialization:'}
 			</p>
 			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
 				<li>
-					<strong>PyScriptManager</strong> - Event-driven lifecycle management (no polling!)
+					<strong>{$exampleText.sections?.architecture?.component1?.split(' - ')[0] || 'PyScriptManager'}</strong> - {$exampleText.sections?.architecture?.component1?.split(' - ')[1] || 'Event-driven lifecycle management (no polling!)'}
 				</li>
 				<li>
-					<strong>Python</strong> - Pure ML logic, signals ready when initialized, sends only data via callbacks
+					<strong>{$exampleText.sections?.architecture?.component2?.split(' - ')[0] || 'Python'}</strong> - {$exampleText.sections?.architecture?.component2?.split(' - ')[1] || 'Pure ML logic, signals ready when initialized, sends only data via callbacks'}
 				</li>
 				<li>
-					<strong>DigitRecognitionController</strong> - Manages communication layer between Python and UI
+					<strong>{$exampleText.sections?.architecture?.component3?.split(' - ')[0] || 'DigitRecognitionController'}</strong> - {$exampleText.sections?.architecture?.component3?.split(' - ')[1] || 'Manages communication layer between Python and UI'}
 				</li>
 				<li>
-					<strong>Svelte Components</strong> - Pure UI rendering with reactive state
+					<strong>{$exampleText.sections?.architecture?.component4?.split(' - ')[0] || 'Svelte Components'}</strong> - {$exampleText.sections?.architecture?.component4?.split(' - ')[1] || 'Pure UI rendering with reactive state'}
 				</li>
 			</ul>
 		</div>
@@ -294,7 +294,7 @@
 			<a
 				class="text-sky-500"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/digit_recognition.py"
-				target="_blank">View source</a
+				target="_blank">{$exampleText.links?.viewSource || 'View source'}</a
 			>
 		</p>
 	</article>

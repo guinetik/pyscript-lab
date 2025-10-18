@@ -1,0 +1,71 @@
+{
+  "title": "Gráficos de Dados COVID-19",
+  "headerTitle": "Análise Global de Dados COVID-19",
+  "headerDescription": "Visualizando dados de pandemia de 187 países/regiões usando Matplotlib e Pandas",
+  "charts": {
+    "chart1": {
+      "title": "📊 Gráfico 1: Top 20 Países por Mortes",
+      "description": "Um gráfico de barras horizontal com \"estilo mapa de calor\" mostrando os países com as maiores mortes. A intensidade da cor aumenta com a contagem de mortes.",
+      "pyTitle": "Top 20 mortes com coloração de mapa de calor:"
+    },
+    "chart2": {
+      "title": "🌍 Gráfico 2: Mortes por Região da OMS",
+      "description": "Gráfico de pizza mostrando como as mortes estão distribuídas entre as regiões da OMS (Américas, Europa, África, etc.)",
+      "pyTitle": "Distribuição regional usando os MESMOS dados em cache:"
+    },
+    "chart3": {
+      "title": "🔍 Gráfico 3: Casos Confirmados vs Mortes (Escala Logarítmica)",
+      "description": "Gráfico de dispersão revelando a relação entre casos confirmados e mortes. A escala logarítmica torna os padrões visíveis entre países de tamanhos vastamente diferentes.",
+      "pyTitle": "Gráfico de dispersão com escala logarítmica:"
+    },
+    "chart4": {
+      "title": "⚠️ Gráfico 4: Análise da Taxa de Letalidade",
+      "description": "Análise da Taxa de Letalidade mostrando quais países tiveram as maiores taxas de morte por caso (filtrado para países com 1000+ casos para significância estatística)",
+      "pyTitle": "Análise de CFR com filtragem:"
+    }
+  },
+  "dataset": {
+    "title": "📊 O Conjunto de Dados",
+    "intro": "O conjunto de dados covid_country.csv contém:",
+    "items": {
+      "countries": "187 países/regiões com estatísticas cumulativas",
+      "stats": "Casos confirmados, mortes, recuperações e casos ativos",
+      "weekly": "Novos casos semanais e mudanças",
+      "cfr": "Taxas de letalidade (taxa de morte)",
+      "regions": "Categorização regional da OMS (Américas, Europa, África, etc.)"
+    }
+  },
+  "about": {
+    "title": "📈 O que é Matplotlib?",
+    "description": "Matplotlib é a biblioteca de plotagem fundamental do Python. Ela oferece controle completo sobre todos os aspectos de seus gráficos - desde gráficos de linha básicos até visualizações complexas de múltiplos painéis. Ao contrário de Bokeh (que se concentra em interatividade), Matplotlib se destaca na criação de figuras estáticas de qualidade de publicação com personalização precisa."
+  },
+  "chartTypes": {
+    "title": "🔬 Tipos de Gráficos Usados",
+    "items": {
+      "bar": "Gráficos de Barras Horizontais: Ótimo para comparar categorias quando os rótulos são longos",
+      "pie": "Gráficos de Pizza: Mostram proporções de um todo (distribuição regional)",
+      "scatter": "Gráficos de Dispersão: Revelam correlações entre duas variáveis",
+      "log": "Escalas Logarítmicas: Lidam com dados abrangendo múltiplas ordens de magnitude",
+      "colorMap": "Mapas de Cores: Use intensidade de cor para representar valores de dados (efeito mapa de calor)"
+    }
+  },
+  "insights": {
+    "title": "💡 Insights de Dados",
+    "items": {
+      "deathTolls": "As regiões das Américas e Europa tiveram as maiores mortes",
+      "correlation": "Surtos maiores nem sempre correlacionam linearmente com mortes (diferentes respostas de saúde)",
+      "cfr": "A Taxa de Letalidade varia significativamente com base na capacidade de saúde, taxas de teste e demografia",
+      "testing": "Países com testes robustos podem mostrar CFR menor devido à detecção de mais casos leves"
+    }
+  },
+  "techniques": {
+    "title": "🎯 Técnicas Técnicas",
+    "items": {
+      "pandas": "Operações Pandas: nlargest(), groupby(), filtragem com indexação booleana",
+      "color": "Mapeamento de Cores: plt.cm.Reds, plt.cm.Set3, plt.cm.YlOrRd para hierarquia visual",
+      "log": "Escalas Logarítmicas: set_xscale('log') para lidar com amplas faixas de valores",
+      "caching": "Cache de Dados: Todos os 4 gráficos compartilham o mesmo CSV carregado (eficiente!)",
+      "clientSide": "Processamento no Lado do Cliente: Toda análise acontece no seu navegador via WebAssembly"
+    }
+  }
+}

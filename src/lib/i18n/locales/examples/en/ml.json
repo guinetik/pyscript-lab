@@ -1,0 +1,40 @@
+{
+  "title": "Machine Learning - Digit Recognition",
+  "ui": {
+    "drawHeading": "Draw a Number",
+    "clearButton": "Clear",
+    "predictButton": "Predict",
+    "trainingExamplesButton": "📚 Show Training Examples"
+  },
+  "description": "Draw a digit (0-9) on the canvas and click \"Predict\" to see what the machine learning model thinks you drew!",
+  "sections": {
+    "howItWorks": {
+      "title": "How it works:",
+      "bullet1": "The model is trained on scikit-learn's digits dataset (1,797 samples of 8×8 images)",
+      "bullet2": "When you click Predict, your drawing is converted to base64",
+      "bullet3": "Python receives the image, preprocesses it to 8×8 grayscale with adaptive thresholding",
+      "bullet4": "A K-Nearest Neighbors (KNN) classifier predicts the digit using 5 neighbors",
+      "bullet5": "Distance weighting gives more importance to closer neighbors for better accuracy",
+      "bullet6": "Active learning: If the prediction is wrong, you can correct it and retrain the model live!",
+      "bullet7": "All processing happens in your browser using PyScript!"
+    },
+    "activeLearning": {
+      "title": "💡 Active Learning with Positive & Negative Feedback",
+      "description": "This model learns from both correct and incorrect predictions! After each prediction, you can:",
+      "feedbackYes": "Click YES if correct → Reinforces the model's understanding of your drawing style",
+      "feedbackNo": "Click NO if wrong → Lets you correct it and retrain with the right label",
+      "conclusion": "The more feedback you give (positive or negative), the better it gets at recognizing your handwriting!"
+    },
+    "architecture": {
+      "title": "🏗️ Architecture",
+      "description": "This example demonstrates proper separation of concerns with event-driven initialization:",
+      "component1": "PyScriptManager - Event-driven lifecycle management (no polling!)",
+      "component2": "Python - Pure ML logic, signals ready when initialized, sends only data via callbacks",
+      "component3": "DigitRecognitionController - Manages communication layer between Python and UI",
+      "component4": "Svelte Components - Pure UI rendering with reactive state"
+    }
+  },
+  "links": {
+    "viewSource": "View source"
+  }
+}

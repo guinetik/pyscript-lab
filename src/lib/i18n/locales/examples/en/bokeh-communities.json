@@ -1,0 +1,48 @@
+{
+  "title": "Community Detection",
+  "intro": "Community detection identifies clusters of closely related technologies in the StackOverflow network using graph analysis algorithms.",
+  "fullCommunities": {
+    "title": "🌐 Full Network with Communities",
+    "description": "Shows all technologies colored by their detected community. Each color represents a different community. Technologies in the same community are shown in the same color family. The \"modularity score\" measures how well-defined the communities are - higher scores (closer to 1.0) mean clearer community boundaries.",
+    "code": "Community detection using greedy modularity:"
+  },
+  "largestCommunity": {
+    "title": "⭐ Largest Community",
+    "description": "Zooms into the biggest community to show its internal structure. You can see which technologies form the core of this cluster and how they interconnect. The node colors now represent each technology's \"degree\" (how many connections it has) - darker colors mean more central/important nodes in the community.",
+    "code": "Largest community with degree-based coloring:"
+  },
+  "comparison": {
+    "title": "📊 Community Size Comparison",
+    "description": "Compares the sizes of all detected communities. Some communities are large ecosystems with many technologies, while others are smaller specialized clusters. The variation in sizes reveals how the technology landscape is structured - a few major ecosystems with many smaller specialized niches.",
+    "code": "Bar chart comparison of community sizes:"
+  },
+  "whatAreCommunities": {
+    "title": "🎨 What Are Communities?",
+    "description": "In network science, a \"community\" is a group of nodes (technologies) that are more densely connected to each other than to the rest of the network. Think of them as natural clusters - like how web technologies (HTML, CSS, JavaScript) naturally group together, or how data science tools (Python, pandas, NumPy) form their own cluster."
+  },
+  "algorithm": {
+    "title": "🔬 The Algorithm",
+    "intro": "This analysis uses Greedy Modularity Optimization:",
+    "iterative": "Iteratively groups nodes to maximize \"modularity\"",
+    "modularity": "Modularity measures how densely connected nodes are within communities vs. between",
+    "fast": "Fast and effective for discovering natural groupings in large networks",
+    "deterministic": "Deterministic - same graph always produces same communities"
+  },
+  "modularity": {
+    "title": "📊 Modularity Score",
+    "description": "The modularity score ranges from -0.5 to 1.0. Higher scores indicate stronger community structure. A score above 0.3 is generally considered significant, meaning the network has well-defined communities. The score shown in the first visualization tells you how clear the community boundaries are."
+  },
+  "understanding": {
+    "title": "🔍 Understanding the Results",
+    "intro": "What you can learn from these visualizations:",
+    "ecosystems": "Technology Ecosystems: See which skills naturally complement each other",
+    "size": "Community Size: Identify major platforms vs. specialized niches",
+    "hubs": "Hub Nodes: In the largest community, high-degree nodes are key technologies",
+    "careers": "Career Paths: Communities suggest logical skill development trajectories"
+  },
+  "applications": {
+    "title": "💡 Real-World Applications",
+    "description": "Community detection is used in social networks (friend groups), biology (protein interactions), recommendation systems (product categories), cybersecurity (attack patterns), and organizational analysis. In this example, it reveals technology ecosystems helping developers understand which skills naturally complement each other."
+  },
+  "viewSource": "View source files"
+}

@@ -1,11 +1,13 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
-	export let name = 'REPL';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
+
+	const exampleText = exampleTranslationStore('repl');
 </script>
 
 <ExperimentCard props={{ previousPage: '/examples/basics/hello', nextPage: '/examples/basics/interop' }}>
 	<section slot="py_slot" class="pyscript p-5">
-		<h1>Example 1: Pyodide REPL</h1>
+		<h1>{$exampleText.examples?.example1 || 'Example 1: Pyodide REPL'}</h1>
 		<script type="py-editor" id="py-editor">
 import sys
 print(sys.version)
@@ -13,7 +15,7 @@ a = 42
 print(a)
 		</script>
 		<hr class="my-4" />
-		<h1>Example 2: MicroPython REPL</h1>
+		<h1>{$exampleText.examples?.example2 || 'Example 2: MicroPython REPL'}</h1>
 		<script type="mpy-editor" id="mpy-editor" language="python">
 import sys
 print(sys.version)
@@ -22,28 +24,26 @@ print(a)
 		</script>
 	</section>
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'R.E.P.L'}</h2>
 
 		<div class="prose max-w-none">
 			<p class="mb-4">
-				PyScript's REPL (Read-Evaluate-Print-Loop) provides an interactive Python environment directly in your browser.
-				Using either Pyodide or MicroPython interpreters, you can write, execute, and see results of Python code in real-time,
-				similar to Jupyter notebooks but without any server infrastructure.
+				{$exampleText.description || "PyScript's REPL provides an interactive Python environment directly in your browser."}
 			</p>
 
 			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">What You Can Do:</h3>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.capabilities?.title || 'What You Can Do:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
-					<li><strong>Interactive Coding:</strong> Write and execute Python code on the fly</li>
-					<li><strong>Multiple Interpreters:</strong> Choose between Pyodide (full CPython) or MicroPython (lightweight)</li>
-					<li><strong>Editable Code:</strong> Modify examples and see results instantly</li>
-					<li><strong>Standard Library Access:</strong> Use Python's built-in modules like <code class="rounded bg-white px-1">sys</code>, <code class="rounded bg-white px-1">math</code>, and more</li>
+					<li><strong>{$exampleText.capabilities?.interactive || 'Interactive Coding:'}</strong> {$exampleText.capabilities?.interactiveDesc || 'Write and execute Python code on the fly'}</li>
+					<li><strong>{$exampleText.capabilities?.multiple || 'Multiple Interpreters:'}</strong> {$exampleText.capabilities?.multipleDesc || 'Choose between Pyodide or MicroPython'}</li>
+					<li><strong>{$exampleText.capabilities?.editable || 'Editable Code:'}</strong> {$exampleText.capabilities?.editableDesc || 'Modify examples and see results instantly'}</li>
+					<li><strong>{$exampleText.capabilities?.stdlib || 'Standard Library Access:'}</strong> {$exampleText.capabilities?.stdlibDesc || 'Use Python built-in modules'}</li>
 				</ul>
 			</div>
 
 			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">Implementation:</h3>
-				<p class="mb-2">REPL editors are created using special script types:</p>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.implementation?.title || 'Implementation:'}</h3>
+				<p class="mb-2">{$exampleText.implementation?.description || 'REPL editors are created using special script types:'}</p>
 				<pre class="rounded bg-white p-3 text-sm overflow-x-auto"><code>&lt;script type="py-editor"&gt;
   # Your Python code here
   print("Hello from Pyodide!")
@@ -56,12 +56,12 @@ print(a)
 			</div>
 
 			<div class="mb-4 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">Use Cases:</h3>
+				<h3 class="mb-2 text-lg font-bold">{$exampleText.useCases?.title || 'Use Cases:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
-					<li>Educational tutorials and code demonstrations</li>
-					<li>Interactive documentation</li>
-					<li>Prototyping Python algorithms</li>
-					<li>Live coding environments</li>
+					<li>{$exampleText.useCases?.educational || 'Educational tutorials and code demonstrations'}</li>
+					<li>{$exampleText.useCases?.documentation || 'Interactive documentation'}</li>
+					<li>{$exampleText.useCases?.prototyping || 'Prototyping Python algorithms'}</li>
+					<li>{$exampleText.useCases?.liveCoding || 'Live coding environments'}</li>
 				</ul>
 			</div>
 		</div>

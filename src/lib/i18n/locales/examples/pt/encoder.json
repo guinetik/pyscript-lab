@@ -1,0 +1,52 @@
+{
+  "title": "Interop Avançada - Codificador de Texto",
+  "description": "Este exemplo demonstra interoperabilidade PyScript avançada usando o novo sistema PyScriptManager. Ao contrário de abordagens baseadas em polling, isso usa comunicação orientada a eventos para inicialização instantânea do módulo Python.",
+  "inputLabel": "Texto de Entrada",
+  "inputPlaceholder": "Digite o texto para codificar...",
+  "formatLabel": "Formato de Codificação",
+  "encodeButton": "Codificar",
+  "clearButton": "Limpar",
+  "copyButton": "Copiar",
+  "outputLabel": "Saída",
+  "outputPlaceholder": "O resultado codificado aparecerá aqui...",
+  "initializing": "Inicializando módulo Python...",
+  "ready": "✅ Módulo Python pronto!",
+  "loadingError": "❌ Falha ao carregar o módulo Python",
+  "errorNotReady": "Erro: O módulo Python ainda não está pronto",
+  "errorEmpty": "Digite algum texto para codificar",
+  "copiedFeedback": "✓ Copiado para a área de transferência!",
+  "encodings": {
+    "title": "🔐 Codificações Disponíveis",
+    "md5": "Hash MD5 - Hash criptográfico de 128 bits (legado, não seguro)",
+    "sha1": "Hash SHA-1 - Hash criptográfico de 160 bits",
+    "sha256": "Hash SHA-256 - Hash criptográfico seguro de 256 bits",
+    "base64": "Codificação/Decodificação Base64 - Codificação binária para texto",
+    "rot13": "Cifra ROT13 - Simples cifra de substituição de letras"
+  },
+  "whyPython": {
+    "title": "💡 Por Que Python?",
+    "description": "Essas operações são triviais em Python graças a bibliotecas integradas:",
+    "hashlib": "hashlib - Hashing criptográfico (família MD5, SHA)",
+    "base64": "base64 - Codificação/decodificação Base64",
+    "codecs": "codecs - Transformações de codificação de texto",
+    "footer": "Em JavaScript, você precisaria da API Web Crypto (assíncrona, verbosa) ou bibliotecas externas. A filosofia \"baterias incluídas\" do Python brilha aqui!"
+  },
+  "pyscriptManager": {
+    "title": "🚀 Novidade: PyScriptManager",
+    "description": "Este exemplo usa o novo sistema PyScriptManager:",
+    "eventDriven": "Orientado a eventos - Sem polling com setTimeout",
+    "instant": "Prontidão instantânea - Python sinaliza quando está pronto",
+    "errorHandling": "Tratamento de erros - Captura e relata erros Python",
+    "multiple": "Múltiplas exportações - 6 funções de codificação carregadas de uma vez",
+    "footer": "Verifique o console do navegador para ver os eventos do ciclo de vida em ação!"
+  },
+  "architecture": {
+    "title": "🏗️ Arquitetura",
+    "description": "Separação limpa de responsabilidades:",
+    "python": "Python (encoder.py) - Usa PyScriptManager para exportar funções",
+    "controller": "Controller (EncodingController.js) - Gerencia ciclo de vida com eventos",
+    "svelte": "Svelte - Renderização pura de UI com estado reativo"
+  },
+  "viewPythonSource": "Ver código-fonte Python",
+  "viewPyscriptManager": "Ver PyScriptManager"
+}

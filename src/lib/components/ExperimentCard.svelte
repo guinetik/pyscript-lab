@@ -6,6 +6,7 @@
    * @property {string} nextPage - URL to navigate to the next example.
    */
   import { getLink } from "../utils.js";
+  import { t } from 'svelte-i18n';
 
   /** @type {ExperimentCardProps} */
   export let props;
@@ -29,16 +30,16 @@
               ><img
                 class="inline h-4"
                 src={getLink("images/arrow-left.svg")}
-                alt="Next"
-              />Previous
+                alt={$t('buttons.previous')}
+              />{$t('buttons.previous')}
             </a>
             <a
               href={getLink(props.nextPage)}
               class="text-xs ml-auto py-2 px-3 bg-yellow-400 hover:bg-slate-300 text-slate-900 hover:text-slate-800 rounded transition duration-300"
-              >Next<img
+              >{$t('buttons.next')}<img
                 class="inline h-4"
                 src={getLink("images/arrow-next.svg")}
-                alt="Next"
+                alt={$t('buttons.next')}
               />
             </a>
           </div>

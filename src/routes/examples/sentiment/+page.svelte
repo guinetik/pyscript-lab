@@ -3,6 +3,7 @@
 	import { SentimentAnalysisController } from '$lib/controller/SentimentAnalysisController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 	import { createLogger } from '@guinetik/logger';
 
 	const logger = createLogger({
@@ -10,8 +11,8 @@
 		level: 'debug'
 	});
 
-	// Page metadata
-	let name = 'Sentiment Analysis';
+	// Get translated content
+	const exampleText = exampleTranslationStore('sentiment');
 
 	// Controller
 	let controller = browser ? new SentimentAnalysisController() : null;
@@ -35,15 +36,14 @@
 	};
 
 	/**
-	 * Example sentences to try
+	 * Example sentences to try - base keys for translation
 	 */
-	const examples = [
-		"I absolutely love this product! It's amazing!",
-		'This is terrible and I hate it.',
-		"It's okay, nothing special really.",
-		'Best purchase ever! Highly recommend!',
-		'Waste of money, very disappointing.'
-	];
+	const exampleKeys = ['example1', 'example2', 'example3', 'example4', 'example5'];
+
+	// Create derived examples array with translated examples
+	let examples = $derived(
+		exampleKeys.map(key => $exampleText?.examples?.[key] || '')
+	);
 
 	onMount(async () => {
 		logger.log('🟣 [Svelte] onMount() called');
@@ -177,16 +177,14 @@
 		<!-- Text Input Area -->
 		<div class="mb-4 flex-shrink-0">
 			<label for="text-input" class="mb-2 block text-lg font-semibold text-gray-800">
-				Enter text to analyze:
+				{$exampleText.ui?.inputLabel || 'Enter text to analyze:'}
 			</label>
 			<textarea
 				id="text-input"
 				bind:value={textInput}
 				rows="5"
 				class="w-full rounded-lg border-2 border-gray-300 bg-white p-4 text-base text-black shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-				placeholder="Type or paste any text here...
-
-Example: 'I love this product!'"
+				placeholder={$exampleText.ui?.placeholder || "Type or paste any text here...\n\nExample: 'I love this product!'"}
 			></textarea>
 		</div>
 
@@ -199,9 +197,9 @@ Example: 'I love this product!'"
 				disabled={isInitializing}
 			>
 				{#if isInitializing}
-					⏳ Loading Model...
+					{$exampleText.ui?.loadingModel || '⏳ Loading Model...'}
 				{:else}
-					🔍 Analyze Sentiment
+					{$exampleText.ui?.analyzeSentiment || '🔍 Analyze Sentiment'}
 				{/if}
 			</button>
 		</div>
@@ -211,7 +209,7 @@ Example: 'I love this product!'"
 			<!-- Error Message -->
 			{#if error}
 				<div class="rounded-lg bg-red-100 p-4 text-center border-2 border-red-300 mb-4">
-					<p class="text-2xl font-bold mb-2 text-red-600">Error!</p>
+					<p class="text-2xl font-bold mb-2 text-red-600">{$exampleText.ui?.error || 'Error!'}</p>
 					<p class="text-sm text-red-700">{error}</p>
 				</div>
 			{/if}
@@ -229,14 +227,14 @@ Example: 'I love this product!'"
 					</p>
 					{#if modelStats}
 						<p class="text-xs text-gray-600 mt-2">
-							Training examples: {modelStats.training_count} | Accuracy: {(modelStats.accuracy * 100).toFixed(1)}%
+							{$exampleText.ui?.modelInfo?.replace('{count}', modelStats.training_count) || `Training examples: ${modelStats.training_count} | Model: TF-IDF + Logistic Regression`} | Accuracy: {(modelStats.accuracy * 100).toFixed(1)}%
 						</p>
 					{/if}
 					<button
 						onclick={clearAndReset}
 						class="mt-3 rounded bg-blue-400 px-3 py-2 text-sm text-white hover:bg-blue-500"
 					>
-						Analyze Another Text
+						{$exampleText.ui?.analyzeAnother || 'Analyze Another Text'}
 					</button>
 				</div>
 			{/if}
@@ -252,10 +250,10 @@ Example: 'I love this product!'"
 					</div>
 
 					<div class="mt-4">
-						<h4 class="font-semibold text-sm text-gray-700 mb-2">All Scores:</h4>
+						<h4 class="font-semibold text-sm text-gray-700 mb-2">{$exampleText.ui?.allScores || 'All Scores:'}</h4>
 						<div class="space-y-2">
 							<div class="flex items-center justify-between">
-								<span class="text-sm">😊 Positive</span>
+								<span class="text-sm">{$exampleText.ui?.positiveOption || '😊 Positive'}</span>
 								<div class="flex-1 mx-3 bg-gray-200 rounded-full h-2">
 									<div
 										class="bg-green-500 h-2 rounded-full"
@@ -267,7 +265,7 @@ Example: 'I love this product!'"
 								>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-sm">😐 Neutral</span>
+								<span class="text-sm">{$exampleText.ui?.neutralOption || '😐 Neutral'}</span>
 								<div class="flex-1 mx-3 bg-gray-200 rounded-full h-2">
 									<div
 										class="bg-yellow-500 h-2 rounded-full"
@@ -279,7 +277,7 @@ Example: 'I love this product!'"
 								>
 							</div>
 							<div class="flex items-center justify-between">
-								<span class="text-sm">😞 Negative</span>
+								<span class="text-sm">{$exampleText.ui?.negativeOption || '😞 Negative'}</span>
 								<div class="flex-1 mx-3 bg-gray-200 rounded-full h-2">
 									<div
 										class="bg-red-500 h-2 rounded-full"
@@ -297,8 +295,8 @@ Example: 'I love this product!'"
 				<!-- Feedback Section -->
 				{#if showFeedback}
 					<div class="rounded-lg bg-blue-50 p-4 border-2 border-blue-200">
-						<h4 class="font-bold mb-2 text-center text-blue-900">Was this prediction correct?</h4>
-						<p class="text-xs text-center text-gray-600 mb-3">Help improve the model!</p>
+						<h4 class="font-bold mb-2 text-center text-blue-900">{$exampleText.ui?.feedbackQuestion || 'Was this prediction correct?'}</h4>
+						<p class="text-xs text-center text-gray-600 mb-3">{$exampleText.ui?.feedbackHint || 'Help improve the model!'}</p>
 
 						{#if !showCorrectionForm}
 							<div class="flex gap-2">
@@ -306,26 +304,26 @@ Example: 'I love this product!'"
 									onclick={confirmCorrect}
 									class="flex-1 rounded bg-green-400 px-4 py-3 text-white hover:bg-green-500 font-bold text-lg"
 								>
-									✓ YES
+{$exampleText.ui?.yesButton || '✓ YES'}
 								</button>
 								<button
 									onclick={showCorrection}
 									class="flex-1 rounded bg-red-400 px-4 py-3 text-white hover:bg-red-500 font-bold text-lg"
 								>
-									✗ NO
+{$exampleText.ui?.noButton || '✗ NO'}
 								</button>
 							</div>
 						{:else}
 							<div>
 								<div class="mb-3">
-									<label class="text-sm font-medium block mb-1">What's the correct sentiment?</label>
+									<label class="text-sm font-medium block mb-1">{$exampleText.ui?.correctLabel || "What's the correct sentiment?"}</label>
 									<select
 										bind:value={correctSentimentValue}
 										class="w-full px-3 py-2 border rounded"
 									>
-										<option value="1">😊 Positive</option>
-										<option value="2">😐 Neutral</option>
-										<option value="0">😞 Negative</option>
+										<option value="1">{$exampleText.ui?.positiveOption || '😊 Positive'}</option>
+										<option value="2">{$exampleText.ui?.neutralOption || '😐 Neutral'}</option>
+										<option value="0">{$exampleText.ui?.negativeOption || '😞 Negative'}</option>
 									</select>
 								</div>
 								<div class="flex gap-2">
@@ -333,13 +331,13 @@ Example: 'I love this product!'"
 										onclick={submitCorrection}
 										class="flex-1 rounded bg-orange-400 px-3 py-2 text-white hover:bg-orange-500 font-medium"
 									>
-										🎓 Retrain Model
+										{$exampleText.ui?.retrainButton || '🎓 Retrain Model'}
 									</button>
 									<button
 										onclick={resetTraining}
 										class="flex-1 rounded bg-gray-400 px-3 py-2 text-white hover:bg-gray-500 font-medium"
 									>
-										🔄 Reset Training
+										{$exampleText.ui?.resetButton || '🔄 Reset Training'}
 									</button>
 								</div>
 							</div>
@@ -358,8 +356,8 @@ Example: 'I love this product!'"
 			{#if isInitializing && !error}
 				<div class="rounded-lg bg-gray-100 p-4 text-center border-2 border-gray-300">
 					<p class="text-3xl mb-2 animate-pulse">⏳</p>
-					<p class="font-bold mb-1">Loading Sentiment Analyzer...</p>
-					<p class="text-sm text-gray-600">Initializing machine learning model</p>
+					<p class="font-bold mb-1">{$exampleText.ui?.loadingAnalyzer || 'Loading Sentiment Analyzer...'}</p>
+					<p class="text-sm text-gray-600">{$exampleText.ui?.initializingModel || 'Initializing machine learning model'}</p>
 				</div>
 			{/if}
 
@@ -367,10 +365,10 @@ Example: 'I love this product!'"
 			{#if !isInitializing && !prediction && !error && !updateMessage && modelStats}
 				<div class="rounded-lg bg-blue-100 p-4 text-center border-2 border-blue-300">
 					<p class="text-3xl mb-2">🤖</p>
-					<p class="font-bold mb-1">Sentiment Analyzer Ready!</p>
-					<p class="text-sm text-gray-600">Enter text above and click Analyze</p>
+					<p class="font-bold mb-1">{$exampleText.ui?.readyTitle || 'Sentiment Analyzer Ready!'}</p>
+					<p class="text-sm text-gray-600">{$exampleText.ui?.readyMessage || 'Enter text above and click Analyze'}</p>
 					<p class="text-xs text-gray-500 mt-2">
-						Training examples: {modelStats.training_count} | Accuracy: {(modelStats.accuracy * 100).toFixed(1)}%
+						{$exampleText.ui?.modelInfo?.replace('{count}', modelStats.training_count) || `Training examples: ${modelStats.training_count} | Model: TF-IDF + Logistic Regression`} | Accuracy: {(modelStats.accuracy * 100).toFixed(1)}%
 					</p>
 				</div>
 			{/if}
@@ -379,14 +377,13 @@ Example: 'I love this product!'"
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Sentiment Analysis'}</h2>
 		<p class="mb-4">
-			Analyze the sentiment of any text using machine learning! The model classifies text as
-			Positive, Negative, or Neutral with confidence scores.
+			{$exampleText.description || 'Analyze the sentiment of any text using machine learning! The model classifies text as Positive, Negative, or Neutral with confidence scores.'}
 		</p>
 
 		<div class="my-6 rounded-lg bg-purple-50 p-4">
-			<h3 class="mb-3 font-bold text-purple-900">Try These Examples:</h3>
+			<h3 class="mb-3 font-bold text-purple-900">{$exampleText.examples?.sectionTitle || 'Try These Examples:'}</h3>
 			<div class="space-y-2">
 				{#each examples as example, i}
 					<button
@@ -402,61 +399,61 @@ Example: 'I love this product!'"
 		</div>
 
 		<div class="mt-6 rounded-lg bg-blue-50 p-4">
-			<h3 class="mb-2 font-bold text-blue-900">How it works:</h3>
+			<h3 class="mb-2 font-bold text-blue-900">{$exampleText.sections?.howItWorks?.title || 'How it works:'}</h3>
 			<ul class="list-disc space-y-2 pl-5 text-sm text-blue-800">
 				<li>
-					The model uses <strong>TF-IDF (Term Frequency-Inverse Document Frequency)</strong> to convert
-					text to numbers
+					{$exampleText.sections?.howItWorks?.bullet1 || 'The model uses TF-IDF (Term Frequency-Inverse Document Frequency) to convert text to numbers'}
 				</li>
 				<li>
-					A <strong>Logistic Regression</strong> classifier predicts sentiment based on word patterns
+					{$exampleText.sections?.howItWorks?.bullet2 || 'A Logistic Regression classifier predicts sentiment based on word patterns'}
 				</li>
-				<li>Trained on 45 example sentences (15 positive, 15 negative, 15 neutral)</li>
-				<li>Shows confidence scores for all three sentiment categories</li>
-				<li>All processing happens in your browser using PyScript!</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet3 || 'Trained on 45 example sentences (15 positive, 15 negative, 15 neutral)'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet4 || 'Shows confidence scores for all three sentiment categories'}</li>
+				<li>{$exampleText.sections?.howItWorks?.bullet5 || 'All processing happens in your browser using PyScript!'}</li>
 			</ul>
 		</div>
 
 		<div class="mt-4 rounded-lg bg-green-50 p-4">
-			<h3 class="mb-2 font-bold text-green-900">💡 Active Learning</h3>
-			<p class="text-sm text-green-800">After each prediction, you can provide feedback:</p>
+			<h3 class="mb-2 font-bold text-green-900">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning'}</h3>
+			<p class="text-sm text-green-800">{$exampleText.sections?.activeLearning?.description || 'After each prediction, you can provide feedback:'}</p>
 			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-green-800">
-				<li><strong>Click YES</strong> if correct → Reinforces the model</li>
 				<li>
-					<strong>Click NO</strong> if wrong → Correct it and retrain with the right label
+					{$exampleText.sections?.activeLearning?.feedbackYes || 'Click YES if correct → Reinforces the model'}
+				</li>
+				<li>
+					{$exampleText.sections?.activeLearning?.feedbackNo || 'Click NO if wrong → Correct it and retrain with the right label'}
 				</li>
 			</ul>
 			<p class="mt-2 text-sm text-green-800">
-				The model learns from your feedback and improves over time!
+				{$exampleText.sections?.activeLearning?.conclusion || 'The model learns from your feedback and improves over time!'}
 			</p>
 		</div>
 
 		<div class="mt-4 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">🏗️ Architecture</h3>
+			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
 			<p class="text-sm text-orange-800">
-				This example demonstrates proper separation of concerns:
+				{$exampleText.sections?.architecture?.description || 'This example demonstrates proper separation of concerns:'}
 			</p>
 			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
 				<li>
-					<strong>Python</strong> - Pure ML logic, no HTML. Uses <code>to_js()</code> to convert Python dicts to JavaScript objects before calling window callbacks.
+					<strong>{$exampleText.sections?.architecture?.python?.split(' - ')[0] || 'Python'}</strong> - {$exampleText.sections?.architecture?.python?.split(' - ')[1] || 'Pure ML logic, no HTML. Uses to_js() to convert Python dicts to JavaScript objects before calling window callbacks.'}
 				</li>
 				<li>
-					<strong>Controller</strong> - Business logic layer. Receives plain JS objects and delegates to UIHandler.
+					<strong>{$exampleText.sections?.architecture?.controller?.split(' - ')[0] || 'Controller'}</strong> - {$exampleText.sections?.architecture?.controller?.split(' - ')[1] || 'Business logic layer. Receives plain JS objects and delegates to UIHandler.'}
 				</li>
 				<li>
-					<strong>Svelte UIHandler</strong> - Pure UI rendering with reactive state. Updates UI based on plain objects.
+					<strong>{$exampleText.sections?.architecture?.svelte?.split(' - ')[0] || 'Svelte UIHandler'}</strong> - {$exampleText.sections?.architecture?.svelte?.split(' - ')[1] || 'Pure UI rendering with reactive state. Updates UI based on plain objects.'}
 				</li>
 			</ul>
 			<p class="mt-2 text-xs text-orange-700">
-				<strong>Key lesson:</strong> Python dicts must be explicitly converted using <code>to_js(dict, dict_converter=Object.fromEntries)</code> to work properly with JavaScript.
+				<strong>Key lesson:</strong> {$exampleText.sections?.architecture?.keyLesson || 'Python dicts must be explicitly converted using to_js(dict, dict_converter=Object.fromEntries) to work properly with JavaScript.'}
 			</p>
 		</div>
 
 		<div class="mt-4 rounded-lg bg-yellow-50 p-4">
-			<h3 class="mb-2 font-bold text-yellow-900">📝 Note</h3>
+			<h3 class="mb-2 font-bold text-yellow-900">{$exampleText.sections?.note?.title || '📝 Note'}</h3>
 			<p class="text-sm text-yellow-800">
-				This is a simple demonstration model. For production use, you'd want to train on a much
-				larger dataset (thousands of examples) for better accuracy and generalization.
+				{$exampleText.sections?.note?.description || "This is a simple demonstration model. For production use, you'd want to train on a much larger dataset (thousands of examples) for better accuracy and generalization."}
 			</p>
 		</div>
 
@@ -464,7 +461,7 @@ Example: 'I love this product!'"
 			<a
 				class="text-sky-500"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/sentiment_analysis.py"
-				target="_blank">View source</a
+				target="_blank">{$exampleText.links?.viewSource || 'View source'}</a
 			>
 		</p>
 	</article>
