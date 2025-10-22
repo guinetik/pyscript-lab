@@ -540,7 +540,7 @@
 			</div>
 
 			<!-- Row 2: Utility buttons bar (Play, Pause, Mute, Save, Load, Visualize) -->
-			<div class="grid grid-cols-6 gap-2">
+			<div class="grid grid-cols-7 gap-2">
 				<button
 					onclick={playManual}
 					disabled={status === 'training' || status === 'initializing'}
@@ -581,7 +581,10 @@
 					disabled={status === 'initializing'}
 					class="rounded px-3 py-2 text-sm font-semibold text-white transition-colors {vizEnabled ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'} disabled:bg-gray-400 disabled:cursor-not-allowed"
 				>
-					{vizEnabled ? '🎨 Viz✓' : '🎨 Viz'}
+					{vizEnabled ? '🧠 Neurons✓' : '🧠 Neurons'}
+				</button>
+				<button class="rounded px-3 py-2 text-sm font-semibold text-white transition-colors bg-slate-500 hover:bg-slate-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+					📈 Metrics
 				</button>
 			</div>
 		</div>
