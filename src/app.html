@@ -26,9 +26,13 @@
     to_folder = "lib/nes"
     from = "%sveltekit.assets%/python/lib/nes/"
     [[fetch]]
-    files = ["neural_controller.py"]
+    files = ["neural_controller.py", "neural_agent.py"]
     to_folder = "lib/neural"
     from = "%sveltekit.assets%/python/lib/neural/"
+    [[fetch]]
+    files = ["__init__.py", "strategy.py", "fitness.py", "generation.py"]
+    to_folder = "lib/evolution"
+    from = "%sveltekit.assets%/python/lib/evolution/"
     [[fetch]]
     files = ["bokeh_utils.py"]
     from = "%sveltekit.assets%/python/bokeh/"

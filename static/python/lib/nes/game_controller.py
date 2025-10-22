@@ -60,6 +60,10 @@ class GameController:
         # Track A button state for tap behavior (alternates press/release)
         self.a_button_state = False  # False = released, True = pressed
 
+        # A button hold duration (frames to hold jump)
+        self.jump_hold_frames = 0
+        self.jump_hold_duration = 10  # Hold A for 10 frames for full jump height
+
         print("🎮 GameController initialized")
         print(f"   Vision: {vision_width}×{vision_height} tiles")
 
@@ -168,6 +172,19 @@ class GameController:
         """
         x, _ = self.get_mario_position()
         return x
+    
+    def get_mario_tile_position(self) -> tuple:
+        """
+        Get Mario's position in tile coordinates.
+
+        Returns:
+            tuple: (col, row) position in tiles
+        """
+        nes = self.get_nes()
+        if not nes:
+            return (0, 0)
+        
+        return get_mario_tile_position(nes)
 
     def is_mario_alive(self) -> bool:
         """
@@ -236,23 +253,24 @@ class GameController:
                 current_state = int(buttons[i])
                 prev_state = self.prev_buttons[i]
 
-                # A button (jump, index 4) needs special tap behavior
+                # A button (jump)
                 if i == 4:
                     if current_state:
-                        # Agent wants to jump - alternate between press and release
-                        if not self.a_button_state:
-                            # Currently released, press it
+                        if self.jump_hold_frames == 0:
+                            # Start new jump hold
                             emulator.buttonDown(1, button_map[i])
-                            self.a_button_state = True
-                        else:
-                            # Currently pressed, release it (creates gap for next jump)
-                            emulator.buttonUp(1, button_map[i])
-                            self.a_button_state = False
+                            self.jump_hold_frames = self.jump_hold_duration
+                        elif self.jump_hold_frames > 0:
+                            # Continue holding
+                            self.jump_hold_frames -= 1
+                            if self.jump_hold_frames == 0:
+                                # Release after duration
+                                emulator.buttonUp(1, button_map[i])
                     else:
-                        # Agent doesn't want to jump - ensure it's released
-                        if self.a_button_state:
+                        # Not jumping - force release if holding
+                        if self.jump_hold_frames > 0:
                             emulator.buttonUp(1, button_map[i])
-                            self.a_button_state = False
+                            self.jump_hold_frames = 0
                 else:
                     # Other buttons use hold behavior (only change on state transition)
                     if current_state != prev_state:
