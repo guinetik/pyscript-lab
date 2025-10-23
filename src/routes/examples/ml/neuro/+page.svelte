@@ -52,6 +52,20 @@
 	let networkVizData = $state(null);
 	let vizEnabled = $state(false);
 
+	// Metrics chart state
+	let metricsEnabled = $state(false);
+	let metricsHistory = $state({
+		generation: [],
+		fitness: [],
+		distance: []  // Distance achieved in each generation (can vary)
+	});
+
+	// Fitness normalization: divide raw fitness by this to get intuitive scale
+	// Raw fitness formula: distance^1.8 - frames^1.4 + milestones + score×10
+	// Milestones add huge constant (167,500 for full level)
+	// Dividing by 500 brings fitness to similar range as distance (0-3266)
+	const FITNESS_SCALE = 500;
+
 	onMount(async () => {
 		if (!browser || !controller) return;
 
@@ -69,12 +83,17 @@
 				statusMessage = message;
 			},
 
-			onMetricsUpdate: (episodeNum, reward, high) => {
-				logger.log('🟢 Metrics update:', { episodeNum, reward, high });
-				episode = episodeNum;
-				totalReward = reward;
-				highScore = high;
-			},
+		onMetricsUpdate: (episodeNum, reward, bestDistance, currentDistance) => {
+			logger.log('🟢 Metrics update:', { episodeNum, reward, bestDistance, currentDistance });
+			episode = episodeNum;
+			totalReward = reward;
+			highScore = bestDistance;  // Card shows cumulative best
+
+			// ALWAYS update metrics history (even when chart hidden)
+			// This ensures we have full history when user toggles chart on
+			// Chart tracks currentDistance per generation (can vary)
+			updateMetricsChart(episodeNum, reward, currentDistance);
+		},
 
 			onError: (message) => {
 				logger.error('🔴 Error:', message);
@@ -225,6 +244,13 @@
 		networkVizData = null;
 		vizEnabled = false;
 
+		// Reset metrics history
+		metricsHistory = {
+			generation: [],
+			fitness: [],
+			distance: []
+		};
+
 		// Call controller reset
 		controller.resetTraining();
 	}
@@ -235,6 +261,112 @@
 		vizEnabled = !vizEnabled;
 		window.toggleNetworkVisualization(vizEnabled);
 		logger.log(`🎨 Network visualization ${vizEnabled ? 'ENABLED' : 'DISABLED'}`);
+	}
+
+	function updateMetricsChart(generation, fitness, currentDistance) {
+		// Normalize fitness to intuitive scale (divide by 500)
+		// Example: fitness 701,520 → 1,403 (similar scale to distance 1,679)
+		const normalizedFitness = fitness / FITNESS_SCALE;
+
+		// DEBUG: Log what we're adding to history
+		console.log('📊 Adding to history:', {
+			generation,
+			fitness: normalizedFitness,
+			currentDistance
+		});
+
+		// Append to history
+		metricsHistory.generation.push(generation);
+		metricsHistory.fitness.push(normalizedFitness);
+		metricsHistory.distance.push(currentDistance);  // Track per-generation distance
+
+		// Update Bokeh ColumnDataSource via JavaScript API (only if chart is visible)
+		if (metricsEnabled && window.Bokeh && window.Bokeh.documents) {
+			try {
+				// Get Bokeh document (first one, assuming single chart)
+				const docs = window.Bokeh.documents;
+				if (docs.length > 0) {
+					const doc = docs[0];
+					const roots = doc.roots();
+
+					// Find ColumnDataSource and plot in the model
+					for (const root of roots) {
+						// Update data source
+						const sources = root.select({ type: window.Bokeh.Models.ColumnDataSource });
+						if (sources.length > 0) {
+							const source = sources[0];
+
+							// DEBUG: Log what we're sending to Bokeh
+							console.log('📈 Updating Bokeh with data:', {
+								generation: metricsHistory.generation.length,
+								fitness: metricsHistory.fitness.length,
+								distance: metricsHistory.distance.length,
+								lastDistance: metricsHistory.distance[metricsHistory.distance.length - 1]
+							});
+
+							source.data = {
+								generation: [...metricsHistory.generation],
+								fitness: [...metricsHistory.fitness],
+								distance: [...metricsHistory.distance]  // Per-gen distance (can go up/down)
+							};
+
+							// Auto-pan: update x_range to show last 20 generations (or all if less)
+							const genCount = metricsHistory.generation.length;
+							const startGen = Math.max(0, genCount - 20);
+							const endGen = genCount;
+
+							// Find the plot and update x_range
+							if (root.x_range) {
+								root.x_range.start = startGen;
+								root.x_range.end = Math.max(endGen, 10); // Min 10 for visibility
+							}
+
+							logger.log(`📈 Chart updated (showing gens ${startGen}-${endGen})`);
+							break;
+						}
+					}
+				}
+			} catch (error) {
+				console.error('❌ Failed to update metrics chart:', error);
+			}
+		}
+	}
+
+	function toggleMetrics() {
+		metricsEnabled = !metricsEnabled;
+		logger.log(`📈 Metrics chart ${metricsEnabled ? 'ENABLED' : 'DISABLED'}`);
+
+		// If enabling, update chart with full history immediately
+		if (metricsEnabled && metricsHistory.generation.length > 0) {
+			// Use setTimeout to ensure chart is visible first
+			setTimeout(() => {
+				if (window.Bokeh && window.Bokeh.documents) {
+					try {
+						const docs = window.Bokeh.documents;
+						if (docs.length > 0) {
+							const doc = docs[0];
+							const roots = doc.roots();
+
+							for (const root of roots) {
+								const sources = root.select({ type: window.Bokeh.Models.ColumnDataSource });
+								if (sources.length > 0) {
+									const source = sources[0];
+									source.data = {
+										generation: [...metricsHistory.generation],
+										fitness: [...metricsHistory.fitness],
+										distance: [...metricsHistory.distance]
+									};
+									logger.log(`📈 Chart loaded with ${metricsHistory.generation.length} generations of history`);
+									break;
+								}
+							}
+						}
+					} catch (error) {
+						console.error('❌ Failed to load chart history:', error);
+					}
+				}
+			}, 100);
+		}
 	}
 
 	function playManual() {
@@ -463,6 +595,12 @@
 			<NeuralNetworkViz bind:vizData={networkVizData} />
 		{/if}
 
+		<!-- Metrics Chart (always in DOM, visibility controlled by CSS) -->
+		<div 
+			id="metrics-chart-container" 
+			class="rounded-lg border-2 border-gray-300 p-2 bg-white {metricsEnabled ? '' : 'hidden'}"
+		></div>
+
 		<!-- Metrics Display -->
 		<div class="grid grid-cols-3 gap-3">
 			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-4 text-white shadow-lg">
@@ -471,7 +609,7 @@
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-4 text-white shadow-lg">
 				<div class="text-sm font-semibold opacity-90">{$exampleText.ui?.fitnessLabel || 'Fitness'}</div>
-				<div class="text-3xl font-bold">{totalReward.toFixed(1)}</div>
+				<div class="text-3xl font-bold">{(totalReward / FITNESS_SCALE).toFixed(1)}</div>
 			</div>
 			<div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-4 text-white shadow-lg">
 				<div class="text-sm font-semibold opacity-90">{$exampleText.ui?.bestScoreLabel || 'Best Distance'}</div>
@@ -583,8 +721,12 @@
 				>
 					{vizEnabled ? '🧠 Neurons✓' : '🧠 Neurons'}
 				</button>
-				<button class="rounded px-3 py-2 text-sm font-semibold text-white transition-colors bg-slate-500 hover:bg-slate-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
-					📈 Metrics
+				<button
+					onclick={toggleMetrics}
+					disabled={status === 'initializing'}
+					class="rounded px-3 py-2 text-sm font-semibold text-white transition-colors {metricsEnabled ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'} disabled:bg-gray-400 disabled:cursor-not-allowed"
+				>
+					{metricsEnabled ? '📈 Metrics✓' : '📈 Metrics'}
 				</button>
 			</div>
 		</div>

@@ -18,7 +18,8 @@ from lib.nes.nes_ram_utils import (
     get_mario_position,
     get_mario_state,
     get_mario_tile_position,
-    get_score
+    get_score,
+    get_lives
 )
 
 
@@ -212,6 +213,19 @@ class GameController:
             return 0
 
         return get_score(nes)
+
+    def get_lives(self) -> int:
+        """
+        Get Mario's lives remaining.
+
+        Returns:
+            int: Lives remaining (0-99)
+        """
+        nes = self.get_nes()
+        if not nes:
+            return 3  # Default to 3 lives if can't access NES
+
+        return get_lives(nes)
 
     def execute_buttons(self, button_states: np.ndarray):
         """

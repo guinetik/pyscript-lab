@@ -104,6 +104,10 @@ class GenerationManager:
         print(f"⏱️ Timeout: {timeout_seconds:.1f}s ({timeout} frames)")
         print(f"🚫 Stuck threshold: {stuck_seconds:.1f}s ({stuck} frames)")
 
+        # Reset checkpoint detection tracking
+        self._last_lives = None
+        self._last_position = 0
+
     def check_generation_end(self, step_info: dict) -> tuple:
         """
         Check if generation should end.
@@ -113,6 +117,8 @@ class GenerationManager:
                 - frames: Current frame count
                 - alive: Is agent alive?
                 - stuck_frames: Frames without progress
+                - lives: Current lives (optional, for checkpoint detection)
+                - position: Current X position (optional, for position regression)
 
         Returns:
             tuple: (should_end: bool, death_cause: str or None)
@@ -121,12 +127,37 @@ class GenerationManager:
         frames = step_info['frames']
         alive = step_info['alive']
         stuck_frames = step_info['stuck_frames']
+        lives = step_info.get('lives', None)
+        position = step_info.get('position', 0)
 
         # Check timeout
         if frames >= self.max_frames:
             return (True, 'timeout')
 
-        # Check death
+        # CRITICAL: Check life loss (detects checkpoint respawns!)
+        # When Mario dies after a checkpoint, the game respawns him without
+        # setting the death flag, but lives ALWAYS decrements.
+        if lives is not None:
+            if self._last_lives is None:
+                # First check - initialize tracking
+                self._last_lives = lives
+            elif lives < self._last_lives:
+                # Life lost! This catches checkpoint respawns that bypass death flag
+                print(f"💀 Life lost detected! {self._last_lives} → {lives}")
+                self._last_lives = lives
+                return (True, 'enemy')
+            # Update tracking for next check
+            self._last_lives = lives
+
+        # BACKUP: Check position regression (fallback if lives detection fails)
+        # If Mario suddenly jumps backward 200+ pixels, likely respawned at checkpoint
+        if position < self._last_position - 200:
+            print(f"⚠️ Position regression detected! {self._last_position} → {position}")
+            self._last_position = position
+            return (True, 'checkpoint_respawn')
+        self._last_position = max(self._last_position, position)
+
+        # Check death (original method - still catches most deaths before checkpoint)
         if not alive:
             return (True, 'enemy')
 
@@ -190,7 +221,8 @@ class GenerationLogger:
         death_messages = {
             'enemy': '💀 Hit an enemy',
             'stuck': '🚫 Got stuck',
-            'timeout': '⏰ Time ran out'
+            'timeout': '⏰ Time ran out',
+            'checkpoint_respawn': '🔄 Checkpoint respawn'
         }
         death_msg = death_messages.get(cause, '❌ Unknown')
 

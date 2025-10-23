@@ -25,6 +25,16 @@ from lib.evolution import (
     GenerationLogger
 )
 
+# Bokeh for metrics visualization
+try:
+    from bokeh_utils import BokehFactory
+    from bokeh.models import ColumnDataSource
+    HAS_BOKEH = True
+except ImportError:
+    HAS_BOKEH = False
+    BokehFactory = None
+    ColumnDataSource = None
+
 # Performance monitoring (optional)
 try:
     import builtins
@@ -49,7 +59,7 @@ CONFIG = {
     'vision_height': 7,
 
     # Network
-    'hidden_size': 16,
+    'hidden_size': 9,
     'use_context_features': True,
     'encode_row': True,
     'simple_controls': True,  # 4-button mode [LEFT, RIGHT, A, B]
@@ -123,6 +133,9 @@ class MarioTrainer:
         self.perf_monitor = PerformanceMonitor() if HAS_PERF_MONITOR else None
         self.decision_interval = 50  # 20 FPS default
 
+        # Create metrics chart (one-time setup)
+        self._create_metrics_chart()
+
     async def start_training(self, network_type='simple-4button'):
         """
         Start training loop.
@@ -179,8 +192,14 @@ class MarioTrainer:
         self._viz_paused = False
         self._viz_warmup_frames = 0
 
-        # Run generation loop
-        self.training_loop()
+        # IMPORTANT: Wait for state to fully load before starting loop
+        # Without this delay, Mario continues from death position instead of save state
+        def start_loop():
+            if self.is_training:
+                self.training_loop()
+
+        proxy = create_proxy(start_loop)
+        setTimeout(proxy, 500)  # 500ms delay to ensure state loads
 
     def training_loop(self):
         """
@@ -266,6 +285,8 @@ class MarioTrainer:
         if current_x < self.agent.last_x:
             self.agent.backward_movement_frames += 1
 
+        # Store last_x before updating
+        last_x = self.agent.last_x
         self.agent.last_x = current_x
 
         # Return step info
@@ -275,7 +296,9 @@ class MarioTrainer:
             'max_position': self.agent.max_x,
             'stuck_frames': self.agent.stuck_frames,
             'alive': self.agent.game.is_mario_alive(),
-            'score': self.agent.game.get_score()
+            'score': self.agent.game.get_score(),
+            'lives': self.agent.game.get_lives(),
+            'last_position': last_x
         }
 
     def _visualize_network(self):
@@ -344,14 +367,23 @@ class MarioTrainer:
             self.best_fitness
         )
 
-        # Update UI metrics
-        window.updateRLMetrics(self.generation + 1, fitness, self.best_distance)
+        # Update UI metrics (send both current distance and best distance)
+        current_gen_distance = gen_info['distance']
+        print(f"📊 [DEBUG] Sending to UI: gen={self.generation + 1}, fitness={fitness:.1f}, best={self.best_distance}, current={current_gen_distance}")
+
+        window.updateRLMetrics(
+            self.generation + 1,
+            fitness,
+            self.best_distance,
+            current_gen_distance  # Current generation's distance (can vary)
+        )
 
         # Update UI status
         death_messages = {
             'enemy': '💀 Hit an enemy',
             'stuck': '🚫 Got stuck',
-            'timeout': '⏰ Time ran out'
+            'timeout': '⏰ Time ran out',
+            'checkpoint_respawn': '🔄 Checkpoint respawn detected'
         }
         death_msg = death_messages.get(death_cause, '❌ Generation ended')
 
@@ -406,23 +438,26 @@ class MarioTrainer:
         """Reset and start fresh."""
         print("🔄 Resetting trainer...")
 
+        # Stop training
         self.is_training = False
+
+        # Stop emulator (don't reset it - that causes issues)
+        self.agent.game.stop_emulator()
+
+        # Reset training state
         self.generation = 0
         self.best_distance = 0
         self.best_fitness = 0
         self.champion_weights = None
 
-        # Reset agent
+        # Reset agent stats
         self.agent.reset()
 
-        # Reinitialize neural network
+        # Reinitialize neural network with priors
         self.agent.neural.randomize()
         if hasattr(self.agent.neural, 'apply_priors'):
             priors = [0.2, 3.0, 3.0, 1.5]  # [LEFT, RIGHT, A, B]
             self.agent.neural.apply_priors(priors)
-
-        self.agent.game.stop_emulator()
-        self.agent.game.reset_emulator()
 
         window.updateRLStatus('ready', 'Agent reset. Ready to train!')
         print("✅ Reset complete")
@@ -437,6 +472,58 @@ class MarioTrainer:
         status = "ENABLED" if self._viz_enabled else "DISABLED"
         print(f"🎨 Network visualization {status}")
         return self._viz_enabled
+
+    def _create_metrics_chart(self):
+        """
+        Create initial Bokeh metrics chart (called once during initialization).
+        Chart will be updated from JavaScript using Bokeh's client-side API.
+        """
+        if not HAS_BOKEH:
+            print("⚠️ Bokeh not available, metrics chart disabled")
+            return
+
+        try:
+            factory = BokehFactory()
+
+            # Create empty data source with structure
+            source = ColumnDataSource(data={
+                'generation': [],
+                'fitness': [],
+                'distance': []  # Per-generation distance (can vary)
+            })
+
+            # Create figure with three lines
+            fig = factory.create_figure(
+                title="Training Metrics",
+                x_axis_label="Generation",
+                y_axis_label="Fitness (normalized) / Distance (px)",
+                height=300,
+                sizing_mode='stretch_width',
+                tooltips=[
+                    ("Generation", "@generation"),
+                    ("Fitness (÷500)", "@fitness{0.1f}"),
+                    ("Distance", "@distance{0.1f} px")
+                ]
+            )
+
+            # Add two line glyphs (sharing generation x-axis)
+            # Note: Fitness is normalized (/500) in JavaScript for intuitive scale
+            fig.line('generation', 'fitness', source=source,
+                     line_color='green', line_width=2, legend_label='Fitness (normalized)')
+            fig.line('generation', 'distance', source=source,
+                     line_color='purple', line_width=2, legend_label='Distance')
+
+            fig.legend.location = 'top_left'
+            fig.legend.click_policy = 'hide'
+
+            # Embed into container (will be controlled by Svelte visibility)
+            factory.embed(fig, 'metrics-chart-container')
+
+            print("✅ Metrics chart created (will be updated from JavaScript)")
+
+        except Exception as e:
+            console.error(f"❌ Failed to create metrics chart: {e}")
+            print(f"❌ Failed to create metrics chart: {e}")
 
 
 # =============================================================================

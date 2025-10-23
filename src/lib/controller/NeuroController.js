@@ -111,10 +111,10 @@ export class NeuroController {
 			}
 		};
 
-		window.updateRLMetrics = (episode, reward, highScore) => {
-			this.logger.log('🟢 updateRLMetrics called:', { episode, reward, highScore });
+		window.updateRLMetrics = (episode, reward, highScore, currentDistance) => {
+			this.logger.log('🟢 updateRLMetrics called:', { episode, reward, highScore, currentDistance });
 			if (window.rlUIHandler && window.rlUIHandler.onMetricsUpdate) {
-				window.rlUIHandler.onMetricsUpdate(episode, reward, highScore);
+				window.rlUIHandler.onMetricsUpdate(episode, reward, highScore, currentDistance);
 			}
 		};
 
