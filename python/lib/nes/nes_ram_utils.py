@@ -26,6 +26,7 @@ class MarioRAM:
 
     # Mario state
     MARIO_STATE = 0x0E          # Player state (0x0B=dying, 0x06=dead)
+    LIVES_REMAINING = 0x075A    # Lives counter (0-99)
 
     # Score (BCD encoded, 6 digits)
     SCORE_ONES = 0x07DD         # Rightmost 2 digits (ones, tens)
@@ -358,6 +359,35 @@ def get_score(nes):
     except Exception as e:
         console.error(f"Error reading score: {e}")
         return 0
+
+
+def get_lives(nes):
+    """
+    Get number of lives remaining.
+
+    This is critical for detecting checkpoint respawns!
+    When Mario dies after passing a checkpoint, the game may respawn him
+    without setting the death flag, but the lives counter ALWAYS decrements.
+
+    Args:
+        nes: JSNes instance
+
+    Returns:
+        int: Lives remaining (0-99, typically starts at 3)
+    """
+    try:
+        ram = nes.cpu.mem
+        lives = ram[MarioRAM.LIVES_REMAINING]
+
+        # Debug first call
+        if not hasattr(get_lives, '_debug_printed'):
+            print(f"🔍 [RAM] First lives read: {lives}")
+            get_lives._debug_printed = True
+
+        return lives
+    except Exception as e:
+        console.error(f"Error reading lives: {e}")
+        return 3  # Default to 3 lives if can't read
 
 
 # ============================================================================

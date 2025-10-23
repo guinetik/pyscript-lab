@@ -1,0 +1,251 @@
+"""
+Evolution Strategies - Pluggable evolution algorithms for neuroevolution
+
+Provides clean abstraction for different evolution strategies:
+- (1+1)-ES: One parent, one offspring, elitism
+- (1+λ)-ES: One parent, multiple offspring, best selection
+- Adaptive mutation for escaping local optima
+
+Author: Guinetik
+"""
+
+from abc import ABC, abstractmethod
+from js import console
+
+
+class EvolutionStrategy(ABC):
+    """
+    Abstract base class for evolution strategies.
+    Handles selection, mutation, and elitism logic.
+    """
+
+    @abstractmethod
+    def should_keep_offspring(self, offspring_fitness: float, champion_fitness: float) -> bool:
+        """
+        Decide whether to keep offspring or restore champion.
+
+        Args:
+            offspring_fitness: Fitness of current generation
+            champion_fitness: Fitness of best solution so far
+
+        Returns:
+            bool: True to keep offspring, False to restore champion
+        """
+        pass
+
+    @abstractmethod
+    def get_mutation_params(self, generation_info: dict) -> tuple:
+        """
+        Calculate mutation parameters for next generation.
+
+        Args:
+            generation_info: Dict with distance, fitness, history, etc.
+
+        Returns:
+            tuple: (mutation_rate, mutation_scale)
+        """
+        pass
+
+    @abstractmethod
+    def on_generation_end(self, generation_info: dict):
+        """
+        Hook called at end of each generation.
+        Used to update internal state.
+
+        Args:
+            generation_info: Dict with generation results
+        """
+        pass
+
+
+class OnePlusOneES(EvolutionStrategy):
+    """
+    (1+1)-ES: One parent + one offspring with elitism.
+
+    Features:
+    - Elite preservation (champion always kept)
+    - Adaptive mutation (escapes local optima)
+    - Simple and effective for small networks
+    """
+
+    def __init__(
+        self,
+        mutation_rate: float = 0.05,
+        mutation_scale: float = 0.2,
+        adaptive_mutation: bool = True,
+        local_optimum_threshold: int = 5
+    ):
+        """
+        Initialize (1+1)-ES strategy.
+
+        Args:
+            mutation_rate: Base probability of mutating each weight (0-1)
+            mutation_scale: Base standard deviation of mutations
+            adaptive_mutation: Enable adaptive mutation for local optima
+            local_optimum_threshold: Generations stuck before boosting mutation
+        """
+        self.base_mutation_rate = mutation_rate
+        self.base_mutation_scale = mutation_scale
+        self.adaptive_mutation = adaptive_mutation
+        self.local_optimum_threshold = local_optimum_threshold
+
+        # Track stuck locations for adaptive mutation
+        self.stuck_location_history = []
+        self.max_history_size = 10
+
+        print(f"🧬 Initialized (1+1)-ES:")
+        print(f"   Mutation rate: {mutation_rate}")
+        print(f"   Mutation scale: {mutation_scale}")
+        print(f"   Adaptive mutation: {adaptive_mutation}")
+
+    def should_keep_offspring(self, offspring_fitness: float, champion_fitness: float) -> bool:
+        """
+        Keep offspring only if it beats the champion.
+        This is the core of elitism.
+
+        Args:
+            offspring_fitness: Fitness of current generation
+            champion_fitness: Fitness of champion (best so far)
+
+        Returns:
+            bool: True if offspring is better
+        """
+        return offspring_fitness > champion_fitness
+
+    def get_mutation_params(self, generation_info: dict) -> tuple:
+        """
+        Calculate adaptive mutation parameters.
+
+        Detects local optima by tracking stuck locations.
+        Increases mutation strength when stuck at same place.
+
+        Args:
+            generation_info: Dict with 'distance', 'fitness', 'best_distance', etc.
+
+        Returns:
+            tuple: (mutation_rate, mutation_scale)
+        """
+        if not self.adaptive_mutation:
+            return (self.base_mutation_rate, self.base_mutation_scale)
+
+        distance = generation_info.get('distance', 0)
+
+        # Track stuck location (rounded to nearest 100px)
+        stuck_location = int(distance / 100) * 100
+        self.stuck_location_history.append(stuck_location)
+        if len(self.stuck_location_history) > self.max_history_size:
+            self.stuck_location_history.pop(0)
+
+        # Check for local optimum
+        if len(self.stuck_location_history) >= self.local_optimum_threshold:
+            recent_locations = self.stuck_location_history[-self.local_optimum_threshold:]
+            unique_locations = len(set(recent_locations))
+
+            if unique_locations == 1:
+                # Stuck at exact same location → boost mutation heavily
+                print(f"🚨 LOCAL OPTIMUM: Stuck at {stuck_location}px for {self.local_optimum_threshold}+ gens")
+                print(f"   Boosting mutation to escape!")
+                return (self.base_mutation_rate * 1.6, self.base_mutation_scale * 2.0)
+
+            elif unique_locations <= 2:
+                # Oscillating between 2 locations → moderate boost
+                print(f"⚠️ Oscillating between 2 locations (last {self.local_optimum_threshold} gens)")
+                return (self.base_mutation_rate * 1.2, self.base_mutation_scale * 1.5)
+
+        # Normal mutation
+        return (self.base_mutation_rate, self.base_mutation_scale)
+
+    def on_generation_end(self, generation_info: dict):
+        """
+        Update internal state at end of generation.
+
+        Args:
+            generation_info: Generation results
+        """
+        # Nothing to do for (1+1)-ES
+        # State is managed by get_mutation_params
+        pass
+
+
+class OnePlusLambdaES(EvolutionStrategy):
+    """
+    (1+λ)-ES: One parent + λ offspring, select best.
+
+    Features:
+    - Multiple offspring per generation (faster exploration)
+    - Elite preservation (parent always competes)
+    - Better at escaping local optima than (1+1)
+
+    TODO: Not yet implemented (requires running multiple evaluations per generation)
+    """
+
+    def __init__(
+        self,
+        lambda_value: int = 4,
+        mutation_rate: float = 0.05,
+        mutation_scale: float = 0.2
+    ):
+        """
+        Initialize (1+λ)-ES strategy.
+
+        Args:
+            lambda_value: Number of offspring per generation
+            mutation_rate: Probability of mutating each weight
+            mutation_scale: Standard deviation of mutations
+        """
+        self.lambda_value = lambda_value
+        self.mutation_rate = mutation_rate
+        self.mutation_scale = mutation_scale
+
+        print(f"🧬 Initialized (1+{lambda_value})-ES:")
+        print(f"   Lambda (offspring): {lambda_value}")
+        print(f"   Mutation rate: {mutation_rate}")
+        print(f"   Mutation scale: {mutation_scale}")
+
+    def should_keep_offspring(self, offspring_fitness: float, champion_fitness: float) -> bool:
+        """Keep if better (same as (1+1) for single evaluation)."""
+        return offspring_fitness > champion_fitness
+
+    def get_mutation_params(self, generation_info: dict) -> tuple:
+        """Return fixed mutation params (no adaptive for now)."""
+        return (self.mutation_rate, self.mutation_scale)
+
+    def on_generation_end(self, generation_info: dict):
+        """No state to update."""
+        pass
+
+
+class NoElitismStrategy(EvolutionStrategy):
+    """
+    Baseline strategy with NO elitism (for comparison).
+    Always keeps offspring regardless of fitness.
+
+    WARNING: This will perform poorly! Only use for experiments.
+    """
+
+    def __init__(self, mutation_rate: float = 0.05, mutation_scale: float = 0.2):
+        """
+        Initialize no-elitism strategy.
+
+        Args:
+            mutation_rate: Probability of mutating each weight
+            mutation_scale: Standard deviation of mutations
+        """
+        self.mutation_rate = mutation_rate
+        self.mutation_scale = mutation_scale
+
+        print(f"⚠️ Initialized NO ELITISM strategy (for experiments only):")
+        print(f"   Mutation rate: {mutation_rate}")
+        print(f"   Mutation scale: {mutation_scale}")
+
+    def should_keep_offspring(self, offspring_fitness: float, champion_fitness: float) -> bool:
+        """Always keep offspring (no elitism)."""
+        return True
+
+    def get_mutation_params(self, generation_info: dict) -> tuple:
+        """Return fixed mutation params."""
+        return (self.mutation_rate, self.mutation_scale)
+
+    def on_generation_end(self, generation_info: dict):
+        """No state to update."""
+        pass

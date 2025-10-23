@@ -929,12 +929,12 @@ class ActionDecoder:
     - 4-button mode: [LEFT, RIGHT, A, B] (simplified for platformers)
     """
 
-    def __init__(self, use_variable_threshold: bool = True, max_buttons: int = 3, simple_controls: bool = False):
+    def __init__(self, use_variable_threshold: bool = False, max_buttons: int = 3, simple_controls: bool = False):
         """
         Initialize action decoder.
 
         Args:
-            use_variable_threshold: Use random thresholds for more variety
+            use_variable_threshold: Use random thresholds for more variety (DEFAULT: False for consistency)
             max_buttons: Maximum number of buttons to press simultaneously (default: 3)
                         Prevents input conflicts and ensures prioritization
             simple_controls: If True, expect 4 outputs [LEFT, RIGHT, A, B] instead of 6
@@ -943,6 +943,7 @@ class ActionDecoder:
         self.use_variable_threshold = use_variable_threshold
         self.max_buttons = max_buttons
         self.simple_controls = simple_controls
+        self.fixed_threshold = 0.5  # Fixed threshold for consistency
 
     def decode(self, output: np.ndarray) -> np.ndarray:
         """
@@ -998,12 +999,14 @@ class ActionDecoder:
 
         # STEP 2: Apply threshold to determine candidate buttons
         if self.use_variable_threshold:
-            # Variable threshold adds exploration variety
-            thresholds = np.random.uniform(0.4, 0.6, size=output_flat.shape)
+            # Variable threshold adds exploration variety (rarely used)
+            thresholds = np.random.uniform(0.35, 0.5, size=output_flat.shape)
             candidates = (output_flat > thresholds).astype(int)
         else:
-            # Fixed threshold (more deterministic)
-            candidates = (output_flat > 0.5).astype(int)
+            # Fixed threshold (more deterministic and LOWER for stronger priors)
+            # With behavioral priors of 2.5-3.5, sigmoid outputs are 0.92-0.97
+            # So use 0.4 threshold to ensure buttons fire reliably
+            candidates = (output_flat > 0.4).astype(int)
 
         # STEP 3: Apply top-k selection if more than max_buttons are active
         active_count = np.sum(candidates)
