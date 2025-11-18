@@ -1,0 +1,1858 @@
+
+============================================================
+TEST: Goomba Response Consistency
+============================================================
+
+Question: Does the network react to a Goomba 3 tiles ahead?
+Expected: RIGHT + A (run right and jump)
+
+
+------------------------------------------------------------
+WITHOUT BEHAVIORAL PRIORS
+------------------------------------------------------------
+
+============================================================
+RUNNING SIMULATION: Goomba 3 tiles ahead (no priors)
+============================================================
+Num runs: 100
+Behavioral priors: NO
+
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 20/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 40/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 60/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 80/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 100/100 runs...
+
+============================================================
+SIMULATION SUMMARY (100 runs)
+============================================================
+
+Action distribution:
+  DOWN + LEFT + B     :  13 ( 13.0%) ██
+  DOWN + RIGHT + A    :  12 ( 12.0%) ██
+  DOWN + LEFT + A     :  10 ( 10.0%) ██
+  DOWN + RIGHT + B    :  10 ( 10.0%) ██
+  RIGHT + A + B       :  10 ( 10.0%) ██
+  UP + RIGHT + B      :   7 (  7.0%) █
+  UP + RIGHT + A      :   7 (  7.0%) █
+  UP + LEFT + B       :   7 (  7.0%) █
+  UP + A + B          :   7 (  7.0%) █
+  UP + LEFT + A       :   7 (  7.0%) █
+  LEFT + A + B        :   4 (  4.0%) 
+  DOWN + A + B        :   3 (  3.0%) 
+  UP + RIGHT          :   1 (  1.0%) 
+  LEFT + A            :   1 (  1.0%) 
+  RIGHT + A           :   1 (  1.0%) 
+
+Consistency:
+  Most common action: DOWN + LEFT + B
+  Appears in: 13/100 runs (13.0%)
+  ⚠️  LOW CONSISTENCY - Network is very random!
+
+Output statistics (across 100 runs):
+     UP: mean=0.490, std=0.134
+   DOWN: mean=0.521, std=0.129
+   LEFT: mean=0.506, std=0.125
+  RIGHT: mean=0.491, std=0.126
+      A: mean=0.505, std=0.125
+      B: mean=0.507, std=0.120
+
+------------------------------------------------------------
+WITH BEHAVIORAL PRIORS (RIGHT=3.0, A=2.0)
+------------------------------------------------------------
+
+============================================================
+RUNNING SIMULATION: Goomba 3 tiles ahead (with priors)
+============================================================
+Num runs: 100
+Behavioral priors: YES
+
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 20/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 40/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 60/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 80/100 runs...
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+✅ Behavioral priors applied to output layer (6 buttons): [0, 0, 0, 3.0, 2.0, 0]
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Progress: 100/100 runs...
+
+============================================================
+SIMULATION SUMMARY (100 runs)
+============================================================
+
+Action distribution:
+  DOWN + RIGHT + A    :  38 ( 38.0%) ███████
+  RIGHT + A + B       :  33 ( 33.0%) ██████
+  UP + RIGHT + A      :  27 ( 27.0%) █████
+  RIGHT + A           :   2 (  2.0%) 
+
+Consistency:
+  Most common action: DOWN + RIGHT + A
+  Appears in: 38/100 runs (38.0%)
+  ⚠️  LOW CONSISTENCY - Network is very random!
+
+Output statistics (across 100 runs):
+     UP: mean=0.490, std=0.134
+   DOWN: mean=0.521, std=0.129
+   LEFT: mean=0.506, std=0.125
+  RIGHT: mean=0.943, std=0.038
+      A: mean=0.872, std=0.062
+      B: mean=0.507, std=0.120
+
+============================================================
+COMPARISON
+============================================================
+
+Without priors:
+  Consistency: 13.0%
+
+With priors:
+  Consistency: 38.0%
+
+Priors improve consistency by: +25.0%
+
+============================================================
+TEST: Mutation Effect on Behavior
+============================================================
+
+Question: Does mutation change actions significantly?
+
+🧠 SimpleNeuralController initialized
+   Architecture: 115 → 32 → 6
+   Weight shapes: [(32, 115), (6, 32)]
+   Bias shapes: [(32,), (6,)]
+
+------------------------------------------------------------
+Mutation: Low (rate=0.05, scale=0.1)
+------------------------------------------------------------
+🔍 Network layer shapes:
+   Layer 0: weights=(32, 115), biases=(32,)
+   Layer 1: weights=(6, 32), biases=(6,)
+🔍 Raw network output shape: (6,), expected: (6,)
+  Behavior changed in: 29/50 trials (58.0%)
+
+------------------------------------------------------------
+Mutation: Medium (rate=0.15, scale=0.3)
+------------------------------------------------------------
+  Behavior changed in: 32/50 trials (64.0%)
+
+------------------------------------------------------------
+Mutation: High (rate=0.3, scale=0.5)
+------------------------------------------------------------
+  Behavior changed in: 27/50 trials (54.0%)
+
+------------------------------------------------------------
+Mutation: Very High (rate=0.5, scale=0.8)
+------------------------------------------------------------
+  Behavior changed in: 37/50 trials (74.0%)
+
+============================================================
+MUTATION SUMMARY
+============================================================
+  Low       :  58.0% behavior change
+  Medium    :  64.0% behavior change
+  High      :  54.0% behavior change
+  Very High :  74.0% behavior change
+
+============================================================
+✅ SIMULATION COMPLETE
+============================================================
+
+📄 Full log saved to: /mnt/d/Developer/pyscript-lab/runner/simulation_20251115_015927.log

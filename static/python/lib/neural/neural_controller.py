@@ -216,13 +216,15 @@ class SimpleNeuralController(NeuralController):
                         output[RIGHT] = max(0.0, output[RIGHT] - 0.6)
                         # Maximum jump boost
                         output[JUMP] = min(1.0, output[JUMP] + 1.0)
-                        # Consider moving left to escape
-                        output[LEFT] = min(1.0, output[LEFT] + 0.3)
+                        # STRONG backward movement to jump away from enemy
+                        output[LEFT] = min(1.0, output[LEFT] + 0.7)
                     elif enemy_right_dist < 3.0:  # MEDIUM - PREPARE
                         # Moderate jump boost to prepare
                         output[JUMP] = min(1.0, output[JUMP] + 0.6)
-                        # Maintain forward momentum (jump OVER enemy)
-                        output[RIGHT] = min(1.0, output[RIGHT] + 0.2)
+                        # Slight backward bias to create spacing before jumping over
+                        output[LEFT] = min(1.0, output[LEFT] + 0.1)
+                        # Still move forward but more cautiously
+                        output[RIGHT] = min(1.0, output[RIGHT] + 0.1)
 
                 # ===== STRATEGY 2: Enemy on LEFT =====
                 if enemy_left_dist < 4.0:  # Enemy within 4 tiles on left
@@ -239,16 +241,18 @@ class SimpleNeuralController(NeuralController):
                         # Moderate jump boost
                         output[JUMP] = min(1.0, output[JUMP] + 0.4)
 
-                # ===== STRATEGY 3: Tall obstacle (DISABLED - needs tuning) =====
-                # TODO: Re-enable once we can reliably detect truly impassable obstacles
-                # The current implementation causes false positives on jumpable obstacles
-                #
-                # obstacle_dist_norm = context[4] if len(context) > 4 else 0.0
-                # obstacle_height_norm = context[5] if len(context) > 5 else 0.0
-                # if obstacle_dist_norm > 0.8 and obstacle_height_norm > 0.9:
-                #     output[JUMP] = max(0.0, output[JUMP] - 0.5)
-                #     output[RIGHT] = max(0.0, output[RIGHT] - 0.7)
-                #     output[LEFT] = min(1.0, output[LEFT] + 0.6)
+                # ===== STRATEGY 3: Obstacle avoidance (JUMP over tall obstacles) =====
+                obstacle_dist_norm = context[4] if len(context) > 4 else 0.0
+                obstacle_height_norm = context[5] if len(context) > 5 else 0.0
+
+                # When obstacle is close and tall: FORCE JUMP
+                if obstacle_dist_norm > 0.85 and obstacle_height_norm > 0.7:
+                    # Strong jump boost to clear obstacle
+                    output[JUMP] = min(1.0, output[JUMP] + 0.8)
+
+                    # If very close (likely stuck at wall), reduce forward movement
+                    if obstacle_dist_norm > 0.95:
+                        output[RIGHT] = max(0.0, output[RIGHT] - 0.4)
 
                 # ===== STRATEGY 4: Pit ahead =====
                 if pit_dist_norm > 0.7:  # Pit is close (normalized distance)

@@ -18,6 +18,7 @@ from lib.pyscript_manager import PyScriptManager
 from lib.nes.game_controller import GameController
 from lib.neural.neural_agent import MarioAgent
 from lib.neural.neural_controller import SimpleNeuralController, ActionDecoder
+from lib.reflexes import ReflexSystem
 from lib.evolution import (
     OnePlusOneES,
     MarioFitnessCalculator,
@@ -134,9 +135,11 @@ class MarioTrainer:
         self.perf_monitor = PerformanceMonitor() if HAS_PERF_MONITOR else None
         self.decision_interval = 16  # ~60 FPS to sync observations with NES frame rate
 
-        # Button hold state (for consistent jump height)
-        self._jump_hold_counter = 0
-        self._jump_hold_duration = 6  # Hold A for 6 frames (~0.1s) for good jump height
+        # Reflex system (handles all instinctive behaviors)
+        self.reflex_system = ReflexSystem(
+            enable_reflexes=CONFIG['enable_reflexes'],
+            jump_hold_duration=6
+        )
 
         # Create metrics chart (one-time setup)
         self._create_metrics_chart()
@@ -197,8 +200,8 @@ class MarioTrainer:
         await self.agent.game.load_saved_state()
         self.agent.reset()
 
-        # Reset button hold state
-        self._jump_hold_counter = 0
+        # Reset reflex system
+        self.reflex_system.reset()
 
         # Resume visualization with warmup
         self._viz_paused = False
@@ -285,19 +288,14 @@ class MarioTrainer:
         # Decode and execute actions
         actions = self.agent.decoder.decode(output)
 
-        # Button hold logic: Hold A (jump) for full duration once pressed
-        # In 4-button mode: [LEFT=0, RIGHT=1, A=2, B=3]
-        # In 6-button mode: [UP=0, DOWN=1, LEFT=2, RIGHT=3, A=4, B=5]
-        a_button_idx = 4 if len(actions) == 6 else 2
-
-        if actions[a_button_idx] > 0:
-            # Start jump hold
-            self._jump_hold_counter = self._jump_hold_duration
-
-        if self._jump_hold_counter > 0:
-            # Continue holding A
-            actions[a_button_idx] = 1
-            self._jump_hold_counter -= 1
+        # Apply all reflexes (enemy avoidance, obstacle detection, emergency stuck, button holds)
+        simple_controls = CONFIG['simple_controls']
+        actions = self.reflex_system.apply_reflexes(
+            state=state,
+            actions=actions,
+            stuck_frames=self.agent.stuck_frames,
+            simple_controls=simple_controls
+        )
 
         self.agent.act(actions)
 
@@ -620,7 +618,7 @@ neural = SimpleNeuralController(
     input_size=input_size,
     hidden_size=CONFIG['hidden_size'],
     output_size=output_size,
-    enable_reflexes=CONFIG['enable_reflexes']
+    enable_reflexes=False  # Reflexes now handled by ReflexSystem
 )
 
 # Apply behavioral priors

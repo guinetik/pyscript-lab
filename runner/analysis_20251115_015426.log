@@ -1,0 +1,470 @@
+
+============================================================
+MARIO NEURAL NETWORK DEBUGGER
+============================================================
+Logging to: /mnt/d/Developer/pyscript-lab/runner/analysis_20251115_015426.log
+
+🎮 Testing different scenarios...
+
+============================================================
+SCENARIO: FLAT GROUND - Clear path
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . . . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 1.00
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.583 ███████████
+   DOWN: 0.407 ████████
+   LEFT: 0.434 ████████
+  RIGHT: 0.251 █████
+      A: 0.361 ███████
+      B: 0.506 ██████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 17/32
+  Mean activation: 0.212
+  Max activation: 0.825
+
+
+============================================================
+SCENARIO: GOOMBA 3 TILES AHEAD - Should jump!
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . E . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 0.30
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.548 ██████████
+   DOWN: 0.439 ████████
+   LEFT: 0.409 ████████
+  RIGHT: 0.214 ████
+      A: 0.325 ██████
+      B: 0.529 ██████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 19/32
+  Mean activation: 0.249
+  Max activation: 0.914
+
+
+============================================================
+SCENARIO: GOOMBA 1 TILE AHEAD - EMERGENCY JUMP!
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M E . . . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 0.10
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.597 ███████████
+   DOWN: 0.419 ████████
+   LEFT: 0.439 ████████
+  RIGHT: 0.278 █████
+      A: 0.375 ███████
+      B: 0.484 █████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 19/32
+  Mean activation: 0.208
+  Max activation: 0.876
+
+
+============================================================
+SCENARIO: TWO GOOMBAS - Multiple threats
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . E . . E . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 0.30
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.606 ████████████
+   DOWN: 0.400 ████████
+   LEFT: 0.424 ████████
+  RIGHT: 0.238 ████
+      A: 0.378 ███████
+      B: 0.540 ██████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 20/32
+  Mean activation: 0.259
+  Max activation: 1.006
+
+
+============================================================
+SCENARIO: PIT 5 TILES AHEAD - Should jump over
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . . . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # . . # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 1.00
+  Ground distance: 0.80
+  Pit distance: 0.20
+
+Network output (raw activations):
+     UP: 0.575 ███████████
+   DOWN: 0.566 ███████████
+   LEFT: 0.464 █████████
+  RIGHT: 0.341 ██████
+      A: 0.374 ███████
+      B: 0.545 ██████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 15/32
+  Mean activation: 0.167
+  Max activation: 0.769
+
+
+============================================================
+SCENARIO: OBSTACLE 4 TILES AHEAD - Should jump
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . # . . . . . . . 
+. . . . M . . . # . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 1.00
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.668 █████████████
+   DOWN: 0.423 ████████
+   LEFT: 0.457 █████████
+  RIGHT: 0.248 ████
+      A: 0.359 ███████
+      B: 0.508 ██████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 19/32
+  Mean activation: 0.232
+  Max activation: 0.908
+
+
+============================================================
+SCENARIO: GOOMBA ON PLATFORM ABOVE - Can ignore or jump on
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . # # E # # . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . . . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 0.50
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.513 ██████████
+   DOWN: 0.372 ███████
+   LEFT: 0.544 ██████████
+  RIGHT: 0.251 █████
+      A: 0.360 ███████
+      B: 0.476 █████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 16/32
+  Mean activation: 0.214
+  Max activation: 0.738
+
+
+============================================================
+SCENARIO: STAIRCASE AHEAD - Should climb
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . # . . . . . 
+. . . . M . . . . # # . . . . .   (Mario row)
+. . . . . . . . # # # . . . . . 
+. . . . . . . # # # # . . . . . 
+# # # # # # # # # # # # # # # #   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 1.00
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.633 ████████████
+   DOWN: 0.451 █████████
+   LEFT: 0.433 ████████
+  RIGHT: 0.166 ███
+      A: 0.189 ███
+      B: 0.574 ███████████
+
+Button presses (decoded):
+  UP + LEFT + B
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 15/32
+  Mean activation: 0.268
+  Max activation: 2.337
+
+
+============================================================
+SCENARIO: FALLING - No ground below
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . . . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . .   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 1.00
+  Ground distance: 1.00
+  Pit distance: 0.00
+
+Network output (raw activations):
+     UP: 0.540 ██████████
+   DOWN: 0.488 █████████
+   LEFT: 0.534 ██████████
+  RIGHT: 0.425 ████████
+      A: 0.527 ██████████
+      B: 0.457 █████████
+
+Button presses (decoded):
+  UP + LEFT + A
+  ❌ WRONG (expected: RIGHT)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 11/32
+  Mean activation: 0.087
+  Max activation: 0.359
+
+
+============================================================
+BEHAVIORAL PRIORS ANALYSIS
+============================================================
+Applied priors: RIGHT=3.0, A=2.0 (bias toward running right and jumping)
+
+
+============================================================
+SCENARIO: EMPTY SPACE (testing priors)
+============================================================
+
+==================================================
+VISION GRID (Mario's view)
+==================================================
+Legend: . = empty, # = solid, E = enemy, M = Mario
+
+. . . . . . . . . . . . . . . .   (3 above)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . M . . . . . . . . . . .   (Mario row)
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . .   (3 below)
+
+Horizontal: 4 tiles behind ← M → 11 tiles ahead
+==================================================
+Context features:
+  Enemy distance: 1.00
+  Ground distance: 0.00
+  Pit distance: 1.00
+
+Network output (raw activations):
+     UP: 0.568 ███████████
+   DOWN: 0.441 ████████
+   LEFT: 0.463 █████████
+  RIGHT: 0.937 ██████████████████
+      A: 0.861 █████████████████
+      B: 0.518 ██████████
+
+Button presses (decoded):
+  UP + RIGHT + A
+  ❌ WRONG (expected: RIGHT + A)
+
+Hidden layer activations (32 neurons):
+  Active neurons: 8/32
+  Mean activation: 0.062
+  Max activation: 0.394
+
+
+============================================================
+MUTATION EFFECT ANALYSIS
+============================================================
+Testing same scenario before and after mutation...
+
+BEFORE MUTATION:
+  Buttons: UP + LEFT + B
+  Raw: [0.5475902  0.43924361 0.40938738 0.21394226 0.32545268 0.52901154]
+
+Applying mutation (rate=0.2, scale=0.5)...
+
+AFTER MUTATION:
+  Buttons: UP + B
+  Raw: [0.73742    0.28680032 0.08308337 0.15248867 0.37805194 0.58262921]
+
+CHANGE:
+  Avg output change: 0.1394
+  Max output change: 0.3263
+  ✨ BEHAVIOR CHANGED!
+
+
+============================================================
+✅ ANALYSIS COMPLETE
+============================================================
+
+📄 Full log saved to: /mnt/d/Developer/pyscript-lab/runner/analysis_20251115_015426.log
+
+Key findings:
+1. Check if network goes LEFT instead of RIGHT (wrong direction)
+2. Check if behavioral priors (RIGHT=3.0, A=2.0) fix the issue
+3. Verify mutation changes behavior enough to escape local optima
+
+Next steps:
+1. Load trained weights from browser and analyze
+2. Compare untrained vs trained network behavior
+3. Identify which neurons respond to enemies
