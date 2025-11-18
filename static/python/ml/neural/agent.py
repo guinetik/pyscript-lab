@@ -59,14 +59,15 @@ CONFIG = {
     'vision_height': 7,
 
     # Network
-    'hidden_size': 9,
+    'hidden_size': 32,  # Increased from 9 to give network more capacity for complex patterns
     'use_context_features': True,
     'encode_row': True,
     'simple_controls': True,  # 4-button mode [LEFT, RIGHT, A, B]
+    'enable_reflexes': True,  # Reflexive enemy/pit avoidance (gives evolution a head start)
 
     # Evolution Strategy
-    'mutation_rate': 0.05,
-    'mutation_scale': 0.2,
+    'mutation_rate': 0.01,  # Very small - only mutate 1% of weights per generation
+    'mutation_scale': 0.05,  # Tiny changes - offspring very similar to parent
     'adaptive_mutation': True,
     'local_optimum_threshold': 5,
 
@@ -79,7 +80,7 @@ CONFIG = {
     # Generation Management
     'base_timeout_frames': 1800,
     'progressive_timeout': True,
-    'base_stuck_threshold': 150,
+    'base_stuck_threshold': 360,  # Increased from 150 (6 seconds vs 2.5s) - more exploration time
     'progressive_stuck_threshold': True
 }
 
@@ -131,7 +132,11 @@ class MarioTrainer:
 
         # Performance monitoring
         self.perf_monitor = PerformanceMonitor() if HAS_PERF_MONITOR else None
-        self.decision_interval = 50  # 20 FPS default
+        self.decision_interval = 16  # ~60 FPS to sync observations with NES frame rate
+
+        # Button hold state (for consistent jump height)
+        self._jump_hold_counter = 0
+        self._jump_hold_duration = 6  # Hold A for 6 frames (~0.1s) for good jump height
 
         # Create metrics chart (one-time setup)
         self._create_metrics_chart()
@@ -158,6 +163,10 @@ class MarioTrainer:
             console.error("❌ Failed to start emulator")
             window.updateRLStatus('error', '❌ Failed to start emulator')
             return
+
+        # Log synchronization info
+        console.log(f"🎮 Agent observing at {1000/self.decision_interval:.1f} FPS (synced with NES 60 FPS)")
+        console.log("📺 Emulator runs independently - agent observes in real-time")
 
         # Load saved state
         window.updateRLStatus('training', '📂 Loading game state...')
@@ -187,6 +196,9 @@ class MarioTrainer:
         # Load state and reset
         await self.agent.game.load_saved_state()
         self.agent.reset()
+
+        # Reset button hold state
+        self._jump_hold_counter = 0
 
         # Resume visualization with warmup
         self._viz_paused = False
@@ -242,6 +254,12 @@ class MarioTrainer:
         """
         Execute one step with visualization support.
 
+        SYNCHRONIZATION STRATEGY:
+        - Emulator runs independently at 60 FPS (smooth animations, audio)
+        - Agent observes at 60 FPS (~16ms intervals) to stay synced
+        - Each observation captures current game state in real-time
+        - No manual frame stepping - game flows naturally
+
         Returns:
             dict: Step information
         """
@@ -250,7 +268,7 @@ class MarioTrainer:
         if self._viz_warmup_frames < VIZ_WARMUP_FRAMES:
             self._viz_warmup_frames += 1
 
-        # Observe
+        # Observe current game state (synced to ~60 FPS)
         state = self.agent.observe()
 
         # Decide with visualization capture
@@ -264,8 +282,23 @@ class MarioTrainer:
             (self._decision_count % VIZ_UPDATE_FREQUENCY == 0)):
             self._visualize_network()
 
-        # Decode and act
+        # Decode and execute actions
         actions = self.agent.decoder.decode(output)
+
+        # Button hold logic: Hold A (jump) for full duration once pressed
+        # In 4-button mode: [LEFT=0, RIGHT=1, A=2, B=3]
+        # In 6-button mode: [UP=0, DOWN=1, LEFT=2, RIGHT=3, A=4, B=5]
+        a_button_idx = 4 if len(actions) == 6 else 2
+
+        if actions[a_button_idx] > 0:
+            # Start jump hold
+            self._jump_hold_counter = self._jump_hold_duration
+
+        if self._jump_hold_counter > 0:
+            # Continue holding A
+            actions[a_button_idx] = 1
+            self._jump_hold_counter -= 1
+
         self.agent.act(actions)
 
         # Track progress
@@ -324,6 +357,43 @@ class MarioTrainer:
         """
         # Pause visualization
         self._viz_paused = True
+
+        # LOG VISION BEFORE DEATH (for debugging)
+        try:
+            final_state = self.agent.observe()
+            vision_size = 16 * 7  # 16×7 vision grid
+            vision = final_state[:vision_size]
+            context = final_state[vision_size:]
+
+            print(f"\n{'='*60}")
+            print(f"💀 DEATH VISION LOG - Gen {self.generation + 1}")
+            print(f"{'='*60}")
+            print(f"Death cause: {death_cause}")
+            print(f"Final position: {step_info['max_position']}px")
+            print(f"Frames survived: {step_info['frames']}")
+            print(f"\nVision grid (16×7):")
+
+            # Print vision as grid
+            for row in range(7):
+                line = ""
+                for col in range(16):
+                    idx = row * 16 + col
+                    val = vision[idx]
+                    if col == 4 and row == 3:  # Mario's position
+                        line += "M "
+                    elif val == -1.0:
+                        line += "E "  # Enemy
+                    elif val == 1.0:
+                        line += "# "  # Solid
+                    else:
+                        line += ". "  # Empty
+                line_label = ["3 above", "", "", "Mario", "", "", "3 below"][row]
+                print(f"  {line} {line_label}")
+
+            print(f"\nContext features: {context}")
+            print(f"{'='*60}\n")
+        except Exception as e:
+            print(f"⚠️ Could not log vision: {e}")
 
         # Capture final score
         self.agent.final_score = step_info['score']
@@ -549,14 +619,20 @@ output_size = 4 if CONFIG['simple_controls'] else 6
 neural = SimpleNeuralController(
     input_size=input_size,
     hidden_size=CONFIG['hidden_size'],
-    output_size=output_size
+    output_size=output_size,
+    enable_reflexes=CONFIG['enable_reflexes']
 )
 
 # Apply behavioral priors
+# BALANCED BIAS: Forward progress with controlled jumping
+# RIGHT=0.6 → 65% baseline (clear forward preference, still overrideable for backtracking)
+# A=1.3 → 79% baseline (jump at obstacles but not constantly)
+# B=1.2 → 77% baseline (run for speed and longer jumps)
+# Network can learn when NOT to jump (near edges) and when to back up (tall obstacles)
 if CONFIG['simple_controls']:
-    priors = [0.2, 3.0, 3.0, 1.5]  # [LEFT, RIGHT, A, B]
+    priors = [0.0, 0.6, 1.3, 1.2]  # [LEFT, RIGHT, A, B]
 else:
-    priors = [0.1, 0.1, 0.2, 3.0, 3.0, 1.5]  # [UP, DOWN, LEFT, RIGHT, A, B]
+    priors = [0.0, 0.0, 0.0, 0.6, 1.3, 1.2]  # [UP, DOWN, LEFT, RIGHT, A, B]
 
 neural.apply_priors(priors)
 

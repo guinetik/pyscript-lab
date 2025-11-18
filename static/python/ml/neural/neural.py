@@ -88,15 +88,15 @@ class NeuralNetwork:
 
     def set_weights(self, weights: List[np.ndarray], biases: List[np.ndarray]):
         """
-        Set network weights and biases.
+        Set network weights and biases (makes deep copies to avoid reference issues).
         Useful for loading pre-trained weights.
         """
-        self.weights = weights
-        self.biases = biases
+        self.weights = [w.copy() for w in weights]
+        self.biases = [b.copy() for b in biases]
 
     def get_weights(self) -> tuple:
-        """Get current weights and biases."""
-        return self.weights, self.biases
+        """Get current weights and biases (deep copies for safe saving)."""
+        return [w.copy() for w in self.weights], [b.copy() for b in self.biases]
 
     def get_visualization_data(self) -> dict:
         """
@@ -175,20 +175,18 @@ class NeuralNetwork:
             mask = np.random.random(self.weights[i].shape) < mutation_rate
             self.weights[i] += mask * np.random.randn(*self.weights[i].shape) * mutation_scale
 
-            # Mutate biases - but reduce mutation on OUTPUT layer to preserve behavioral priors
+            # Mutate biases - but FREEZE output layer biases to preserve behavioral priors
             is_output_layer = (i == len(self.weights) - 1)
 
             if is_output_layer:
-                # Output layer biases (behavioral priors) - mutate less aggressively
-                bias_mutation_scale = mutation_scale * 0.3  # Only 30% of normal mutation
-                bias_mutation_rate = mutation_rate * 0.5    # Half the mutation rate
+                # Output layer biases (behavioral priors) - DO NOT MUTATE!
+                # This preserves the RIGHT+JUMP bias set by apply_priors()
+                # Only the hidden layers adapt, output biases stay fixed
+                pass  # Skip bias mutation for output layer
             else:
                 # Hidden layer biases - mutate normally
-                bias_mutation_scale = mutation_scale
-                bias_mutation_rate = mutation_rate
-
-            mask = np.random.random(self.biases[i].shape) < bias_mutation_rate
-            self.biases[i] += mask * np.random.randn(*self.biases[i].shape) * bias_mutation_scale
+                mask = np.random.random(self.biases[i].shape) < mutation_rate
+                self.biases[i] += mask * np.random.randn(*self.biases[i].shape) * mutation_scale
 
 
 # Export to global scope for other scripts to use

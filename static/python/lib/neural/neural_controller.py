@@ -94,7 +94,7 @@ class SimpleNeuralController(NeuralController):
     Uses the NeuralNetwork class from neural.py.
     """
 
-    def __init__(self, input_size: int, hidden_size: int, output_size: int, seed=None):
+    def __init__(self, input_size: int, hidden_size: int, output_size: int, seed=None, enable_reflexes=True):
         """
         Initialize simple neural controller.
 
@@ -103,15 +103,17 @@ class SimpleNeuralController(NeuralController):
             hidden_size: Number of hidden neurons
             output_size: Number of output neurons
             seed: Random seed (None for random initialization)
+            enable_reflexes: Enable reflexive enemy avoidance (default: True)
         """
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
+        self.enable_reflexes = enable_reflexes
 
         # Get NeuralNetwork class from builtins (loaded by neural.py)
         import builtins
         NeuralNetwork = builtins.NeuralNetwork
-        
+
         self.network = NeuralNetwork(
             [input_size, hidden_size, output_size],
             seed=seed
@@ -119,6 +121,8 @@ class SimpleNeuralController(NeuralController):
 
         print(f"🧠 SimpleNeuralController initialized")
         print(f"   Architecture: {input_size} → {hidden_size} → {output_size}")
+        if enable_reflexes:
+            print(f"   ⚡ Reflexes: ENABLED (enemy nearby → boost jump)")
 
         # Debug: Check actual network layer sizes
         print(f"   Weight shapes: {[w.shape for w in self.network.weights]}")
@@ -126,14 +130,14 @@ class SimpleNeuralController(NeuralController):
 
     def forward(self, state: np.ndarray, capture_activations: bool = False) -> np.ndarray:
         """
-        Forward pass through network.
+        Forward pass through network with optional reflexive adjustments.
 
         Args:
-            state: Input state vector
+            state: Input state vector (vision + context features)
             capture_activations: If True, capture layer activations for visualization
 
         Returns:
-            np.ndarray: Network output activations (1D array)
+            np.ndarray: Network output activations (1D array), potentially adjusted by reflexes
         """
         # Debug network architecture (log once)
         if not hasattr(self, '_logged_arch'):
@@ -157,7 +161,103 @@ class SimpleNeuralController(NeuralController):
             console.error(f"⚠️ Output size mismatch! Got {len(flattened)}, expected {self.output_size}. Taking first {self.output_size} values.")
             return flattened[:self.output_size]
 
+        # Apply reflexive adjustments (enemy avoidance)
+        if self.enable_reflexes:
+            flattened = self._apply_reflexes(state, flattened)
+
         return flattened
+
+    def _apply_reflexes(self, state: np.ndarray, output: np.ndarray) -> np.ndarray:
+        """
+        Apply multi-strategy reflexive adjustments based on enemy distance and position.
+
+        REFLEX STRATEGIES (graduated by distance):
+        1. VERY CLOSE (< 2 tiles): EMERGENCY - Suppress movement toward enemy + max jump
+        2. MEDIUM (2-4 tiles): PREPARE - Boost jump + adjust direction
+        3. FAR (> 4 tiles): PASSIVE - Let network handle it
+        4. PIT AHEAD: Always boost jump
+
+        Args:
+            state: Full input state (vision + context)
+            output: Raw network output [LEFT, RIGHT, A, B]
+
+        Returns:
+            Adjusted output with graduated reflexive responses
+        """
+        # Context features are at the end of state vector
+        # For 4-button mode: 112 vision + 24 context = 136 total
+        # Context features: [enemy_left_norm, enemy_right_norm, ground_dist, pit_dist,
+        #                    obstacle_dist, obstacle_height, on_ground, y_norm, enemy_nearby, ...]
+        # Note: enemy_left/right_norm: 1.0 = very close, 0.0 = far (inverse distance)
+
+        vision_size = 16 * 7  # 112
+        if len(state) > vision_size:
+            context = state[vision_size:]
+
+            # Extract key features (if available)
+            if len(context) >= 9 and self.output_size >= 3:
+                enemy_left_norm = context[0]   # 1.0 = enemy very close on left
+                enemy_right_norm = context[1]  # 1.0 = enemy very close on right
+                on_ground = context[6]         # 1.0 = Mario is on ground
+                pit_dist_norm = context[3]     # Higher = pit closer
+
+                # Convert normalized values to approximate tile distances
+                # enemy_norm = 1.0 - (distance / 10.0), so distance ≈ (1.0 - norm) * 10
+                enemy_left_dist = (1.0 - enemy_left_norm) * 10.0
+                enemy_right_dist = (1.0 - enemy_right_norm) * 10.0
+
+                # Button indices for 4-button mode: [LEFT=0, RIGHT=1, A=2, B=3]
+                LEFT, RIGHT, JUMP = 0, 1, 2
+
+                # ===== STRATEGY 1: Enemy on RIGHT =====
+                if enemy_right_dist < 4.0:  # Enemy within 4 tiles on right
+                    if enemy_right_dist < 1.5:  # VERY CLOSE - EMERGENCY!
+                        # Emergency brake: suppress forward movement
+                        output[RIGHT] = max(0.0, output[RIGHT] - 0.6)
+                        # Maximum jump boost
+                        output[JUMP] = min(1.0, output[JUMP] + 1.0)
+                        # Consider moving left to escape
+                        output[LEFT] = min(1.0, output[LEFT] + 0.3)
+                    elif enemy_right_dist < 3.0:  # MEDIUM - PREPARE
+                        # Moderate jump boost to prepare
+                        output[JUMP] = min(1.0, output[JUMP] + 0.6)
+                        # Maintain forward momentum (jump OVER enemy)
+                        output[RIGHT] = min(1.0, output[RIGHT] + 0.2)
+
+                # ===== STRATEGY 2: Enemy on LEFT =====
+                if enemy_left_dist < 4.0:  # Enemy within 4 tiles on left
+                    if enemy_left_dist < 1.5:  # VERY CLOSE - EMERGENCY!
+                        # Emergency brake: suppress backward movement
+                        output[LEFT] = max(0.0, output[LEFT] - 0.6)
+                        # Boost jump
+                        output[JUMP] = min(1.0, output[JUMP] + 0.8)
+                        # Move right to escape
+                        output[RIGHT] = min(1.0, output[RIGHT] + 0.4)
+                    elif enemy_left_dist < 3.0:  # MEDIUM - PREPARE
+                        # Boost right to move away from threat
+                        output[RIGHT] = min(1.0, output[RIGHT] + 0.3)
+                        # Moderate jump boost
+                        output[JUMP] = min(1.0, output[JUMP] + 0.4)
+
+                # ===== STRATEGY 3: Tall obstacle (DISABLED - needs tuning) =====
+                # TODO: Re-enable once we can reliably detect truly impassable obstacles
+                # The current implementation causes false positives on jumpable obstacles
+                #
+                # obstacle_dist_norm = context[4] if len(context) > 4 else 0.0
+                # obstacle_height_norm = context[5] if len(context) > 5 else 0.0
+                # if obstacle_dist_norm > 0.8 and obstacle_height_norm > 0.9:
+                #     output[JUMP] = max(0.0, output[JUMP] - 0.5)
+                #     output[RIGHT] = max(0.0, output[RIGHT] - 0.7)
+                #     output[LEFT] = min(1.0, output[LEFT] + 0.6)
+
+                # ===== STRATEGY 4: Pit ahead =====
+                if pit_dist_norm > 0.7:  # Pit is close (normalized distance)
+                    pit_boost = 0.6 * pit_dist_norm
+                    output[JUMP] = min(1.0, output[JUMP] + pit_boost)
+                    # Maintain forward movement to jump across
+                    output[RIGHT] = min(1.0, output[RIGHT] + 0.2)
+
+        return output
 
     def get_visualization_data(self) -> dict:
         """
@@ -189,14 +289,14 @@ class SimpleNeuralController(NeuralController):
 
     def get_weights(self) -> dict:
         """
-        Get network weights.
+        Get network weights (deep copy for safe saving).
 
         Returns:
             dict: {'weights': [...], 'biases': [...]}
         """
         return {
-            'weights': self.network.weights,
-            'biases': self.network.biases
+            'weights': [w.copy() for w in self.network.weights],
+            'biases': [b.copy() for b in self.network.biases]
         }
 
     def set_weights(self, weights: list, biases: list):
