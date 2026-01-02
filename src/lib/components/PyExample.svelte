@@ -3,12 +3,13 @@
      * Wrapper component that renders a PyScript example alongside the highlighted source code.
      * @typedef {Object} PyExampleProps
      * @property {string} [title] - Optional title displayed above the highlighted source.
+     * @property {import('svelte').Snippet} [children] - Snippet containing the PyScript code to render.
      */
     import CodeBlock from './CodeBlock.svelte';
     import { onMount } from 'svelte';
 
     /** @type {PyExampleProps['title']} */
-    let { title = '' } = $props();
+    let { title = '', children } = $props();
     /** @type {string} */
     let sourceCode = $state('');
     /** @type {string} */
@@ -19,7 +20,7 @@
     let isCodeVisible = $state(false);
 
     /**
-     * Loads the PyScript source from the rendered slot and updates highlighted output.
+     * Loads the PyScript source from the rendered snippet and updates highlighted output.
      * @param {HTMLScriptElement} script - Script element containing or referencing Python code.
      * @returns {Promise<void>}
      */
@@ -84,6 +85,8 @@
     {/if}
 
     <div id={scriptId} class="output mt-4" bind:this={scriptElement}>
-        <slot />
+        {#if children}
+            {@render children()}
+        {/if}
     </div>
 </div> 

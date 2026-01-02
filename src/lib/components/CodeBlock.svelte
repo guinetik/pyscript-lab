@@ -3,13 +3,14 @@
  * Displays syntax-highlighted code using ACE editor in read-only mode.
  * @typedef {Object} CodeBlockProps
  * @property {string} [language='python'] - Language mode for syntax highlighting.
- * @property {string} [code=''] - Literal code to highlight when no slot content is provided.
+ * @property {string} [code=''] - Literal code to highlight when no snippet content is provided.
  * @property {string} [src=''] - Path to a file to fetch and display.
+ * @property {import('svelte').Snippet} [children] - Optional snippet for legacy compatibility (not displayed).
  */
 import { onMount, onDestroy } from 'svelte';
 import { getLink } from '$lib/utils.js';
 
-let { language = 'python', code = '', src = '' } = $props();
+let { language = 'python', code = '', src = '', children } = $props();
 let editorElement;
 let editor;
 let slotContent = '';
@@ -152,9 +153,12 @@ function loadAce() {
 	<div bind:this={editorElement} class="code-block-editor"></div>
 </div>
 
-<div style="display: none">
-	<slot />
-</div>
+<!-- Hidden snippet for legacy compatibility (not displayed) -->
+{#if children}
+	<div style="display: none">
+		{@render children()}
+	</div>
+{/if}
 
 <style>
 	.code-block-editor {
