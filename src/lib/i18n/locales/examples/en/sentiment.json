@@ -27,18 +27,37 @@
   },
   "examples": {
     "sectionTitle": "Try These Examples:",
-    "example1": "I absolutely love this product! It's amazing!",
-    "example2": "This is terrible and I hate it.",
-    "example3": "It's okay, nothing special really.",
-    "example4": "Best purchase ever! Highly recommend!",
-    "example5": "Waste of money, very disappointing."
+    "positive": {
+      "example1": "I absolutely love this product! It's amazing!",
+      "example2": "Best purchase ever! Highly recommend!",
+      "example3": "This exceeded all my expectations! Five stars!",
+      "example4": "Wow, this is incredible! Changed my life!",
+      "example5": "Outstanding quality and excellent customer service!",
+      "example6": "Phenomenal! Worth every penny!"
+    },
+    "negative": {
+      "example1": "This is terrible and I hate it.",
+      "example2": "Waste of money, very disappointing.",
+      "example3": "Worst purchase ever! Complete disaster.",
+      "example4": "Poor quality and awful customer service.",
+      "example5": "I regret buying this. Don't waste your money!",
+      "example6": "Broke after one use. Total garbage!"
+    },
+    "neutral": {
+      "example1": "It's okay, nothing special really.",
+      "example2": "Average product, does what it's supposed to do.",
+      "example3": "Not great, not terrible. Just average.",
+      "example4": "It works as expected. Nothing more, nothing less.",
+      "example5": "Fair quality for the price. No complaints.",
+      "example6": "Meets basic requirements. Adequate."
+    }
   },
   "sections": {
     "howItWorks": {
       "title": "How it works:",
       "bullet1": "The model uses TF-IDF (Term Frequency-Inverse Document Frequency) to convert text to numbers",
       "bullet2": "A Logistic Regression classifier predicts sentiment based on word patterns",
-      "bullet3": "Trained on 45 example sentences (15 positive, 15 negative, 15 neutral)",
+      "bullet3": "Trained on 150 diverse example sentences (50 positive, 50 negative, 50 neutral)",
       "bullet4": "Shows confidence scores for all three sentiment categories",
       "bullet5": "All processing happens in your browser using PyScript!"
     },
@@ -59,7 +78,16 @@
     },
     "note": {
       "title": "📝 Note",
-      "description": "This is a simple demonstration model. For production use, you'd want to train on a much larger dataset (thousands of examples) for better accuracy and generalization."
+      "description": "This is an improved demonstration model with 150 training examples covering diverse writing styles and scenarios. For production use, you'd still want to train on thousands of examples for better accuracy and to handle edge cases like sarcasm and mixed sentiments."
+    },
+    "useCases": {
+      "title": "💼 Real-World Use Cases",
+      "description": "Sentiment analysis is widely used in:",
+      "case1": "📊 Customer Feedback - Analyze product reviews, survey responses, and support tickets",
+      "case2": "📱 Social Media Monitoring - Track brand perception and customer sentiment in real-time",
+      "case3": "📧 Email Classification - Prioritize customer emails based on urgency and sentiment",
+      "case4": "🎬 Content Moderation - Detect negative or toxic content before it's published",
+      "case5": "📈 Market Research - Understand consumer opinions and trends from text data"
     }
   },
   "links": {

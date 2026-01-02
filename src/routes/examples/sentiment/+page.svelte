@@ -36,14 +36,34 @@
 	};
 
 	/**
-	 * Example sentences to try - base keys for translation
+	 * Create derived examples array with translated examples from all categories.
+	 * Gathers examples from positive, negative, and neutral categories.
 	 */
-	const exampleKeys = ['example1', 'example2', 'example3', 'example4', 'example5'];
-
-	// Create derived examples array with translated examples
-	let examples = $derived(
-		exampleKeys.map(key => $exampleText?.examples?.[key] || '')
-	);
+	let examples = $derived.by(() => {
+		const examplesData = $exampleText?.examples;
+		if (!examplesData) return [];
+		
+		const allExamples = [];
+		
+		// Gather all examples from nested structure
+		['positive', 'negative', 'neutral'].forEach(category => {
+			if (examplesData[category]) {
+				Object.values(examplesData[category]).forEach(example => {
+					if (example) allExamples.push(example);
+				});
+			}
+		});
+		
+		// Fallback for old flat structure if new structure not found
+		if (allExamples.length === 0) {
+			['example1', 'example2', 'example3', 'example4', 'example5'].forEach(key => {
+				const example = examplesData[key];
+				if (example) allExamples.push(example);
+			});
+		}
+		
+		return allExamples;
+	});
 
 	onMount(async () => {
 		logger.log('🟣 [Svelte] onMount() called');
@@ -456,6 +476,32 @@
 				{$exampleText.sections?.note?.description || "This is a simple demonstration model. For production use, you'd want to train on a much larger dataset (thousands of examples) for better accuracy and generalization."}
 			</p>
 		</div>
+
+		{#if $exampleText.sections?.useCases}
+			<div class="mt-4 rounded-lg bg-indigo-50 p-4">
+				<h3 class="mb-2 font-bold text-indigo-900">{$exampleText.sections?.useCases?.title || '💼 Real-World Use Cases'}</h3>
+				<p class="text-sm text-indigo-800 mb-2">
+					{$exampleText.sections?.useCases?.description || 'Sentiment analysis is widely used in:'}
+				</p>
+				<ul class="space-y-1 text-sm text-indigo-800">
+					{#if $exampleText.sections?.useCases?.case1}
+						<li>• {$exampleText.sections?.useCases?.case1}</li>
+					{/if}
+					{#if $exampleText.sections?.useCases?.case2}
+						<li>• {$exampleText.sections?.useCases?.case2}</li>
+					{/if}
+					{#if $exampleText.sections?.useCases?.case3}
+						<li>• {$exampleText.sections?.useCases?.case3}</li>
+					{/if}
+					{#if $exampleText.sections?.useCases?.case4}
+						<li>• {$exampleText.sections?.useCases?.case4}</li>
+					{/if}
+					{#if $exampleText.sections?.useCases?.case5}
+						<li>• {$exampleText.sections?.useCases?.case5}</li>
+					{/if}
+				</ul>
+			</div>
+		{/if}
 
 		<p class="mt-4">
 			<a

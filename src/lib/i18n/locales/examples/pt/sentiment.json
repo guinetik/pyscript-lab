@@ -27,18 +27,37 @@
   },
   "examples": {
     "sectionTitle": "Tente Estes Exemplos:",
-    "example1": "Eu absolutamente amo este produto! É incrível!",
-    "example2": "Isto é terrível e eu odeio.",
-    "example3": "Está bem, nada de especial realmente.",
-    "example4": "Melhor compra de sempre! Altamente recomendado!",
-    "example5": "Desperdício de dinheiro, muito decepcionante."
+    "positive": {
+      "example1": "Eu absolutamente amo este produto! É incrível!",
+      "example2": "Melhor compra de sempre! Altamente recomendado!",
+      "example3": "Isso superou todas as minhas expectativas! Cinco estrelas!",
+      "example4": "Uau, isso é incrível! Mudou minha vida!",
+      "example5": "Qualidade excepcional e excelente atendimento ao cliente!",
+      "example6": "Fenomenal! Vale cada centavo!"
+    },
+    "negative": {
+      "example1": "Isto é terrível e eu odeio.",
+      "example2": "Desperdício de dinheiro, muito decepcionante.",
+      "example3": "Pior compra de todas! Desastre completo.",
+      "example4": "Má qualidade e péssimo atendimento ao cliente.",
+      "example5": "Me arrependo de comprar isso. Não desperdice seu dinheiro!",
+      "example6": "Quebrou após um uso. Lixo total!"
+    },
+    "neutral": {
+      "example1": "Está bem, nada de especial realmente.",
+      "example2": "Produto médio, faz o que deveria fazer.",
+      "example3": "Nem ótimo, nem terrível. Apenas mediano.",
+      "example4": "Funciona como esperado. Nada mais, nada menos.",
+      "example5": "Qualidade justa pelo preço. Sem reclamações.",
+      "example6": "Atende aos requisitos básicos. Adequado."
+    }
   },
   "sections": {
     "howItWorks": {
       "title": "Como funciona:",
       "bullet1": "O modelo usa TF-IDF (Term Frequency-Inverse Document Frequency) para converter texto em números",
       "bullet2": "Um classificador Logistic Regression prevê o sentimento com base em padrões de palavras",
-      "bullet3": "Treinado em 45 frases de exemplo (15 positivas, 15 negativas, 15 neutras)",
+      "bullet3": "Treinado em 150 frases diversas de exemplo (50 positivas, 50 negativas, 50 neutras)",
       "bullet4": "Mostra pontuações de confiança para todas as três categorias de sentimento",
       "bullet5": "Todo o processamento acontece no seu navegador usando PyScript!"
     },
@@ -59,7 +78,16 @@
     },
     "note": {
       "title": "📝 Nota",
-      "description": "Este é um modelo de demonstração simples. Para uso em produção, você gostaria de treinar em um conjunto de dados muito maior (milhares de exemplos) para melhor precisão e generalização."
+      "description": "Este é um modelo de demonstração aprimorado com 150 exemplos de treinamento cobrindo estilos de escrita e cenários diversos. Para uso em produção, você ainda precisaria treinar com milhares de exemplos para melhor precisão e lidar com casos extremos como sarcasmo e sentimentos mistos."
+    },
+    "useCases": {
+      "title": "💼 Casos de Uso no Mundo Real",
+      "description": "A análise de sentimento é amplamente usada em:",
+      "case1": "📊 Feedback de Clientes - Analisar avaliações de produtos, respostas de pesquisas e tickets de suporte",
+      "case2": "📱 Monitoramento de Redes Sociais - Acompanhar a percepção da marca e sentimento do cliente em tempo real",
+      "case3": "📧 Classificação de E-mails - Priorizar e-mails de clientes com base na urgência e sentimento",
+      "case4": "🎬 Moderação de Conteúdo - Detectar conteúdo negativo ou tóxico antes de ser publicado",
+      "case5": "📈 Pesquisa de Mercado - Entender opiniões e tendências do consumidor a partir de dados de texto"
     }
   },
   "links": {

@@ -14,6 +14,41 @@ text,sentiment
 "This is exactly what I needed!",positive
 "Impressive quality and design!",positive
 "I couldn't be happier!",positive
+"Wow, this is incredible!",positive
+"Best purchase of the year!",positive
+"Five stars all the way!",positive
+"Superb craftsmanship and attention to detail!",positive
+"This product changed my life!",positive
+"Absolutely thrilled with the results!",positive
+"Excellence personified!",positive
+"Phenomenal customer service!",positive
+"This exceeded all my hopes!",positive
+"I'm blown away by the quality!",positive
+"Worth every single penny!",positive
+"Flawless execution!",positive
+"This is pure genius!",positive
+"I've never been more impressed!",positive
+"Top-notch from start to finish!",positive
+"Incredible value for money!",positive
+"They really nailed it!",positive
+"This is a game-changer!",positive
+"Absolutely delightful experience!",positive
+"I'm recommending this to everyone!",positive
+"Outstanding in every aspect!",positive
+"This solved all my problems!",positive
+"Beyond my wildest expectations!",positive
+"Masterfully done!",positive
+"This brings me so much joy!",positive
+"Perfect solution to my needs!",positive
+"I'm genuinely impressed!",positive
+"Spectacular quality!",positive
+"This is hands down the best!",positive
+"Amazing from beginning to end!",positive
+"Couldn't ask for anything better!",positive
+"This deserves all the praise!",positive
+"Exceeded every benchmark!",positive
+"Truly exceptional!",positive
+"This is a work of art!",positive
 "This is terrible and disappointing.",negative
 "I hate this, complete waste of money.",negative
 "Worst purchase I've ever made.",negative
@@ -29,6 +64,41 @@ text,sentiment
 "This failed to meet expectations.",negative
 "Terrible quality and poor design.",negative
 "I regret buying this.",negative
+"Save your money, don't buy this.",negative
+"Worst customer service ever!",negative
+"This is a complete disaster.",negative
+"Absolutely unacceptable quality.",negative
+"What a waste of time and money!",negative
+"Cheaply made and overpriced.",negative
+"Fell apart after one use.",negative
+"Don't waste your time on this.",negative
+"Dreadful experience from start to finish.",negative
+"This is beyond disappointing.",negative
+"Utterly useless product.",negative
+"I'm demanding a full refund!",negative
+"Worst quality I've seen.",negative
+"This is fraudulent advertising.",negative
+"Completely unusable.",negative
+"Inferior in every way.",negative
+"This ruined my day.",negative
+"Pathetic quality and service.",negative
+"I'm disgusted with this purchase.",negative
+"Total rip-off!",negative
+"This is a nightmare.",negative
+"Avoid like the plague!",negative
+"Absolutely worthless.",negative
+"I feel cheated.",negative
+"Defective and dangerous!",negative
+"Completely unacceptable.",negative
+"This is an embarrassment.",negative
+"Worst decision ever.",negative
+"Shockingly bad quality.",negative
+"Zero stars if I could!",negative
+"This is insulting.",negative
+"Complete and utter failure.",negative
+"I'm appalled by this.",negative
+"Disgraceful product.",negative
+"Atrocious experience.",negative
 "This is okay, nothing special.",neutral
 "It works as expected.",neutral
 "Average product, does the job.",neutral
@@ -44,3 +114,39 @@ text,sentiment
 "Could be better, could be worse.",neutral
 "It does what it says.",neutral
 "Neutral opinion on this.",neutral
+"It serves its purpose.",neutral
+"Middle of the road product.",neutral
+"Fair enough for the cost.",neutral
+"Passable but unremarkable.",neutral
+"Neither impressed nor disappointed.",neutral
+"Standard fare, nothing more.",neutral
+"It exists and functions.",neutral
+"Moderate quality at best.",neutral
+"Not particularly noteworthy.",neutral
+"Adequate for basic needs.",neutral
+"Typical product in this category.",neutral
+"No strong feelings either way.",neutral
+"It's functional, that's all.",neutral
+"Ordinary and forgettable.",neutral
+"Satisfactory but not exciting.",neutral
+"Just another product.",neutral
+"Meets minimum expectations.",neutral
+"Uninspiring but usable.",neutral
+"Average in every sense.",neutral
+"Neither good nor bad.",neutral
+"Perfectly mediocre.",neutral
+"Acceptable but not memorable.",neutral
+"Standard issue product.",neutral
+"No real opinion on this.",neutral
+"It's there, it works.",neutral
+"Unremarkable experience.",neutral
+"Plain and simple.",neutral
+"Does the job adequately.",neutral
+"Middle tier quality.",neutral
+"Neither a win nor a loss.",neutral
+"Serviceable at best.",neutral
+"Undistinguished product.",neutral
+"Fair value proposition.",neutral
+"Not worth discussing much.",neutral
+"Basic functionality achieved.",neutral
+"Average across the board.",neutral
