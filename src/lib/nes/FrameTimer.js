@@ -5,7 +5,7 @@
 
 import { createLogger } from "@guinetik/logger";
 
-const FPS = 60;
+const DEFAULT_FPS = 60;
 
 export class FrameTimer {
 	/**
@@ -13,8 +13,9 @@ export class FrameTimer {
 	 * @param {Object} options - Configuration options
 	 * @param {Function} options.onGenerateFrame - Called to generate a frame (calls nes.frame())
 	 * @param {Function} options.onWriteFrame - Called to write frame to screen
+	 * @param {number} options.fps - Target FPS (default: 60)
 	 */
-	constructor({ onGenerateFrame, onWriteFrame }) {
+	constructor({ onGenerateFrame, onWriteFrame, fps = DEFAULT_FPS }) {
 		this.logger = createLogger(
 			{prefix: 'FrameTimer',
 			level: 'debug'});
@@ -22,8 +23,11 @@ export class FrameTimer {
 		this.onWriteFrame = onWriteFrame;
 		this.running = false;
 		this.requestId = null;
-		this.interval = 1000 / FPS;
+		this.fps = fps;
+		this.interval = 1000 / fps;
 		this.lastFrameTime = 0;
+
+		this.logger.log(`⚙️ FrameTimer configured for ${fps} FPS (${this.interval.toFixed(2)}ms per frame)`);
 		
 		// Bind the animation frame handler
 		this.onAnimationFrame = this.onAnimationFrame.bind(this);
@@ -68,9 +72,10 @@ export class FrameTimer {
 
 	/**
 	 * Generate one frame
+	 * @param {number} time - Current time from requestAnimationFrame
 	 */
-	generateFrame() {
-		this.onGenerateFrame();
+	generateFrame(time) {
+		this.onGenerateFrame(time || this.lastFrameTime);
 		this.lastFrameTime += this.interval;
 	}
 
@@ -109,7 +114,7 @@ export class FrameTimer {
 		}
 
 		// Generate and display first frame
-		this.generateFrame();
+		this.generateFrame(newFrameTime);
 		this.onWriteFrame();
 
 		// Generate additional frames if needed (for timing correction)
@@ -118,10 +123,11 @@ export class FrameTimer {
 			this.logger.log('⏩ Skipping', numFrames - 1, 'frame(s)');
 			const timeToNextFrame = this.interval - excess;
 			for (let i = 1; i < numFrames; i++) {
+				const frameTime = newFrameTime + (i * this.interval);
 				setTimeout(
 					() => {
 						if (this.running) {
-							this.generateFrame();
+							this.generateFrame(frameTime);
 						}
 					},
 					(i * timeToNextFrame) / numFrames

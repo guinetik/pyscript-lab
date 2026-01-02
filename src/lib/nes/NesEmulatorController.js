@@ -8,6 +8,7 @@ import { FrameTimer } from './FrameTimer.js';
 import { Speakers } from './Speakers.js';
 import { Screen } from './Screen.js';
 import { GamepadController } from './GamepadController.js';
+import { initializeFrameSync } from './FrameSync.js';
 import { createLogger } from '@guinetik/logger';
 
 export class NesEmulatorController {
@@ -26,16 +27,20 @@ export class NesEmulatorController {
 		this.frameTimer = null;
 		this.gamepadController = null;
 		this.gamepadPolling = null;
-		
+		this.frameSync = null;  // Frame synchronization for Python agent
+
 		// NES instance
 		this.nes = null;
 		this.isLoaded = false;
 		this.isRunning = false;
-		
+
 		// Callbacks
 		this.onReadyCallback = null;
 		this.onErrorCallback = null;
-		
+
+		// Initialize frame sync (makes it available to Python)
+		this.frameSync = initializeFrameSync();
+
 		this.logger.log('🎮 NesEmulatorController created');
 	}
 
@@ -84,11 +89,18 @@ export class NesEmulatorController {
 			// Create NES instance
 			this.setupNES();
 
-			// Create frame timer
+			// Create frame timer (30 FPS for training mode)
 			this.frameTimer = new FrameTimer({
-				onGenerateFrame: () => {
+				fps: 30,  // Run emulator at 30 FPS to sync with agent
+				onGenerateFrame: (time) => {
 					if (this.nes && this.isLoaded) {
 						this.nes.frame();
+
+						// Notify Python agent that a new frame is ready
+						// This ensures 1:1 correspondence between emulator frames and agent observations
+						if (this.frameSync) {
+							this.frameSync.onFrameGenerated(time);
+						}
 					}
 				},
 				onWriteFrame: () => {

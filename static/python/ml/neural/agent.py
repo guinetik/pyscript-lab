@@ -16,6 +16,7 @@ from pyodide.ffi import create_proxy
 import numpy as np
 from lib.pyscript_manager import PyScriptManager
 from lib.nes.game_controller import GameController
+from lib.nes.frame_sync import FrameSyncManager
 from lib.neural.neural_agent import MarioAgent
 from lib.neural.neural_controller import SimpleNeuralController, ActionDecoder
 from lib.reflexes import ReflexSystem
@@ -23,7 +24,10 @@ from lib.evolution import (
     OnePlusOneES,
     MarioFitnessCalculator,
     GenerationManager,
-    GenerationLogger
+    GenerationLogger,
+    PopulationManager,
+    Individual,
+    breed_networks
 )
 
 # Bokeh for metrics visualization
@@ -133,13 +137,22 @@ class MarioTrainer:
 
         # Performance monitoring
         self.perf_monitor = PerformanceMonitor() if HAS_PERF_MONITOR else None
-        self.decision_interval = 16  # ~60 FPS to sync observations with NES frame rate
+
+        # Frame synchronization (emulator and agent both run at same FPS)
+        self.frame_sync = FrameSyncManager()
 
         # Reflex system (handles all instinctive behaviors)
         self.reflex_system = ReflexSystem(
             enable_reflexes=CONFIG['enable_reflexes'],
             jump_hold_duration=6
         )
+
+        # Population management for breeding
+        self.population_manager = PopulationManager(
+            elite_size=5,  # Keep top 5 individuals
+            breeding_interval=4  # Breed every 4 generations
+        )
+        self.is_breeding_generation = False
 
         # Create metrics chart (one-time setup)
         self._create_metrics_chart()
@@ -167,10 +180,6 @@ class MarioTrainer:
             window.updateRLStatus('error', '❌ Failed to start emulator')
             return
 
-        # Log synchronization info
-        console.log(f"🎮 Agent observing at {1000/self.decision_interval:.1f} FPS (synced with NES 60 FPS)")
-        console.log("📺 Emulator runs independently - agent observes in real-time")
-
         # Load saved state
         window.updateRLStatus('training', '📂 Loading game state...')
         await self.agent.game.load_saved_state()
@@ -182,7 +191,7 @@ class MarioTrainer:
         # Update UI
         window.updateRLStatus('training', '🎮 Starting Generation 1...')
 
-        # Start first generation
+        # Start generation
         await self.run_generation()
 
         print("✅ Training started")
@@ -195,6 +204,17 @@ class MarioTrainer:
         # Start generation
         self.gen_manager.start_generation(self.generation)
         self.logger.log_generation_start(self.generation, self.best_distance)
+
+        # Check if next generation will be breeding
+        next_gen_is_breeding = self.population_manager.should_breed(self.generation + 1)
+        if next_gen_is_breeding and len(self.population_manager.elites) >= 2:
+            breed_info = f" | 🧬 Next: Breeding (Elite pool: {len(self.population_manager.elites)})"
+        else:
+            breed_info = ""
+
+        # Update UI with generation status
+        gen_status = f"Gen {self.generation + 1} starting... | Best: {self.best_distance}px{breed_info}"
+        window.updateRLStatus('training', gen_status)
 
         # Load state and reset
         await self.agent.game.load_saved_state()
@@ -211,17 +231,21 @@ class MarioTrainer:
         # Without this delay, Mario continues from death position instead of save state
         def start_loop():
             if self.is_training:
-                self.training_loop()
+                # Start frame-synchronized training loop at 30 FPS
+                self.frame_sync.start(self.training_loop)
 
         proxy = create_proxy(start_loop)
         setTimeout(proxy, 500)  # 500ms delay to ensure state loads
 
     def training_loop(self):
         """
-        Main training loop - runs continuously while training.
-        Executes one step per call.
+        Main training loop - called by FrameSyncManager at 30 FPS.
+
+        Both emulator and agent run at 30 FPS (33.33ms intervals),
+        ensuring perfect 1:1 frame synchronization.
         """
         if not self.is_training:
+            self.frame_sync.stop()
             return
 
         # Execute one step
@@ -231,11 +255,12 @@ class MarioTrainer:
         should_end, death_cause = self.gen_manager.check_generation_end(step_info)
 
         if should_end:
-            # Generation ended - handle asynchronously
+            # Stop frame sync and handle generation end
+            self.frame_sync.stop()
             self.on_generation_end(step_info, death_cause)
             return
 
-        # Log progress periodically
+        # Log progress periodically (every 60 observations = 2 seconds at 30 FPS)
         if step_info['frames'] % 60 == 0:
             self.logger.log_progress(
                 step_info['frames'],
@@ -244,24 +269,23 @@ class MarioTrainer:
                 self.gen_manager.max_frames
             )
 
-            # Update UI every 3 seconds
+            # Update UI every 180 observations (6 seconds at 30 FPS)
             if step_info['frames'] % 180 == 0:
                 progress_pct = int((step_info['position'] / self.best_distance * 100)) if self.best_distance > 0 else 0
                 window.updateRLStatus('training', f"🏃 Gen {self.generation + 1}: {step_info['position']}px ({progress_pct}% of best)")
 
-        # Schedule next step
-        proxy = create_proxy(self.training_loop)
-        setTimeout(proxy, self.decision_interval)
+        # Frame sync will automatically call this again in 33.33ms
 
     def step_with_visualization(self) -> dict:
         """
         Execute one step with visualization support.
 
         SYNCHRONIZATION STRATEGY:
-        - Emulator runs independently at 60 FPS (smooth animations, audio)
-        - Agent observes at 60 FPS (~16ms intervals) to stay synced
+        - Emulator runs at 30 FPS (FrameTimer configured for 30 FPS)
+        - Agent observes at 30 FPS (FrameSyncManager called every frame)
+        - Perfect 1:1 frame correspondence: no missed frames, no duplicates
         - Each observation captures current game state in real-time
-        - No manual frame stepping - game flows naturally
+        - Both run at SAME rate for perfect synchronization
 
         Returns:
             dict: Step information
@@ -409,6 +433,18 @@ class MarioTrainer:
         # Calculate fitness
         fitness = self.fitness_calc.calculate(gen_info)
 
+        # Track individual in population (for breeding)
+        current_weights = self.agent.get_weights()
+        individual = Individual(
+            weights=current_weights,
+            fitness=fitness,
+            distance=gen_info['distance'],
+            generation=self.generation
+        )
+
+        # Update elite pool
+        was_added_to_elites = self.population_manager.update_elites(individual)
+
         # Check for improvement
         improved = fitness > self.best_fitness
 
@@ -464,15 +500,70 @@ class MarioTrainer:
 
         window.updateRLStatus('training', status_msg)
 
-        # Get adaptive mutation params from evolution strategy
-        mutation_rate, mutation_scale = self.evolution.get_mutation_params(gen_info)
-
-        # Mutate for next generation (creates offspring)
-        print(f"🧬 Creating offspring via mutation (rate={mutation_rate}, scale={mutation_scale})")
-        self.agent.mutate(mutation_rate, mutation_scale)
-
-        # Increment generation
+        # Increment generation FIRST (for breeding check)
         self.generation += 1
+
+        # Check if this is a breeding generation
+        if self.population_manager.should_breed(self.generation):
+            # BREEDING GENERATION!
+            print("\n" + "="*60)
+            print(f"🧬 BREEDING GENERATION {self.generation}")
+            print("="*60)
+
+            # Select parents from elite pool
+            try:
+                parent1, parent2 = self.population_manager.select_parents(method='tournament')
+
+                # Log breeding event
+                print(f"   Parent 1: Gen {parent1.generation}, Fitness {parent1.fitness:.1f}, {parent1.distance}px")
+                print(f"   Parent 2: Gen {parent2.generation}, Fitness {parent2.fitness:.1f}, {parent2.distance}px")
+
+                # Perform crossover + mutation
+                mutation_rate, mutation_scale = self.evolution.get_mutation_params(gen_info)
+                offspring_weights = breed_networks(
+                    parent1.weights,
+                    parent2.weights,
+                    mutation_rate=mutation_rate * 0.5,  # Reduce mutation during breeding
+                    mutation_scale=mutation_scale * 0.7,  # Less aggressive mutations
+                    crossover_method='sbx',
+                    eta=100.0  # High eta for offspring close to parents
+                )
+
+                # Set offspring as current network
+                self.agent.set_weights(
+                    offspring_weights['weights'],
+                    offspring_weights['biases']
+                )
+
+                # Log breeding to history
+                self.population_manager.log_breeding_event(
+                    parent1, parent2, offspring_weights, self.generation
+                )
+
+                # Update UI
+                breed_msg = f"🧬 Gen {self.generation}: Breeding offspring from Gen {parent1.generation} × Gen {parent2.generation}"
+                window.updateRLStatus('training', breed_msg)
+                print(f"   ✅ Offspring created via SBX crossover")
+                print("="*60 + "\n")
+
+            except ValueError as e:
+                print(f"⚠️ Breeding failed: {e}, falling back to mutation")
+                # Fall back to normal mutation
+                mutation_rate, mutation_scale = self.evolution.get_mutation_params(gen_info)
+                print(f"🧬 Creating offspring via mutation (rate={mutation_rate}, scale={mutation_scale})")
+                self.agent.mutate(mutation_rate, mutation_scale)
+
+        else:
+            # NORMAL MUTATION GENERATION
+            # Get adaptive mutation params from evolution strategy
+            mutation_rate, mutation_scale = self.evolution.get_mutation_params(gen_info)
+
+            # Mutate for next generation (creates offspring)
+            print(f"🧬 Creating offspring via mutation (rate={mutation_rate}, scale={mutation_scale})")
+            self.agent.mutate(mutation_rate, mutation_scale)
+
+        # Age all elites
+        self.population_manager.age_elites()
 
         # Wait then start next generation
         async def restart_generation():
@@ -486,6 +577,7 @@ class MarioTrainer:
         """Stop training."""
         print("⏹️ Stopping training...")
         self.is_training = False
+        self.frame_sync.stop()
         self.agent.game.stop_emulator()
         window.updateRLStatus('ready', 'Training stopped')
         print("✅ Training stopped")
@@ -495,11 +587,12 @@ class MarioTrainer:
         if self.is_training:
             print("⏸️ Pausing training...")
             self.is_training = False
+            self.frame_sync.stop()
             window.updateRLStatus('paused', 'Training paused')
         else:
             print("▶️ Resuming training...")
             self.is_training = True
-            self.training_loop()
+            self.frame_sync.start(self.training_loop)
             window.updateRLStatus('training', 'Training resumed')
 
     def reset_training(self):
@@ -508,6 +601,7 @@ class MarioTrainer:
 
         # Stop training
         self.is_training = False
+        self.frame_sync.stop()
 
         # Stop emulator (don't reset it - that causes issues)
         self.agent.game.stop_emulator()
@@ -518,13 +612,17 @@ class MarioTrainer:
         self.best_fitness = 0
         self.champion_weights = None
 
+        # Reset population manager
+        self.population_manager.elites = []
+        self.population_manager.breeding_history = []
+
         # Reset agent stats
         self.agent.reset()
 
         # Reinitialize neural network with priors
         self.agent.neural.randomize()
         if hasattr(self.agent.neural, 'apply_priors'):
-            priors = [0.2, 3.0, 3.0, 1.5]  # [LEFT, RIGHT, A, B]
+            priors = [0.0, 0.7, 0.9, 1.2]  # [LEFT, RIGHT, A, B]
             self.agent.neural.apply_priors(priors)
 
         window.updateRLStatus('ready', 'Agent reset. Ready to train!')
@@ -540,6 +638,21 @@ class MarioTrainer:
         status = "ENABLED" if self._viz_enabled else "DISABLED"
         print(f"🎨 Network visualization {status}")
         return self._viz_enabled
+
+    def get_population_stats(self):
+        """Get current population statistics for display."""
+        stats = self.population_manager.get_statistics()
+
+        # Format for display
+        if stats['elite_count'] > 0:
+            return {
+                'elite_count': stats['elite_count'],
+                'best_fitness': stats['best_fitness'],
+                'avg_fitness': stats['avg_fitness'],
+                'diversity': stats['diversity'],
+                'next_breeding': self.population_manager.breeding_interval - (self.generation % self.population_manager.breeding_interval)
+            }
+        return None
 
     def _create_metrics_chart(self):
         """
@@ -623,12 +736,12 @@ neural = SimpleNeuralController(
 
 # Apply behavioral priors
 # BALANCED BIAS: Forward progress with controlled jumping
-# RIGHT=0.6 → 65% baseline (clear forward preference, still overrideable for backtracking)
-# A=1.3 → 79% baseline (jump at obstacles but not constantly)
+# RIGHT=0.7 → 67% baseline (stronger forward preference, still overrideable for backtracking)
+# A=0.9 → 71% baseline (jump when needed, not constantly)
 # B=1.2 → 77% baseline (run for speed and longer jumps)
 # Network can learn when NOT to jump (near edges) and when to back up (tall obstacles)
 if CONFIG['simple_controls']:
-    priors = [0.0, 0.6, 1.3, 1.2]  # [LEFT, RIGHT, A, B]
+    priors = [0.0, 0.7, 0.9, 1.2]  # [LEFT, RIGHT, A, B]
 else:
     priors = [0.0, 0.0, 0.0, 0.6, 1.3, 1.2]  # [UP, DOWN, LEFT, RIGHT, A, B]
 

@@ -38,6 +38,7 @@ class ReflexSystem:
         # Emergency reflex state (stuck-at-wall sequence)
         self.emergency_active = False
         self.emergency_phase = 0
+        self.emergency_cycle = 0
 
     def apply_reflexes(self, state, actions, stuck_frames, simple_controls=True):
         """
@@ -157,16 +158,20 @@ class ReflexSystem:
         """
         Apply emergency stuck-at-wall reflex.
 
-        When Mario is stuck at a wall for 1+ seconds:
-        Phase 1 (15 frames): Back up with RUN to build momentum
-        Phase 2 (10 frames): Running jump forward (RIGHT + B + JUMP)
+        When Mario is stuck at a wall for 1+ seconds (30 frames at 30 FPS):
+        Phase 1 (25 frames): Back up with RUN to build momentum
+        Phase 2 (20 frames): Running jump forward (RIGHT + B + JUMP)
+        Phase 3 (5 frames): Continue forward movement
+        Total: 50 frames (~1.67 seconds)
         """
-        if stuck_frames <= 60:
+        # Trigger after 1 second at 30 FPS (was 60 frames at 60 FPS)
+        if stuck_frames <= 30:
             # Not stuck long enough, reset emergency state
             if self.emergency_active:
                 console.log(f"   Emergency reflex complete - Mario escaped!")
             self.emergency_active = False
             self.emergency_phase = 0
+            self.emergency_cycle = 0
             return actions
 
         # Get obstacle distance from context
@@ -178,9 +183,10 @@ class ReflexSystem:
         obstacle_dist_norm = context[4] if len(context) > 4 else 0.0
 
         # Only activate if stuck AND at a wall
-        if obstacle_dist_norm <= 0.9:
+        if obstacle_dist_norm <= 0.85:  # Lowered threshold - activate sooner
             self.emergency_active = False
             self.emergency_phase = 0
+            self.emergency_cycle = 0
             return actions
 
         # Button indices
@@ -193,34 +199,49 @@ class ReflexSystem:
         if not self.emergency_active:
             self.emergency_active = True
             self.emergency_phase = 0
+            self.emergency_cycle = 0
             console.log(f"🚨 EMERGENCY REFLEX: Stuck at wall (obstacle_dist={obstacle_dist_norm:.2f})")
             console.log(f"   Phase 1: Backing up to build momentum...")
 
-        frames_stuck = stuck_frames - 60
+        # Calculate position in emergency sequence (repeats every 50 frames)
+        frames_stuck = stuck_frames - 30
+        cycle_position = frames_stuck % 50  # Repeat cycle
 
-        # PHASE 1: Back up with momentum (frames 0-14)
-        if frames_stuck < 15:
+        # Track cycle number for logging
+        current_cycle = frames_stuck // 50
+        if current_cycle != self.emergency_cycle:
+            self.emergency_cycle = current_cycle
+            console.log(f"🔄 Emergency reflex cycle {current_cycle + 1}")
+
+        # PHASE 1: Back up with momentum (frames 0-24)
+        if cycle_position < 25:
+            if self.emergency_phase != 1:
+                console.log(f"   Phase 1: Backing up (RUN + LEFT)")
+                self.emergency_phase = 1
             actions[left_idx] = 1   # Press LEFT
             actions[right_idx] = 0  # Release RIGHT
             actions[b_idx] = 1      # Press RUN for speed
             actions[a_idx] = 0      # Don't jump yet
-            if frames_stuck == 0:
-                self.emergency_phase = 0
 
-        # PHASE 2: Running jump forward (frames 15-24)
-        elif frames_stuck < 25:
-            if self.emergency_phase == 0:
+        # PHASE 2: Running jump forward (frames 25-44)
+        elif cycle_position < 45:
+            if self.emergency_phase != 2:
                 console.log(f"   Phase 2: RUNNING JUMP!")
-                self.emergency_phase = 1
+                self.emergency_phase = 2
             actions[left_idx] = 0   # Release LEFT
             actions[right_idx] = 1  # Press RIGHT
             actions[b_idx] = 1      # Press RUN
-            actions[a_idx] = 1      # Press JUMP
+            actions[a_idx] = 1      # Press JUMP (held by button_holds)
 
-        # PHASE 3: Reset after sequence
+        # PHASE 3: Continue forward (frames 45-49)
         else:
-            self.emergency_active = False
-            self.emergency_phase = 0
+            if self.emergency_phase != 3:
+                console.log(f"   Phase 3: Continue forward")
+                self.emergency_phase = 3
+            actions[left_idx] = 0   # Release LEFT
+            actions[right_idx] = 1  # Press RIGHT
+            actions[b_idx] = 1      # Keep running
+            actions[a_idx] = 0      # Release jump
 
         return actions
 
@@ -249,3 +270,4 @@ class ReflexSystem:
         self.jump_hold_counter = 0
         self.emergency_active = False
         self.emergency_phase = 0
+        self.emergency_cycle = 0
