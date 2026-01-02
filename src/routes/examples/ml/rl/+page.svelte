@@ -13,8 +13,9 @@
 	let controller = browser ? new MazeRLController() : null;
 
 	// UI State
-	let status = $state('ready'); // 'ready' | 'training' | 'paused' | 'error'
-	let statusMessage = $state($exampleText.ui?.readyMessage || 'Click "Generate Maze" to begin');
+	let status = $state('initializing'); // 'initializing' | 'ready' | 'training' | 'paused' | 'error'
+	let statusMessage = $state('Loading Python modules...');
+	let pythonReady = $state(false);
 
 	// Maze state
 	let mazeData = $state(null);
@@ -214,7 +215,19 @@
 		};
 
 		// Initialize controller
-		await controller.initialize();
+		try {
+			await controller.initialize();
+			pythonReady = true;
+			status = 'ready';
+			statusMessage = $exampleText.ui?.readyMessage || 'Click "Generate Maze" to begin';
+			console.log('[RL Page] ✅ Python initialized and ready');
+		} catch (error) {
+			console.error('[RL Page] ❌ Failed to initialize Python:', error);
+			status = 'error';
+			statusMessage = 'Failed to load Python modules. Please refresh the page.';
+			pythonReady = false;
+			return;
+		}
 
 		// Generate initial maze
 		generateMaze();
@@ -240,16 +253,35 @@
 	}
 
 	function startTraining() {
+		if (!pythonReady) {
+			alert('Python modules are still loading. Please wait...');
+			return;
+		}
+
 		if (!mazeData) {
 			alert('Please generate a maze first!');
 			return;
 		}
 
+		// Stop demo if running
+		if (isRunningDemo) {
+			console.log('[RL Page] Stopping demo before training...');
+			if (controller.pythonExports && controller.pythonExports.stopDemo) {
+				controller.pythonExports.stopDemo();
+			}
+			isRunningDemo = false;
+			showCompletionOverlay = false;
+		}
+
 		if (status === 'training') {
 			// Restart training
-			controller.resetTraining();
-			controller.startTraining();
-			statusMessage = $exampleText.ui?.trainingRestartedMessage || 'Training restarted';
+			controller.stopTraining();
+			setTimeout(() => {
+				controller.resetTraining();
+				controller.startTraining();
+				status = 'training';
+				statusMessage = $exampleText.ui?.trainingRestartedMessage || 'Training restarted';
+			}, 100);
 		} else {
 			controller.startTraining();
 			status = 'training';
@@ -270,10 +302,36 @@
 	}
 
 	function resetTraining() {
-		controller.resetTraining();
-		agentPosition = { ...startPosition };
-		status = 'ready';
-		statusMessage = $exampleText.ui?.resetMessage || 'Training reset. Click "Start Training" to begin.';
+		// Stop everything first
+		if (isRunningDemo) {
+			console.log('[RL Page] Stopping demo before reset...');
+			if (controller.pythonExports && controller.pythonExports.stopDemo) {
+				controller.pythonExports.stopDemo();
+			}
+			isRunningDemo = false;
+		}
+		
+		if (status === 'training') {
+			console.log('[RL Page] Stopping training before reset...');
+			controller.stopTraining();
+		}
+		
+		showCompletionOverlay = false;
+		positionHistory = [];
+		
+		// Wait a bit for Python to stop, then reset
+		setTimeout(() => {
+			controller.resetTraining();
+			agentPosition = { ...startPosition };
+			episode = 0;
+			steps = 0;
+			totalReward = 0;
+			epsilon = 1.0;
+			successRate = 0;
+			status = 'ready';
+			statusMessage = $exampleText.ui?.resetMessage || 'Training reset. Click "Start Training" to begin.';
+			console.log('[RL Page] ✅ Reset complete');
+		}, 200);
 	}
 
 	function toggleQValues() {
@@ -281,6 +339,11 @@
 	}
 
 	async function runDemo() {
+		if (!pythonReady) {
+			alert('Python modules are still loading. Please wait...');
+			return;
+		}
+
 		if (!mazeData) {
 			alert('Please generate a maze first!');
 			return;
@@ -291,33 +354,39 @@
 			return;
 		}
 
-		// If demo is already running, stop it and restart
+		// Stop everything first
+		console.log('[RL Page] 🛑 Stopping all activities before demo...');
+		
+		// Stop training if active
+		if (status === 'training' || status === 'paused') {
+			controller.stopTraining();
+			status = 'ready';
+		}
+
+		// Stop any running demo
 		if (isRunningDemo) {
-			console.log('[RL Page] Demo already running - restarting immediately...');
-			// Stop demo immediately from Python
+			console.log('[RL Page] Demo already running - stopping it first...');
 			if (controller.pythonExports && controller.pythonExports.stopDemo) {
 				controller.pythonExports.stopDemo();
 			}
 			isRunningDemo = false;
 			showCompletionOverlay = false;
-			await new Promise(resolve => setTimeout(resolve, 200));
+			await new Promise(resolve => setTimeout(resolve, 300));
 		}
 
-		// Stop all training
-		controller.stopTraining();
-		statusMessage = $exampleText.ui?.stoppingTrainingMessage || '⏹️ Stopping training...';
+		statusMessage = $exampleText.ui?.stoppingTrainingMessage || '⏹️ Preparing demo...';
 
-		// Wait 1 second for training to fully stop
-		await new Promise(resolve => setTimeout(resolve, 1000));
+		// Wait for Python to fully stop any active loops
+		await new Promise(resolve => setTimeout(resolve, 500));
 
 		// Show countdown
 		showCountdown = true;
 		statusMessage = $exampleText.ui?.demoStartingMessage || '🎬 Demo starting...';
 
-		// Countdown: 3...2...1...GO!
+		// Countdown: 3...2...1
 		for (let i = 3; i > 0; i--) {
 			countdown = i;
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			await new Promise(resolve => setTimeout(resolve, 800));
 		}
 
 		countdown = 0;
@@ -325,12 +394,21 @@
 
 		// Reset position history for oscillation detection
 		positionHistory = [];
+		
+		// Reset agent position to start
+		agentPosition = { ...startPosition };
+		steps = 0;
+		totalReward = 0;
 
 		// Start demo
+		console.log('[RL Page] 🎬 Starting demo...');
 		isRunningDemo = true;
-		controller.runDemo();
 		status = 'ready';
 		statusMessage = $exampleText.ui?.demoRunningMessage || '🎬 Running demo with learned policy (epsilon = 0, no exploration)...';
+		
+		// Small delay then run demo
+		await new Promise(resolve => setTimeout(resolve, 100));
+		controller.runDemo();
 	}
 </script>
 
@@ -482,21 +560,28 @@
 		<div
 			class="rounded border-2 p-3 {status === 'error'
 				? 'bg-red-50 border-red-200'
-				: status === 'training'
-					? 'bg-green-50 border-green-200'
-					: status === 'paused'
-						? 'bg-yellow-50 border-yellow-200'
-						: 'bg-blue-50 border-blue-200'}"
+				: status === 'initializing'
+					? 'bg-purple-50 border-purple-200'
+					: status === 'training'
+						? 'bg-green-50 border-green-200'
+						: status === 'paused'
+							? 'bg-yellow-50 border-yellow-200'
+							: 'bg-blue-50 border-blue-200'}"
 		>
 			<p
 				class="text-sm font-mono {status === 'error'
 					? 'text-red-700'
-					: status === 'training'
-						? 'text-green-700'
-						: status === 'paused'
-							? 'text-yellow-700'
-							: 'text-blue-700'}"
+					: status === 'initializing'
+						? 'text-purple-700'
+						: status === 'training'
+							? 'text-green-700'
+							: status === 'paused'
+								? 'text-yellow-700'
+								: 'text-blue-700'}"
 			>
+				{#if status === 'initializing'}
+					<span class="inline-block animate-pulse">⏳</span>
+				{/if}
 				{statusMessage}
 			</p>
 		</div>
@@ -507,7 +592,7 @@
 			<div class="grid grid-cols-[1fr_2fr_1fr] gap-3">
 				<button
 					onclick={generateMaze}
-					disabled={status === 'training'}
+					disabled={status === 'training' || status === 'initializing' || isRunningDemo}
 					class="rounded bg-blue-500 px-6 py-3 font-bold text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
 					{$exampleText.ui?.generateButton || '🎲 Generate'}
@@ -515,7 +600,7 @@
 				<select
 					bind:value={difficulty}
 					onchange={generateMaze}
-					disabled={status === 'training'}
+					disabled={status === 'training' || status === 'initializing' || isRunningDemo}
 					class="rounded border-2 border-gray-300 bg-white px-4 py-3 font-semibold text-gray-700 hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
 				>
 					{#each Object.entries(difficultySettings) as [key, settings]}
@@ -524,7 +609,7 @@
 				</select>
 				<button
 					onclick={resetTraining}
-					disabled={status !== 'training' && status !== 'paused'}
+					disabled={status === 'initializing' || status === 'error' || (status === 'ready' && episode === 0)}
 					class="rounded bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
 					{$exampleText.ui?.resetButton || '🔄 Reset'}
@@ -535,7 +620,7 @@
 			<div class="grid grid-cols-4 gap-3">
 				<button
 					onclick={startTraining}
-					disabled={!mazeData}
+					disabled={!mazeData || !pythonReady || status === 'initializing' || isRunningDemo}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
 					{status === 'training' ? ($exampleText.ui?.restartButton || '🔄 Restart') : ($exampleText.ui?.trainButton || '▶️ Train')}
@@ -549,10 +634,10 @@
 				</button>
 				<button
 					onclick={runDemo}
-					disabled={!mazeData || episode === 0}
+					disabled={!mazeData || episode === 0 || !pythonReady || status === 'initializing'}
 					class="rounded bg-purple-500 px-6 py-3 font-bold text-white hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{$exampleText.ui?.demoButton || '🎬 Demo'}
+					{isRunningDemo ? '⏹️ Stop Demo' : ($exampleText.ui?.demoButton || '🎬 Demo')}
 				</button>
 				<button
 					onclick={toggleQValues}

@@ -366,9 +366,16 @@ export class MazeRLController {
 
 	// Cleanup
 	destroy() {
+		console.log('[MazeRLController] Starting cleanup...');
+
 		// Stop Python training
 		if (this.pythonExports && this.pythonExports.stopTraining) {
 			this.pythonExports.stopTraining();
+		}
+
+		// Stop Python demo
+		if (this.pythonExports && this.pythonExports.stopDemo) {
+			this.pythonExports.stopDemo();
 		}
 
 		// Clean up window callbacks
@@ -376,9 +383,9 @@ export class MazeRLController {
 			delete window.mazeRLCallbacks;
 		}
 
-		// Clean up PyScriptManager
+		// Clean up PyScriptManager (synchronous, doesn't remove DOM elements)
 		if (this.pyScriptManager) {
-			this.pyScriptManager.cleanup();
+			this.pyScriptManager.destroy();
 		}
 
 		console.log('[MazeRLController] Destroyed');
