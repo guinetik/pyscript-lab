@@ -24,8 +24,8 @@
 	// Dynamic layout calculations
 	const canvasHeight = $derived(
 		vizData?.layer_sizes?.length
-			? Math.max(400, vizData.layer_sizes.length * 180) // Scale with number of layers
-			: 400
+			? Math.max(280, vizData.layer_sizes.length * 110) // Balanced height
+			: 280
 	);
 
 	// Dynamic spacing based on number of layers

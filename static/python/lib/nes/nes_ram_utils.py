@@ -217,17 +217,23 @@ def is_enemy_at_tile(nes, col, row):
     enemies = get_enemy_positions(nes)
 
     # Convert tile to pixel bounds
+    # Mario's row formula: row = (y + SPRITE_SIZE - STATUS_BAR) // SPRITE_SIZE
+    # Inverse: y_min = row * SPRITE_SIZE + STATUS_BAR - SPRITE_SIZE
     tile_x_min = col * MarioRAM.SPRITE_SIZE
     tile_x_max = tile_x_min + MarioRAM.SPRITE_SIZE
-    tile_y_min = row * MarioRAM.SPRITE_SIZE + MarioRAM.STATUS_BAR_HEIGHT
+    tile_y_min = row * MarioRAM.SPRITE_SIZE + (MarioRAM.STATUS_BAR_HEIGHT - MarioRAM.SPRITE_SIZE)
     tile_y_max = tile_y_min + MarioRAM.SPRITE_SIZE
 
     # Check if any enemy overlaps this tile
     for enemy_x, enemy_y in enemies:
-        # Enemy is considered "at" this tile if center overlaps
+        # Enemy Y from RAM is the TOP of sprite, so add 8 to get center
+        enemy_center_y = enemy_y + (MarioRAM.SPRITE_SIZE // 2)
+        tile_center_x = tile_x_min + (MarioRAM.SPRITE_SIZE // 2)
+        tile_center_y = tile_y_min + (MarioRAM.SPRITE_SIZE // 2)
+
         # Allow 8 pixel tolerance (half a tile)
-        if (abs(enemy_x - (tile_x_min + 8)) <= 8 and
-            abs(enemy_y - (tile_y_min + 8)) <= 8):
+        if (abs(enemy_x - tile_center_x) <= 8 and
+            abs(enemy_center_y - tile_center_y) <= 8):
             return True
 
     return False
@@ -256,12 +262,15 @@ def extract_vision_grid(nes, width=7, height=10):
     vision = []
 
     # Center vision horizontally on Mario
-    # For width=16: show 4 tiles behind, Mario at index 4, 11 tiles ahead
-    tiles_behind = width // 4  # 25% behind
+    # Reference uses 25% behind, 75% ahead
+    tiles_behind = width // 4  # 25% behind (1 for width=7)
     start_col = mario_col - tiles_behind
 
-    # Vertical: Look 3 tiles above Mario (3 above, 1 current, 3 below for height=7)
-    start_row = mario_row - 3
+    # Vertical: Reference uses start_row=4 with height=10
+    # This means 4 rows above Mario, Mario's row, 5 rows below
+    # For height=10: Mario at row 4 (0-indexed=3 from start)
+    rows_above = height // 3  # About 1/3 above (3 for height=10)
+    start_row = mario_row - rows_above
 
     # Debug first call
     if not hasattr(extract_vision_grid, '_debug_printed'):

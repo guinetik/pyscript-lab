@@ -59,33 +59,34 @@ VIZ_WARMUP_FRAMES = 60
 # =============================================================================
 
 CONFIG = {
-    # Vision
-    'vision_width': 16,
-    'vision_height': 7,
+    # Vision - MATCHING REFERENCE: 7 tiles wide × 10 tiles tall
+    'vision_width': 7,
+    'vision_height': 10,
 
-    # Network
-    'hidden_size': 32,  # Increased from 9 to give network more capacity for complex patterns
-    'use_context_features': True,
-    'encode_row': True,
-    'simple_controls': True,  # 4-button mode [LEFT, RIGHT, A, B]
-    'enable_reflexes': True,  # Reflexive enemy/pit avoidance (gives evolution a head start)
+    # Network - MATCHING REFERENCE ARCHITECTURE EXACTLY
+    'hidden_size': 9,  # Reference uses exactly 9 hidden neurons
+    'use_context_features': False,  # Reference doesn't use context features
+    'encode_row': True,  # Reference uses row encoding (+10 inputs)
+    'simple_controls': False,  # Reference uses 6 buttons [UP, DOWN, LEFT, RIGHT, A, B]
+    'enable_reflexes': True,  # Keep button holds for consistent jump height
 
-    # Evolution Strategy
-    'mutation_rate': 0.01,  # Very small - only mutate 1% of weights per generation
-    'mutation_scale': 0.05,  # Tiny changes - offspring very similar to parent
+    # Evolution Strategy (matching reference implementation)
+    'mutation_rate': 0.05,  # 5% of weights mutated (matching reference)
+    'mutation_scale': 0.2,  # Scale 0.2 (matching reference)
     'adaptive_mutation': True,
     'local_optimum_threshold': 5,
 
-    # Fitness Function
-    'distance_exponent': 1.8,
-    'frame_penalty_exponent': 1.4,
+    # Fitness Function - DISTANCE IS KING (frame penalty kills exploration)
+    # Reference uses frames^1.5 but has 100 individuals/gen - we have 1!
+    'distance_exponent': 2.2,  # Higher exponent = going farther matters MORE
+    'frame_penalty_exponent': 0.0,  # NO FRAME PENALTY - distance is all that matters
     'enable_milestones': True,
     'score_multiplier': 10.0,
 
     # Generation Management
     'base_timeout_frames': 1800,
     'progressive_timeout': True,
-    'base_stuck_threshold': 360,  # Increased from 150 (6 seconds vs 2.5s) - more exploration time
+    'base_stuck_threshold': 540,  # ~9s without progress to allow multiple backup/run cycles
     'progressive_stuck_threshold': True
 }
 
@@ -129,6 +130,10 @@ class MarioTrainer:
         self.best_fitness = 0
         self.champion_weights = None
 
+        # Stuck detection for full restart
+        self.generations_since_improvement = 0
+        self.restart_threshold = 15  # Full restart after 15 gens without improvement
+
         # Visualization
         self._viz_enabled = False
         self._viz_paused = False
@@ -142,9 +147,10 @@ class MarioTrainer:
         self.frame_sync = FrameSyncManager()
 
         # Reflex system (handles all instinctive behaviors)
+        # jump_hold_duration=12 ensures full-height jumps to clear tall pipes (at 30 FPS)
         self.reflex_system = ReflexSystem(
             enable_reflexes=CONFIG['enable_reflexes'],
-            jump_hold_duration=6
+            jump_hold_duration=12
         )
 
         # Population management for breeding
@@ -328,10 +334,29 @@ class MarioTrainer:
         current_x = self.agent.game.get_mario_x()
 
         if current_x > self.agent.max_x:
+            progress = current_x - self.agent.max_x
             self.agent.max_x = current_x
             self.agent.stuck_frames = 0
+            
+            # Grace period after ANY progress (especially after clearing obstacles)
+            # Lower threshold (10px) and longer grace period (180 frames = 6 seconds)
+            # This prevents false "stuck" detection right after clearing obstacles
+            if progress >= 10:
+                if not hasattr(self.agent, '_progress_grace_frames'):
+                    self.agent._progress_grace_frames = 0
+                self.agent._progress_grace_frames = 180  # 6 seconds grace period
+            elif progress > 0:
+                # Even small progress gets a shorter grace period
+                if not hasattr(self.agent, '_progress_grace_frames'):
+                    self.agent._progress_grace_frames = 0
+                self.agent._progress_grace_frames = max(self.agent._progress_grace_frames, 90)  # 3 seconds minimum
         else:
-            self.agent.stuck_frames += 1
+            # Check if we're in grace period after progress
+            if hasattr(self.agent, '_progress_grace_frames') and self.agent._progress_grace_frames > 0:
+                self.agent._progress_grace_frames -= 1
+                # Don't count as stuck during grace period
+            else:
+                self.agent.stuck_frames += 1
 
         # Track exploration
         position_bucket = int(current_x / 10) * 10
@@ -447,6 +472,7 @@ class MarioTrainer:
 
         # Check for improvement
         improved = fitness > self.best_fitness
+        did_restart = False  # Track if we did a full restart
 
         if improved:
             # New champion!
@@ -454,9 +480,39 @@ class MarioTrainer:
             self.best_distance = gen_info['distance']
             self.champion_weights = self.agent.get_weights()
             self.logger.log_new_champion(self.best_distance, fitness)
+            self.generations_since_improvement = 0  # Reset counter
         else:
-            # Restore champion (ELITISM!)
-            if self.champion_weights:
+            self.generations_since_improvement += 1
+
+            # Check for full restart (stuck for too long)
+            needs_restart = self.generations_since_improvement >= self.restart_threshold
+
+            if needs_restart:
+                print("\n" + "🔥"*30)
+                print(f"🔥 FULL RESTART: No improvement for {self.restart_threshold} generations!")
+                print(f"🔥 Best was {self.best_distance}px - starting fresh with new random network")
+                print("🔥"*30 + "\n")
+
+                # Reset network with new random weights + priors
+                # Strong priors: heavily discourage LEFT, encourage RIGHT+RUN
+                # 6-button mode: [UP, DOWN, LEFT, RIGHT, A, B]
+                self.agent.neural.randomize()
+                priors = [0.0, 0.0, -3.0, 2.0, 0.5, 1.5]  # [UP, DOWN, LEFT, RIGHT, A, B]
+                self.agent.neural.apply_priors(priors)
+
+                # Keep best_distance for reference but reset champion
+                # This gives evolution a fresh start
+                self.champion_weights = None
+                self.best_fitness = 0
+                self.generations_since_improvement = 0
+
+                # Clear elite pool for fresh start
+                self.population_manager.elites = []
+                did_restart = True
+
+                window.updateRLStatus('training', f'🔥 RESTART! Stuck at {self.best_distance}px - trying fresh network')
+            elif self.champion_weights:
+                # Restore champion (ELITISM!) - only if not restarting
                 self.logger.log_restore_champion(self.best_distance)
                 self.agent.set_weights(
                     self.champion_weights['weights'],
@@ -503,8 +559,12 @@ class MarioTrainer:
         # Increment generation FIRST (for breeding check)
         self.generation += 1
 
+        # Skip breeding/mutation if we just did a full restart (network is already fresh)
+        if did_restart:
+            print("   Skipping mutation - fresh network already initialized")
+
         # Check if this is a breeding generation
-        if self.population_manager.should_breed(self.generation):
+        elif self.population_manager.should_breed(self.generation):
             # BREEDING GENERATION!
             print("\n" + "="*60)
             print(f"🧬 BREEDING GENERATION {self.generation}")
@@ -622,7 +682,7 @@ class MarioTrainer:
         # Reinitialize neural network with priors
         self.agent.neural.randomize()
         if hasattr(self.agent.neural, 'apply_priors'):
-            priors = [0.0, 0.7, 0.9, 1.2]  # [LEFT, RIGHT, A, B]
+            priors = [0.0, 0.0, -3.0, 2.0, 0.5, 1.5]  # [UP, DOWN, LEFT, RIGHT, A, B] - strong forward bias
             self.agent.neural.apply_priors(priors)
 
         window.updateRLStatus('ready', 'Agent reset. Ready to train!')
@@ -719,11 +779,11 @@ game = GameController(
     vision_height=CONFIG['vision_height']
 )
 
-# Calculate input size
+# Calculate input size (matching reference: 7×10 + 10 row encoding = 80)
 vision_size = CONFIG['vision_width'] * CONFIG['vision_height']
-context_size = 9 if CONFIG['use_context_features'] else 0
-row_size = 15 if CONFIG['encode_row'] else 0
-input_size = vision_size + context_size + row_size
+context_size = 0  # Reference doesn't use context features
+row_size = CONFIG['vision_height'] if CONFIG['encode_row'] else 0  # One input per row
+input_size = vision_size + row_size  # 70 + 10 = 80
 
 # Neural network
 output_size = 4 if CONFIG['simple_controls'] else 6
@@ -734,16 +794,21 @@ neural = SimpleNeuralController(
     enable_reflexes=False  # Reflexes now handled by ReflexSystem
 )
 
-# Apply behavioral priors
-# BALANCED BIAS: Forward progress with controlled jumping
-# RIGHT=0.7 → 67% baseline (stronger forward preference, still overrideable for backtracking)
-# A=0.9 → 71% baseline (jump when needed, not constantly)
-# B=1.2 → 77% baseline (run for speed and longer jumps)
-# Network can learn when NOT to jump (near edges) and when to back up (tall obstacles)
+# Apply behavioral priors (matching reference: pure network, no reflexes)
+# These priors give the network a "head start" toward forward progress
+# With 0.5 threshold: sigmoid(0)=0.5, sigmoid(1)=0.73, sigmoid(2)=0.88
+#
+# Strong priors to prevent LEFT-RIGHT oscillation and encourage forward movement
+# LEFT=-3.0 → sigmoid = 0.05 (5% - almost never fires, strongly discourages backing up)
+# RIGHT=2.0 → sigmoid = 0.88 (88% - usually fires, strongly encourages forward)
+# A=0.5 → sigmoid = 0.62 (62% - slight jump bias)
+# B=1.5 → sigmoid = 0.82 (82% - usually fires, encourages running)
+#
+# Network learns to modify these weights over generations
 if CONFIG['simple_controls']:
-    priors = [0.0, 0.7, 0.9, 1.2]  # [LEFT, RIGHT, A, B]
+    priors = [-3.0, 2.0, 0.5, 1.5]  # [LEFT, RIGHT, A, B] - strong forward bias
 else:
-    priors = [0.0, 0.0, 0.0, 0.6, 1.3, 1.2]  # [UP, DOWN, LEFT, RIGHT, A, B]
+    priors = [0.0, 0.0, -3.0, 2.0, 0.5, 1.5]  # [UP, DOWN, LEFT, RIGHT, A, B]
 
 neural.apply_priors(priors)
 
@@ -760,7 +825,8 @@ agent = MarioAgent(
     neural_controller=neural,
     action_decoder=decoder,
     use_context_features=CONFIG['use_context_features'],
-    encode_row=CONFIG['encode_row']
+    encode_row=CONFIG['encode_row'],
+    num_rows=CONFIG['vision_height']  # 10 rows to match reference
 )
 
 # Evolution strategy

@@ -58,13 +58,6 @@ class GameController:
         # Track previous button states to detect changes
         self.prev_buttons = np.zeros(6, dtype=int)
 
-        # Track A button state for tap behavior (alternates press/release)
-        self.a_button_state = False  # False = released, True = pressed
-
-        # A button hold duration (frames to hold jump)
-        self.jump_hold_frames = 0
-        self.jump_hold_duration = 10  # Hold A for 10 frames for full jump height
-
         print("🎮 GameController initialized")
         print(f"   Vision: {vision_width}×{vision_height} tiles")
 
@@ -263,37 +256,19 @@ class GameController:
             ]
 
             # Handle button state changes
+            # All buttons use state transition logic (press on 0->1, release on 1->0)
+            # Button HOLD duration is managed by ReflexSystem, not here
             for i in range(6):
                 current_state = int(buttons[i])
                 prev_state = self.prev_buttons[i]
 
-                # A button (jump)
-                if i == 4:
+                if current_state != prev_state:
                     if current_state:
-                        if self.jump_hold_frames == 0:
-                            # Start new jump hold
-                            emulator.buttonDown(1, button_map[i])
-                            self.jump_hold_frames = self.jump_hold_duration
-                        elif self.jump_hold_frames > 0:
-                            # Continue holding
-                            self.jump_hold_frames -= 1
-                            if self.jump_hold_frames == 0:
-                                # Release after duration
-                                emulator.buttonUp(1, button_map[i])
+                        # Button pressed (0 -> 1)
+                        emulator.buttonDown(1, button_map[i])
                     else:
-                        # Not jumping - force release if holding
-                        if self.jump_hold_frames > 0:
-                            emulator.buttonUp(1, button_map[i])
-                            self.jump_hold_frames = 0
-                else:
-                    # Other buttons use hold behavior (only change on state transition)
-                    if current_state != prev_state:
-                        if current_state:
-                            # Button pressed (0 -> 1)
-                            emulator.buttonDown(1, button_map[i])
-                        else:
-                            # Button released (1 -> 0)
-                            emulator.buttonUp(1, button_map[i])
+                        # Button released (1 -> 0)
+                        emulator.buttonUp(1, button_map[i])
 
             # Update previous state
             self.prev_buttons = buttons.astype(int).copy()

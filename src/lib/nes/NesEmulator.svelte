@@ -8,6 +8,7 @@
 		width = 256,
 		height = 240,
 		scale = 2,
+		fullWidth = false,
 		onReady = () => {},
 		onError = (error) => console.error(error)
 	} = $props();
@@ -161,12 +162,12 @@
 	}
 </script>
 
-<div class="nes-emulator-container">
+<div class="nes-emulator-container" class:full-width={fullWidth}>
 	<canvas
 		bind:this={canvasElement}
 		width={width}
 		height={height}
-		style="width: {width * scale}px; height: {height * scale}px; image-rendering: pixelated; image-rendering: crisp-edges;"
+		style="{fullWidth ? 'width: 100%;' : `width: ${width * scale}px;`} height: auto; aspect-ratio: {width}/{height}; image-rendering: pixelated; image-rendering: crisp-edges;"
 		class="border-4 border-gray-800 rounded bg-black"
 	></canvas>
 </div>
@@ -176,6 +177,14 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+	}
+
+	.nes-emulator-container.full-width {
+		width: 100%;
+	}
+
+	.nes-emulator-container.full-width canvas {
+		width: 100% !important;
 	}
 
 	canvas {

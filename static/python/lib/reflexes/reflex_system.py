@@ -21,7 +21,7 @@ class ReflexSystem:
     that would take thousands of generations to evolve from scratch.
     """
 
-    def __init__(self, enable_reflexes=True, jump_hold_duration=6):
+    def __init__(self, enable_reflexes=True, jump_hold_duration=10):
         """
         Initialize reflex system.
 
@@ -39,6 +39,8 @@ class ReflexSystem:
         self.emergency_active = False
         self.emergency_phase = 0
         self.emergency_cycle = 0
+        self._emergency_start_frame = 0  # Track when emergency started
+        self._emergency_last_end_frame = -9999  # Cooldown between emergencies
 
     def apply_reflexes(self, state, actions, stuck_frames, simple_controls=True):
         """
@@ -56,13 +58,9 @@ class ReflexSystem:
         if not self.enable_reflexes:
             return actions
 
-        # Apply vision-based reflexes (enemy, obstacle, pit)
-        actions = self._apply_vision_reflexes(state, actions, simple_controls)
-
-        # Apply emergency stuck-at-wall reflex
-        actions = self._apply_emergency_reflex(state, actions, stuck_frames, simple_controls)
-
-        # Apply button holds (jump consistency)
+        # ONLY apply button holds (jump consistency)
+        # Vision reflexes and emergency reflex are DISABLED
+        # They fight with network learning - let the network learn on its own
         actions = self._apply_button_holds(actions, simple_controls)
 
         return actions
@@ -95,62 +93,58 @@ class ReflexSystem:
             enemy_left_dist = (1.0 - enemy_left_norm) * 10.0
             enemy_right_dist = (1.0 - enemy_right_norm) * 10.0
 
-            # Button indices
+            # Button indices (decoder always outputs 6 buttons: [UP, DOWN, LEFT, RIGHT, A, B])
             if simple_controls:
-                LEFT, RIGHT, JUMP = 0, 1, 2
+                LEFT, RIGHT, JUMP, RUN = 2, 3, 4, 5
             else:
-                LEFT, RIGHT, JUMP = 2, 3, 4
+                LEFT, RIGHT, JUMP, RUN = 2, 3, 4, 5
 
             # ===== REFLEX 1: Enemy on RIGHT (first Goomba) =====
-            if enemy_right_dist < 4.0:
-                if enemy_right_dist < 1.5:  # VERY CLOSE - EMERGENCY!
-                    # Emergency brake: stop forward movement
-                    output[RIGHT] = max(0.0, output[RIGHT] - 0.6)
-                    # Maximum jump boost
-                    output[JUMP] = min(1.0, output[JUMP] + 1.0)
-                    # STRONG backward jump to dodge
-                    output[LEFT] = min(1.0, output[LEFT] + 0.7)
+            # IMPORTANT: Only trigger if no obstacle is blocking the path to the enemy!
+            # Enemies behind pipes should NOT trigger this reflex (we can't reach them yet)
+            obstacle_blocking_right = obstacle_dist_norm > 0.5 and obstacle_height_norm > 0.2
 
-                elif enemy_right_dist < 3.0:  # MEDIUM - PREPARE
-                    # Moderate jump boost
-                    output[JUMP] = min(1.0, output[JUMP] + 0.6)
-                    # Slight backward positioning for spacing
-                    output[LEFT] = min(1.0, output[LEFT] + 0.1)
-                    # Cautious forward movement
-                    output[RIGHT] = min(1.0, output[RIGHT] + 0.1)
+            if enemy_right_dist < 4.0 and not obstacle_blocking_right:
+                if enemy_right_dist < 1.5:  # VERY CLOSE - EMERGENCY!
+                    output[RIGHT] = 0  # Stop moving into enemy
+                    output[JUMP] = 1   # Jump over
+                    output[LEFT] = 1   # Back away
+
+                elif enemy_right_dist < 3.0:  # MEDIUM - PREPARE TO JUMP
+                    output[JUMP] = 1   # Jump over enemy
+                    output[RUN] = 1    # Sprint for distance
 
             # ===== REFLEX 2: Enemy on LEFT =====
             if enemy_left_dist < 4.0:
                 if enemy_left_dist < 1.5:  # VERY CLOSE - EMERGENCY!
-                    # Emergency brake: stop backward movement
-                    output[LEFT] = max(0.0, output[LEFT] - 0.6)
-                    # Boost jump
-                    output[JUMP] = min(1.0, output[JUMP] + 0.8)
-                    # Move right to escape
-                    output[RIGHT] = min(1.0, output[RIGHT] + 0.4)
+                    output[LEFT] = 0   # Stop backing into enemy
+                    output[JUMP] = 1   # Jump
+                    output[RIGHT] = 1  # Escape right
 
                 elif enemy_left_dist < 3.0:  # MEDIUM - PREPARE
-                    # Boost right to move away
-                    output[RIGHT] = min(1.0, output[RIGHT] + 0.3)
-                    # Moderate jump boost
-                    output[JUMP] = min(1.0, output[JUMP] + 0.4)
+                    output[RIGHT] = 1  # Move away
+                    output[JUMP] = 1   # Jump
 
-            # ===== REFLEX 3: Tall obstacle ahead =====
-            if obstacle_dist_norm > 0.85 and obstacle_height_norm > 0.7:
-                # Strong jump boost to clear obstacle
-                output[JUMP] = min(1.0, output[JUMP] + 0.8)
+            # ===== REFLEX 3: Obstacle ahead (pipe detection) =====
+            # Only trigger jump when VERY close (0.9+) - let Mario build momentum first!
+            # At medium distance (0.6-0.9): just ensure forward movement, no forced jump
+            if obstacle_dist_norm > 0.6 and obstacle_height_norm > 0.2:
+                # Always move forward toward obstacle, never back up
+                output[RIGHT] = 1
+                output[RUN] = 1
+                output[LEFT] = 0
 
-                # If very close (likely stuck at wall), slow down
-                if obstacle_dist_norm > 0.95:
-                    output[RIGHT] = max(0.0, output[RIGHT] - 0.4)
+                # Only force JUMP when very close (about to hit wall)
+                # This allows momentum to build before jumping
+                if obstacle_dist_norm > 0.88:
+                    output[JUMP] = 1
 
             # ===== REFLEX 4: Pit ahead =====
             if pit_dist_norm > 0.7:
-                # Boost jump proportional to pit proximity
-                pit_boost = 0.6 * pit_dist_norm
-                output[JUMP] = min(1.0, output[JUMP] + pit_boost)
-                # Maintain forward movement to jump across
-                output[RIGHT] = min(1.0, output[RIGHT] + 0.2)
+                # FORCE jump ON for pit
+                output[JUMP] = 1
+                output[RIGHT] = 1  # Keep moving forward
+                output[RUN] = 1    # Sprint jump for distance
 
         return output
 
@@ -158,90 +152,121 @@ class ReflexSystem:
         """
         Apply emergency stuck-at-wall reflex.
 
-        When Mario is stuck at a wall for 1+ seconds (30 frames at 30 FPS):
-        Phase 1 (25 frames): Back up with RUN to build momentum
-        Phase 2 (20 frames): Running jump forward (RIGHT + B + JUMP)
-        Phase 3 (5 frames): Continue forward movement
-        Total: 50 frames (~1.67 seconds)
+        When Mario is stuck for 1+ seconds (30 frames at 30 FPS):
+        Phase 1 (20 frames): Back up with RUN to build momentum
+        Phase 2 (25 frames): Running jump forward (RIGHT + B + JUMP held)
+        Phase 3 (15 frames): Continue forward with small hops
+        Total: 60 frames (2 seconds)
+
+        IMPORTANT: Once activated, the emergency sequence runs to completion.
+        We don't check obstacle distance mid-cycle because backing up naturally
+        increases the distance, which would falsely cancel the sequence.
         """
-        # Trigger after 1 second at 30 FPS (was 60 frames at 60 FPS)
-        if stuck_frames <= 30:
-            # Not stuck long enough, reset emergency state
-            if self.emergency_active:
-                console.log(f"   Emergency reflex complete - Mario escaped!")
-            self.emergency_active = False
-            self.emergency_phase = 0
-            self.emergency_cycle = 0
-            return actions
-
-        # Get obstacle distance from context
-        vision_size = 16 * 7
-        if len(state) <= vision_size:
-            return actions
-
-        context = state[vision_size:]
-        obstacle_dist_norm = context[4] if len(context) > 4 else 0.0
-
-        # Only activate if stuck AND at a wall
-        if obstacle_dist_norm <= 0.85:  # Lowered threshold - activate sooner
-            self.emergency_active = False
-            self.emergency_phase = 0
-            self.emergency_cycle = 0
-            return actions
-
-        # Button indices
+        # Button indices (decoder output is always [UP, DOWN, LEFT, RIGHT, A, B])
         if simple_controls:
-            left_idx, right_idx, a_idx, b_idx = 0, 1, 2, 3
+            left_idx, right_idx, a_idx, b_idx = 2, 3, 4, 5
         else:
             left_idx, right_idx, a_idx, b_idx = 2, 3, 4, 5
 
-        # Activate emergency sequence
+        # Check if Mario escaped (progress was made → stuck_frames reset)
+        if stuck_frames <= 15:
+            # Mario made progress! End emergency gracefully
+            if self.emergency_active:
+                console.log(f"   ✅ Emergency reflex SUCCESS - Mario escaped!")
+            self.emergency_active = False
+            self.emergency_phase = 0
+            self.emergency_cycle = 0
+            self._emergency_last_end_frame = stuck_frames
+            return actions
+
+        # Not stuck long enough to trigger emergency (wait ~3s = 90 frames)
+        if stuck_frames <= 90 and not self.emergency_active:
+            return actions
+
+        # Cooldown after an emergency to avoid rapid re-triggers
+        if (not self.emergency_active) and (stuck_frames - self._emergency_last_end_frame < 120):
+            return actions
+
+        # Get obstacle info for initial activation decision only
+        vision_size = 16 * 7
+        context = state[vision_size:] if len(state) > vision_size else []
+        obstacle_dist_norm = context[4] if len(context) > 4 else 0.0
+        obstacle_height_norm = context[5] if len(context) > 5 else 0.0
+
+        # ACTIVATION: Only check wall proximity when NOT already in emergency
+        # Once emergency is active, complete the full cycle regardless of distance
         if not self.emergency_active:
+            # Need to be VERY close to wall (0.95) to trigger emergency backup
+            # This prevents emergency from interfering during active jump attempts
+            # (obstacle reflex handles jump attempts at dist > 0.5)
+            if obstacle_dist_norm < 0.95 or obstacle_height_norm < 0.2:
+                return actions
+
+            # Activate emergency sequence!
             self.emergency_active = True
             self.emergency_phase = 0
             self.emergency_cycle = 0
-            console.log(f"🚨 EMERGENCY REFLEX: Stuck at wall (obstacle_dist={obstacle_dist_norm:.2f})")
-            console.log(f"   Phase 1: Backing up to build momentum...")
+            self._emergency_start_frame = stuck_frames
+            print(f"🚨 EMERGENCY REFLEX ACTIVATED! dist={obstacle_dist_norm:.2f}, height={obstacle_height_norm:.2f}")
+            console.log(f"🚨 EMERGENCY REFLEX ACTIVATED!")
+            console.log(f"   Obstacle: dist={obstacle_dist_norm:.2f}, height={obstacle_height_norm:.2f}")
+            console.log(f"   Starting backup → sprint jump sequence...")
 
-        # Calculate position in emergency sequence (repeats every 50 frames)
-        frames_stuck = stuck_frames - 30
-        cycle_position = frames_stuck % 50  # Repeat cycle
+        # Calculate position in emergency sequence
+        # Use frames since emergency started, NOT total stuck frames
+        frames_in_emergency = stuck_frames - self._emergency_start_frame
+        cycle_length = 70  # Slightly longer cycle for better momentum
+        cycle_position = frames_in_emergency % cycle_length
+
+        # Abort after 2 full cycles to avoid infinite backing behavior
+        if frames_in_emergency >= cycle_length * 2:
+            console.log(f"   Emergency reflex cooldown (2 cycles done)")
+            self.emergency_active = False
+            self.emergency_phase = 0
+            self.emergency_cycle = 0
+            self._emergency_last_end_frame = stuck_frames
+            return actions
 
         # Track cycle number for logging
-        current_cycle = frames_stuck // 50
+        current_cycle = frames_in_emergency // cycle_length
         if current_cycle != self.emergency_cycle:
             self.emergency_cycle = current_cycle
-            console.log(f"🔄 Emergency reflex cycle {current_cycle + 1}")
+            if current_cycle > 0:
+                console.log(f"🔄 Emergency reflex cycle {current_cycle + 1} (still stuck!)")
 
-        # PHASE 1: Back up with momentum (frames 0-24)
+        # PHASE 1: Back up with momentum (frames 0-24) - 25 frames
         if cycle_position < 25:
             if self.emergency_phase != 1:
-                console.log(f"   Phase 1: Backing up (RUN + LEFT)")
+                print("   Phase 1: Backing up (LEFT + RUN)")
+                console.log(f"   Phase 1: Backing up (LEFT + RUN)")
                 self.emergency_phase = 1
             actions[left_idx] = 1   # Press LEFT
             actions[right_idx] = 0  # Release RIGHT
             actions[b_idx] = 1      # Press RUN for speed
             actions[a_idx] = 0      # Don't jump yet
 
-        # PHASE 2: Running jump forward (frames 25-44)
-        elif cycle_position < 45:
+        # PHASE 2: Sprint jump forward (frames 25-54) - 30 frames
+        elif cycle_position < 55:
             if self.emergency_phase != 2:
-                console.log(f"   Phase 2: RUNNING JUMP!")
+                print("   Phase 2: SPRINT JUMP! (RIGHT + RUN + JUMP)")
+                console.log(f"   Phase 2: SPRINT JUMP! (RIGHT + RUN + JUMP)")
                 self.emergency_phase = 2
             actions[left_idx] = 0   # Release LEFT
             actions[right_idx] = 1  # Press RIGHT
-            actions[b_idx] = 1      # Press RUN
+            actions[b_idx] = 1      # Press RUN (B button for sprint)
             actions[a_idx] = 1      # Press JUMP (held by button_holds)
 
-        # PHASE 3: Continue forward (frames 45-49)
+        # PHASE 3: Continue forward with hop attempts (frames 55-69) - 15 frames
         else:
             if self.emergency_phase != 3:
-                console.log(f"   Phase 3: Continue forward")
+                print("   Phase 3: Continue forward + hops")
+                console.log(f"   Phase 3: Continue forward + hops")
                 self.emergency_phase = 3
             actions[left_idx] = 0   # Release LEFT
             actions[right_idx] = 1  # Press RIGHT
             actions[b_idx] = 1      # Keep running
-            actions[a_idx] = 0      # Release jump
+            # Small hops to potentially clear shorter obstacles
+            actions[a_idx] = 1 if (cycle_position % 8 < 4) else 0
 
         return actions
 
@@ -252,15 +277,18 @@ class ReflexSystem:
         When A (jump) is pressed, hold it for several frames to ensure
         Mario gets a full-height jump instead of a weak hop.
         """
-        a_button_idx = 4 if not simple_controls else 2
+        # Decoder always outputs 6-button array; A is index 4, B is index 5
+        a_button_idx = 4
+        b_button_idx = 5
 
-        # Start jump hold when A is pressed
+        # Start jump hold when A is pressed (value > 0 catches both 1 and floats)
         if actions[a_button_idx] > 0:
             self.jump_hold_counter = self.jump_hold_duration
 
-        # Continue holding A for remaining frames
+        # Continue holding A for remaining frames (ensures full height jump)
         if self.jump_hold_counter > 0:
             actions[a_button_idx] = 1
+            actions[b_button_idx] = 1  # Also hold RUN for longer jumps
             self.jump_hold_counter -= 1
 
         return actions
@@ -271,3 +299,4 @@ class ReflexSystem:
         self.emergency_active = False
         self.emergency_phase = 0
         self.emergency_cycle = 0
+        self._emergency_start_frame = 0

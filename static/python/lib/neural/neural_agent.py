@@ -117,6 +117,7 @@ class NeuralAgent:
         self.max_x = 0
         self.stuck_frames = 0
         self.last_x = 0
+        self._progress_grace_frames = 0  # Grace period after significant progress
 
     def get_weights(self):
         """Get neural network weights."""

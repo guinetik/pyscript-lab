@@ -33,9 +33,11 @@ class NeuralNetwork:
 
         for i in range(len(layer_sizes) - 1):
             # Xavier initialization for better starting weights
+            # Allows network to learn meaningful associations between inputs and outputs
             w = np.random.randn(layer_sizes[i+1], layer_sizes[i]) * np.sqrt(2.0 / layer_sizes[i])
+            w = w.astype(np.float32)
             # Bias should be 1D array, not 2D column vector
-            b = np.zeros(layer_sizes[i+1])
+            b = np.zeros(layer_sizes[i+1], dtype=np.float32)
 
             self.weights.append(w)
             self.biases.append(b)

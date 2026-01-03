@@ -565,12 +565,13 @@
 
 <ExperimentCard props={{ previousPage: '/examples/sentiment', nextPage: '/' }}>
 	<div slot="py_slot" class="flex h-full flex-col p-5 space-y-4">
-		<!-- Emulator Display with CTA Overlay -->
-		<div class="flex justify-center relative">
+		<!-- Emulator Display with CTA Overlay (full width to match stats) -->
+		<div class="relative w-full">
 			{#key emulatorKey}
 				<NesEmulator
 					romPath={getLink('data/package.nes')}
 					scale={2}
+					fullWidth={true}
 					onReady={handleEmulatorReady}
 					onError={handleEmulatorError}
 				/>
@@ -590,18 +591,7 @@
 			{/if}
 		</div>
 
-		<!-- Neural Network Visualization -->
-		{#if vizEnabled}
-			<NeuralNetworkViz bind:vizData={networkVizData} />
-		{/if}
-
-		<!-- Metrics Chart (always in DOM, visibility controlled by CSS) -->
-		<div 
-			id="metrics-chart-container" 
-			class="rounded-lg border-2 border-gray-300 p-2 bg-white {metricsEnabled ? '' : 'hidden'}"
-		></div>
-
-		<!-- Metrics Display -->
+		<!-- Metrics Display (always under the game) -->
 		<div class="grid grid-cols-3 gap-3">
 			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-4 text-white shadow-lg">
 				<div class="text-sm font-semibold opacity-90">{$exampleText.ui?.generationLabel || 'Generation'}</div>
@@ -616,6 +606,17 @@
 				<div class="text-3xl font-bold">{highScore.toFixed(1)}</div>
 			</div>
 		</div>
+
+		<!-- Neural Network Visualization (below stats when enabled) -->
+		{#if vizEnabled}
+			<NeuralNetworkViz bind:vizData={networkVizData} />
+		{/if}
+
+		<!-- Metrics Chart (below neural viz when enabled) -->
+		<div
+			id="metrics-chart-container"
+			class="rounded-lg border-2 border-gray-300 p-2 bg-white {metricsEnabled ? '' : 'hidden'}"
+		></div>
 
 		<!-- Status Display -->
 		<div

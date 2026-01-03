@@ -76,14 +76,18 @@ class MarioFitnessCalculator(FitnessCalculator):
         self.min_fitness = min_fitness
 
         # Default milestones (can be overridden)
+        # IMPORTANT: 700-800px is the "third pipe" obstacle where agents often get stuck
         self.milestone_values = milestone_values or {
             50: 2500,      # Past spawn
             300: 5000,     # Past first Goomba
             500: 10000,    # Past first pipe
-            1000: 20000,   # Significant progress
-            1500: 30000,   # Mid-level
-            2000: 50000,   # Advanced
-            3000: 100000   # Near end of 1-1
+            700: 15000,    # Approaching the difficult third pipe
+            750: 25000,    # CRITICAL: Cleared third pipe! Big reward to encourage this
+            800: 30000,    # Past the third pipe zone
+            1000: 40000,   # Significant progress
+            1500: 60000,   # Mid-level
+            2000: 80000,   # Advanced
+            3000: 150000   # Near end of 1-1
         }
 
         print(f"📊 Initialized MarioFitnessCalculator:")
@@ -121,9 +125,12 @@ class MarioFitnessCalculator(FitnessCalculator):
         # Getting from 1000px to 1100px worth MORE than 100px to 200px
         distance_reward = (distance ** self.distance_exponent) * self.distance_weight
 
-        # Component 2: Exponential frame penalty
-        # Encourages completing distance quickly
-        frame_penalty = (frames ** self.frame_penalty_exponent) * self.frame_penalty_weight
+        # Component 2: Frame penalty (optional - set exponent to 0 to disable)
+        # With (1+1)-ES, frame penalty can prevent exploration
+        if self.frame_penalty_exponent > 0:
+            frame_penalty = (frames ** self.frame_penalty_exponent) * self.frame_penalty_weight
+        else:
+            frame_penalty = 0  # No penalty - pure distance-based fitness
 
         # Component 3: Milestone bonuses (stepping stones in fitness landscape)
         milestone_bonus = 0

@@ -1094,34 +1094,25 @@ class ActionDecoder:
                 else:
                     output_flat[0] = 0.0  # Zero out UP
 
-        # LEFT (2) vs RIGHT (3)
+        # LEFT (2) vs RIGHT (3) - ALWAYS prefer RIGHT for forward progress
+        # Only allow LEFT if it's SIGNIFICANTLY stronger than RIGHT (by 0.3+)
+        # This prevents oscillation and encourages forward movement
         if output_flat[2] > 0.3 and output_flat[3] > 0.3:
-            if output_flat[2] > output_flat[3]:
-                output_flat[3] = 0.0  # Zero out RIGHT
+            if output_flat[2] > output_flat[3] + 0.3:
+                output_flat[3] = 0.0  # Zero out RIGHT (LEFT is much stronger)
             else:
-                output_flat[2] = 0.0  # Zero out LEFT
+                output_flat[2] = 0.0  # Zero out LEFT (prefer RIGHT)
+        elif output_flat[2] > 0.5 and output_flat[3] < 0.3:
+            # LEFT is active but RIGHT is very weak - allow LEFT
+            pass
+        elif output_flat[2] > 0.3:
+            # LEFT is borderline, RIGHT isn't strong - suppress LEFT to prevent oscillation
+            output_flat[2] = 0.0
 
-        # STEP 2: Apply threshold to determine candidate buttons
-        if self.use_variable_threshold:
-            # Variable threshold adds exploration variety (rarely used)
-            thresholds = np.random.uniform(0.35, 0.5, size=output_flat.shape)
-            candidates = (output_flat > thresholds).astype(int)
-        else:
-            # Fixed threshold (more deterministic and LOWER for stronger priors)
-            # With behavioral priors of 2.5-3.5, sigmoid outputs are 0.92-0.97
-            # So use 0.4 threshold to ensure buttons fire reliably
-            candidates = (output_flat > 0.4).astype(int)
-
-        # STEP 3: Apply top-k selection if more than max_buttons are active
-        active_count = np.sum(candidates)
-        if active_count > self.max_buttons:
-            # Get indices of top-k activations
-            top_k_indices = np.argsort(output_flat)[-self.max_buttons:]
-
-            # Create new button array with only top-k
-            buttons = np.zeros_like(output_flat, dtype=int)
-            buttons[top_k_indices] = 1
-            return buttons
+        # STEP 2: Apply simple threshold (matching reference implementation)
+        # Reference uses > 0.5 threshold, no top-k selection
+        # Let the network learn to not press too many buttons
+        candidates = (output_flat > 0.5).astype(int)
 
         return candidates
 

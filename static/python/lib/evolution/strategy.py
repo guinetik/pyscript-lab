@@ -142,15 +142,15 @@ class OnePlusOneES(EvolutionStrategy):
             unique_locations = len(set(recent_locations))
 
             if unique_locations == 1:
-                # Stuck at exact same location → boost mutation heavily
+                # Stuck at exact same location → MASSIVE mutation to escape
                 print(f"🚨 LOCAL OPTIMUM: Stuck at {stuck_location}px for {self.local_optimum_threshold}+ gens")
-                print(f"   Boosting mutation to escape!")
-                return (self.base_mutation_rate * 1.6, self.base_mutation_scale * 2.0)
+                print(f"   MASSIVE mutation boost to escape!")
+                return (min(self.base_mutation_rate * 10.0, 0.5), self.base_mutation_scale * 8.0)  # 10x rate (max 50%), 8x scale
 
             elif unique_locations <= 2:
-                # Oscillating between 2 locations → moderate boost
+                # Oscillating between 2 locations → very strong boost
                 print(f"⚠️ Oscillating between 2 locations (last {self.local_optimum_threshold} gens)")
-                return (self.base_mutation_rate * 1.2, self.base_mutation_scale * 1.5)
+                return (min(self.base_mutation_rate * 5.0, 0.3), self.base_mutation_scale * 5.0)  # 5x rate (max 30%), 5x scale
 
         # Normal mutation
         return (self.base_mutation_rate, self.base_mutation_scale)
