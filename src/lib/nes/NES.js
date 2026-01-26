@@ -1,51 +1,51 @@
 /**
- * NES - Minimal NES emulator wrapper
- * Loads JSNes, renders to canvas, supports save states
+ * NES - Proper NES emulator wrapper based on jsnes-web
+ * Key insight: Audio drives timing, not video
  */
 
 const SCREEN_WIDTH = 256;
 const SCREEN_HEIGHT = 240;
 const JSNES_URL = 'https://unpkg.com/jsnes@1.2.1/dist/jsnes.min.js';
+const FPS = 60.098; // Actual NES FPS
 
 export class NES {
 	/**
-	 * @param {HTMLCanvasElement} canvas - Canvas element to render to
+	 * @param {HTMLCanvasElement} canvas
 	 */
 	constructor(canvas) {
 		this.canvas = canvas;
 		this.ctx = canvas.getContext('2d');
 		this.nes = null;
 		this.running = false;
-		this.rafId = null;
 		
 		// Frame timing
-		this.lastTime = 0;
-		this.frameInterval = 1000 / 60;
+		this.frameTimer = null;
+		this.frameInterval = 1000 / FPS;
+		this.lastFrameTime = 0;
+		this.rafId = null;
 		
-		// Frame buffer
+		// Screen buffer
 		this.imageData = this.ctx.createImageData(SCREEN_WIDTH, SCREEN_HEIGHT);
-		this.buffer = new ArrayBuffer(this.imageData.data.length);
-		this.buffer8 = new Uint8ClampedArray(this.buffer);
-		this.buffer32 = new Uint32Array(this.buffer);
+		this.buf = new ArrayBuffer(this.imageData.data.length);
+		this.buf8 = new Uint8ClampedArray(this.buf);
+		this.buf32 = new Uint32Array(this.buf);
 		
 		// Set alpha to opaque
-		for (let i = 0; i < this.buffer32.length; i++) {
-			this.buffer32[i] = 0xff000000;
+		for (let i = 0; i < this.buf32.length; i++) {
+			this.buf32[i] = 0xff000000;
 		}
 		
-		// Audio
+		// Audio - Ring buffer
 		this.audioCtx = null;
-		this.audioNode = null;
-		this.audioBuffer = [];
+		this.scriptNode = null;
 		this.audioBufferSize = 8192;
-		this.audioWriteIndex = 0;
-		this.audioReadIndex = 0;
+		this.audioBuffer = new RingBuffer(this.audioBufferSize * 2);
 		this.muted = false;
 		
-		// ROM data (for state restore)
+		// ROM data
 		this.romData = null;
 		
-		// Init canvas to black
+		// Init canvas black
 		this.ctx.fillStyle = 'black';
 		this.ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		
@@ -53,10 +53,20 @@ export class NES {
 	}
 	
 	/**
-	 * Load JSNes library and initialize emulator
+	 * Get audio sample rate
+	 */
+	getSampleRate() {
+		if (!window.AudioContext) return 44100;
+		const ctx = new AudioContext();
+		const rate = ctx.sampleRate;
+		ctx.close();
+		return rate;
+	}
+	
+	/**
+	 * Initialize emulator
 	 */
 	async init() {
-		// Load JSNes if not already loaded
 		if (!window.jsnes) {
 			await this._loadScript(JSNES_URL);
 		}
@@ -65,19 +75,19 @@ export class NES {
 			throw new Error('Failed to load JSNes');
 		}
 		
-		// Create NES instance
+		// Create NES with proper sample rate
 		this.nes = new window.jsnes.NES({
-			onFrame: (framebuffer) => this._onFrame(framebuffer),
-			onAudioSample: (left, right) => this._onAudio(left, right)
+			onFrame: (buffer) => this._setBuffer(buffer),
+			onAudioSample: (left, right) => this._writeSample(left, right),
+			sampleRate: this.getSampleRate()
 		});
 		
-		console.log('[NES] Initialized');
+		console.log('[NES] Initialized with sample rate:', this.getSampleRate());
 		return this;
 	}
 	
 	/**
 	 * Load ROM from URL
-	 * @param {string} url - ROM file URL
 	 */
 	async loadROM(url) {
 		const response = await fetch(url);
@@ -86,7 +96,6 @@ export class NES {
 		const buffer = await response.arrayBuffer();
 		const data = new Uint8Array(buffer);
 		
-		// Convert to binary string (JSNes format)
 		let romString = '';
 		for (let i = 0; i < data.length; i++) {
 			romString += String.fromCharCode(data[i]);
@@ -100,8 +109,7 @@ export class NES {
 	}
 	
 	/**
-	 * Load saved state from URL
-	 * @param {string} url - State JSON file URL
+	 * Load state from URL
 	 */
 	async loadState(url) {
 		const response = await fetch(url);
@@ -115,18 +123,15 @@ export class NES {
 	}
 	
 	/**
-	 * Load saved state from object
-	 * @param {object} state - State object
+	 * Load state from object
 	 */
 	loadStateFromObject(state) {
 		this.nes.fromJSON(state);
-		console.log('[NES] State loaded from object');
 		return this;
 	}
 	
 	/**
-	 * Save current state
-	 * @returns {object} State object
+	 * Save state
 	 */
 	saveState() {
 		return this.nes.toJSON();
@@ -139,9 +144,13 @@ export class NES {
 		if (this.running) return this;
 		
 		this.running = true;
-		this.lastTime = 0;
-		this._initAudio();
-		this._loop();
+		this.lastFrameTime = 0;
+		
+		// Start audio
+		this._startAudio();
+		
+		// Start frame loop
+		this._requestFrame();
 		
 		console.log('[NES] Started');
 		return this;
@@ -152,45 +161,37 @@ export class NES {
 	 */
 	stop() {
 		this.running = false;
+		
 		if (this.rafId) {
 			cancelAnimationFrame(this.rafId);
 			this.rafId = null;
 		}
+		
 		this._stopAudio();
+		this.lastFrameTime = 0;
 		
 		console.log('[NES] Stopped');
 		return this;
 	}
 	
 	/**
-	 * Reset emulator
+	 * Reset
 	 */
 	reset() {
 		this.nes.reset();
-		console.log('[NES] Reset');
 		return this;
 	}
 	
 	/**
-	 * Set mute state
-	 * @param {boolean} muted
+	 * Set muted
 	 */
 	setMuted(muted) {
 		this.muted = muted;
-		if (this.audioCtx) {
-			if (muted) {
-				this.audioCtx.suspend();
-			} else {
-				this.audioCtx.resume();
-			}
-		}
 		return this;
 	}
 	
 	/**
-	 * Press button
-	 * @param {number} button - Button code (0=A, 1=B, 2=Select, 3=Start, 4=Up, 5=Down, 6=Left, 7=Right)
-	 * @param {number} player - Player (1 or 2)
+	 * Button down
 	 */
 	buttonDown(button, player = 1) {
 		this.nes.buttonDown(player, button);
@@ -198,9 +199,7 @@ export class NES {
 	}
 	
 	/**
-	 * Release button
-	 * @param {number} button - Button code
-	 * @param {number} player - Player (1 or 2)
+	 * Button up
 	 */
 	buttonUp(button, player = 1) {
 		this.nes.buttonUp(player, button);
@@ -208,15 +207,14 @@ export class NES {
 	}
 	
 	/**
-	 * Get frame buffer for external use
-	 * @returns {Uint8ClampedArray}
+	 * Get frame buffer
 	 */
 	getFrameBuffer() {
-		return this.buffer8;
+		return this.buf8;
 	}
 	
 	/**
-	 * Destroy and cleanup
+	 * Destroy
 	 */
 	destroy() {
 		this.stop();
@@ -228,7 +226,7 @@ export class NES {
 		console.log('[NES] Destroyed');
 	}
 	
-	// === Private methods ===
+	// === Private ===
 	
 	_loadScript(src) {
 		return new Promise((resolve, reject) => {
@@ -244,93 +242,126 @@ export class NES {
 		});
 	}
 	
-	_onFrame(framebuffer) {
-		// Convert NES BGR to canvas ABGR
-		for (let i = 0; i < framebuffer.length; i++) {
-			this.buffer32[i] = 0xff000000 | framebuffer[i];
+	_setBuffer(buffer) {
+		for (let i = 0; i < buffer.length; i++) {
+			this.buf32[i] = 0xff000000 | buffer[i];
 		}
 	}
 	
-	_onAudio(left, right) {
-		if (this.muted) return;
-		
-		const size = this._getAudioBufferSize();
-		if (size >= this.audioBufferSize * 2) {
-			// Overflow - drop samples
-			this.audioReadIndex = (this.audioReadIndex + this.audioBufferSize) % (this.audioBufferSize * 2);
-		}
-		
-		this.audioBuffer[this.audioWriteIndex] = left;
-		this.audioBuffer[this.audioWriteIndex + 1] = right;
-		this.audioWriteIndex = (this.audioWriteIndex + 2) % (this.audioBufferSize * 2);
-	}
-	
-	_render() {
-		this.imageData.data.set(this.buffer8);
+	_writeBuffer() {
+		this.imageData.data.set(this.buf8);
 		this.ctx.putImageData(this.imageData, 0, 0);
 	}
 	
-	_loop(time = 0) {
+	_writeSample(left, right) {
+		if (this.muted) return;
+		
+		// Handle buffer overrun
+		if (this.audioBuffer.size() / 2 >= this.audioBufferSize) {
+			console.log('Buffer overrun');
+			this.audioBuffer.deqN(this.audioBufferSize / 2);
+		}
+		
+		this.audioBuffer.enq(left);
+		this.audioBuffer.enq(right);
+	}
+	
+	_generateFrame() {
+		this.nes.frame();
+		this.lastFrameTime += this.frameInterval;
+	}
+	
+	_requestFrame() {
+		this.rafId = requestAnimationFrame((time) => this._onAnimationFrame(time));
+	}
+	
+	_onAnimationFrame(time) {
 		if (!this.running) return;
 		
-		this.rafId = requestAnimationFrame((t) => this._loop(t));
+		this._requestFrame();
 		
-		if (!this.lastTime) {
-			this.lastTime = time;
+		// Align to 60fps intervals
+		const excess = time % this.frameInterval;
+		const newFrameTime = time - excess;
+		
+		// First frame
+		if (!this.lastFrameTime) {
+			this.lastFrameTime = newFrameTime;
 			return;
 		}
 		
-		// Generate frame at 60fps
-		if (time - this.lastTime >= this.frameInterval) {
-			this.nes.frame();
-			this._render();
-			this.lastTime = time;
+		// How many frames should have been generated
+		const numFrames = Math.round((newFrameTime - this.lastFrameTime) / this.frameInterval);
+		
+		// No frames needed (can happen on 144Hz displays)
+		if (numFrames === 0) return;
+		
+		// Generate first frame and display it
+		this._generateFrame();
+		this._writeBuffer();
+		
+		// Generate additional frames (not displayed) spread over time until next RAF
+		const timeToNextFrame = this.frameInterval - excess;
+		for (let i = 1; i < numFrames; i++) {
+			setTimeout(() => {
+				if (this.running) this._generateFrame();
+			}, (i * timeToNextFrame) / numFrames);
+		}
+		
+		if (numFrames > 1) {
+			console.log('Frame skip:', numFrames - 1);
 		}
 	}
 	
-	_initAudio() {
-		if (!window.AudioContext || this.audioCtx) return;
+	_startAudio() {
+		if (!window.AudioContext) return;
 		
-		try {
-			this.audioCtx = new AudioContext();
-			this.audioNode = this.audioCtx.createScriptProcessor(1024, 0, 2);
-			this.audioNode.onaudioprocess = (e) => this._processAudio(e);
-			this.audioNode.connect(this.audioCtx.destination);
-			
-			if (this.muted) {
-				this.audioCtx.suspend();
-			}
-		} catch (err) {
-			console.warn('[NES] Audio init failed:', err);
-		}
+		this.audioCtx = new AudioContext();
+		this.scriptNode = this.audioCtx.createScriptProcessor(1024, 0, 2);
+		this.scriptNode.onaudioprocess = (e) => this._onAudioProcess(e);
+		this.scriptNode.connect(this.audioCtx.destination);
 	}
 	
 	_stopAudio() {
-		if (this.audioCtx && this.audioCtx.state === 'running') {
-			this.audioCtx.suspend();
+		if (this.scriptNode) {
+			this.scriptNode.disconnect();
+			this.scriptNode.onaudioprocess = null;
+			this.scriptNode = null;
 		}
-		this.audioBuffer = [];
-		this.audioWriteIndex = 0;
-		this.audioReadIndex = 0;
+		if (this.audioCtx) {
+			this.audioCtx.close().catch(() => {});
+			this.audioCtx = null;
+		}
 	}
 	
-	_getAudioBufferSize() {
-		if (this.audioWriteIndex >= this.audioReadIndex) {
-			return this.audioWriteIndex - this.audioReadIndex;
-		}
-		return (this.audioBufferSize * 2) - this.audioReadIndex + this.audioWriteIndex;
-	}
-	
-	_processAudio(event) {
-		const left = event.outputBuffer.getChannelData(0);
-		const right = event.outputBuffer.getChannelData(1);
+	_onAudioProcess(e) {
+		const left = e.outputBuffer.getChannelData(0);
+		const right = e.outputBuffer.getChannelData(1);
+		const size = left.length;
 		
-		for (let i = 0; i < left.length; i++) {
-			if (this._getAudioBufferSize() >= 2) {
-				left[i] = this.audioBuffer[this.audioReadIndex];
-				right[i] = this.audioBuffer[this.audioReadIndex + 1];
-				this.audioReadIndex = (this.audioReadIndex + 2) % (this.audioBufferSize * 2);
-			} else {
+		// Buffer underrun - generate extra frames to catch up
+		if (this.audioBuffer.size() < size * 2) {
+			if (this.running && !this.muted) {
+				console.log('Buffer underrun, generating frame');
+				this._generateFrame();
+				
+				if (this.audioBuffer.size() < size * 2) {
+					console.log('Still underrun, generating second frame');
+					this._generateFrame();
+				}
+			}
+		}
+		
+		// Try to get samples
+		try {
+			const samples = this.audioBuffer.deqN(size * 2);
+			for (let i = 0; i < size; i++) {
+				left[i] = samples[i * 2];
+				right[i] = samples[i * 2 + 1];
+			}
+		} catch (e) {
+			// Real underrun - output silence
+			for (let i = 0; i < size; i++) {
 				left[i] = 0;
 				right[i] = 0;
 			}
@@ -338,7 +369,56 @@ export class NES {
 	}
 }
 
-// Button constants for convenience
+/**
+ * Simple Ring Buffer implementation
+ */
+class RingBuffer {
+	constructor(capacity) {
+		this.capacity = capacity;
+		this.buffer = new Array(capacity);
+		this.head = 0;
+		this.tail = 0;
+		this.length = 0;
+	}
+	
+	size() {
+		return this.length;
+	}
+	
+	enq(item) {
+		if (this.length >= this.capacity) {
+			throw new Error('Buffer full');
+		}
+		this.buffer[this.tail] = item;
+		this.tail = (this.tail + 1) % this.capacity;
+		this.length++;
+	}
+	
+	deq() {
+		if (this.length === 0) {
+			throw new Error('Buffer empty');
+		}
+		const item = this.buffer[this.head];
+		this.head = (this.head + 1) % this.capacity;
+		this.length--;
+		return item;
+	}
+	
+	deqN(count) {
+		if (this.length < count) {
+			throw new Error('Not enough items');
+		}
+		const items = new Array(count);
+		for (let i = 0; i < count; i++) {
+			items[i] = this.buffer[this.head];
+			this.head = (this.head + 1) % this.capacity;
+		}
+		this.length -= count;
+		return items;
+	}
+}
+
+// Button constants
 export const Button = {
 	A: 0,
 	B: 1,
