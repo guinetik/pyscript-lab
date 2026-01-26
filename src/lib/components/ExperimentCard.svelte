@@ -4,23 +4,27 @@
    * @typedef {Object} ExperimentCardProps
    * @property {string} previousPage - URL to navigate to the previous example.
    * @property {string} nextPage - URL to navigate to the next example.
+   * @property {'standard' | 'balanced'} [split='standard'] - Layout split ratio.
    */
   import { getLink } from "../utils.js";
   import { t } from 'svelte-i18n';
 
   /** @type {ExperimentCardProps} */
   export let props;
+  
+  // Default to standard if not provided
+  const split = props.split || 'standard';
 </script>
 <main class="w-full h-[calc(100%-120px)]">
   <div class="py-10 w-full flex items-center justify-center h-full">
     <div class="bg-white rounded-lg shadow-2xl overflow-hidden w-10/12">
       <!--     image -->
       <div class="md:flex">
-        <section class="bg-slate-300 lg:w-3/4 md:flex-grow md:w-full min-h-[380px] md:rounded-l-lg">
+        <section class="bg-slate-300 md:flex-grow md:w-full min-h-[380px] md:rounded-l-lg {split === 'balanced' ? 'lg:w-1/2' : 'lg:w-3/4'}">
           <slot name="py_slot" />
         </section>
         <section
-          class="p-4 space-y-3 md:w-1/2 lg:w-4/12 border-t border-slate-900 md:border-l md:rounded-r-lg"
+          class="p-4 space-y-3 md:w-1/2 border-t border-slate-900 md:border-l md:rounded-r-lg {split === 'balanced' ? 'lg:w-1/2' : 'lg:w-4/12'}"
         >
           <slot name="content_slot" />
           <div class="flex">

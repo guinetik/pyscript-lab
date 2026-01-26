@@ -6,6 +6,8 @@
   <title>PyScript Examples</title>
   <link rel="icon" href="%sveltekit.assets%/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- mini-coi.js for Web Worker CORS support (must be first script) -->
+  <script src="%sveltekit.assets%/mini-coi.js"></script>
   <!-- PyScript CSS -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2025.2.1/core.css">
   <!-- This script tag bootstraps PyScript -->
@@ -27,6 +29,14 @@
     [[fetch]]
     files = ["matplotlib_utils.py", "plotly_utils.py"]
     from = "%sveltekit.assets%/python/matplotlib/"
+    [[fetch]]
+    files = ["agent.py", "trainer.py", "utils.py", "metrics_chart.py", "__init__.py"]
+    to_folder = "ml/neuro"
+    from = "%sveltekit.assets%/python/ml/neuro/"
+    [[fetch]]
+    files = ["trainer.py"]
+    to_folder = "ml/grokking"
+    from = "%sveltekit.assets%/python/ml/grokking/"
   </py-config>
   <!-- Bokeh JS -->
   <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.2.min.js"></script>
@@ -294,6 +304,14 @@
           from datetime import datetime
           now = datetime.now()
           document.querySelector("#py-script-footer").innerText = "🐍 Hello from python. All systems go! " + now.strftime("%m/%d/%Y, %H:%M:%S")
+          
+          # Initialize neuro trainer JS bridge
+          try:
+              from ml.neuro.trainer import setup_js_bridge
+              setup_js_bridge()
+              print("[Python] Neuro trainer JS bridge ready")
+          except Exception as e:
+              print(f"[Python] Neuro trainer not loaded: {e}")
         </script>
       </div>
     </div>

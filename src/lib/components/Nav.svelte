@@ -36,6 +36,7 @@
         'sentiment': 'nav.sentimentAnalysis',
         'ml_rl': 'nav.reinforcementLearning',
         'ml_neuro': 'nav.neuralNetworks',
+        'ml_grok': 'nav.grokking',
         'github': 'nav.github',
         'twitter': 'nav.github'
     };

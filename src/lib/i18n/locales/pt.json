@@ -27,7 +27,8 @@
     "digitRecognition": "Reconhecimento de Dígitos",
     "sentimentAnalysis": "Análise de Sentimento",
     "reinforcementLearning": "Aprendizado por Reforço",
-    "neuralNetworks": "Redes Neurais"
+    "neuralNetworks": "Redes Neurais",
+    "grokking": "Grokking"
   },
   "home": {
     "title": "PyScript L.A.B",

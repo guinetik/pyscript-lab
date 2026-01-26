@@ -120,6 +120,11 @@ const pages = [
     new Page("ml_neuro", "Neural Networks", getLink("/examples/ml/neuro"), [
       new PageProp("show", "none"),
       new PageProp("prev_page", getLink("/examples/ml/rl")),
+      new PageProp("next_page", getLink("/examples/ml/grokking")),
+    ]),
+    new Page("ml_grok", "Grokking", getLink("/examples/ml/grokking"), [
+      new PageProp("show", "none"),
+      new PageProp("prev_page", getLink("/examples/ml/neuro")),
       new PageProp("next_page", getLink("/")),
     ]),
   ]),
