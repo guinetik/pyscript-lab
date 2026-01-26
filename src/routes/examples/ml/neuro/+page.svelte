@@ -15,6 +15,14 @@
 	let status = $state('Click a button to begin');
 	let muted = $state(true);
 	
+	// Training mode selection
+	let trainingMode = $state('simple'); // 'simple' | 'sbx' | 'uniform'
+	const trainingModes = [
+		{ value: 'simple', label: 'Simple (Mutation Only)', description: 'Original behavior - mutate top performers' },
+		{ value: 'sbx', label: 'SBX Crossover', description: 'Two-parent breeding with Simulated Binary Crossover' },
+		{ value: 'uniform', label: 'Uniform Crossover', description: 'Two-parent breeding with random gene mixing' }
+	];
+	
 	// Training state
 	let generation = $state(0);
 	let fitness = $state(0);
@@ -100,7 +108,7 @@
 		showNeurons = true;
 		showMetrics = true;
 		
-		await controller.startTraining();
+		await controller.startTraining(trainingMode);
 	}
 
 	function stop() {
@@ -198,6 +206,24 @@
 			{/if}
 		{/if}
 		
+		<!-- Training Mode Selector -->
+		<div class="bg-orange-50 border-2 border-orange-200 rounded p-3">
+			<label for="training-mode-select" class="block text-sm font-bold text-orange-900 mb-2">🧬 Training Mode</label>
+			<select 
+				id="training-mode-select"
+				bind:value={trainingMode}
+				disabled={mode !== 'idle'}
+				class="w-full px-3 py-2 rounded border-2 border-orange-300 bg-white text-sm font-medium disabled:bg-gray-100 disabled:cursor-not-allowed"
+			>
+				{#each trainingModes as tm}
+					<option value={tm.value}>{tm.label}</option>
+				{/each}
+			</select>
+			<p class="text-xs text-orange-700 mt-1">
+				{trainingModes.find(tm => tm.value === trainingMode)?.description}
+			</p>
+		</div>
+		
 		<!-- Main Control Buttons -->
 		<div class="grid grid-cols-3 gap-3">
 			<button 
@@ -293,9 +319,19 @@
 					<li><strong>Create</strong> random neural network weights</li>
 					<li><strong>Evaluate</strong> by playing the game (fitness = distance traveled)</li>
 					<li><strong>Select</strong> the best performers</li>
-					<li><strong>Mutate</strong> weights to create new generation</li>
+					<li><strong>Mutate/Breed</strong> to create new generation</li>
 					<li><strong>Repeat</strong> until it beats the level!</li>
 				</ol>
+			</div>
+			
+			<!-- Training Modes -->
+			<div class="bg-emerald-50 border-2 border-emerald-200 rounded p-4">
+				<h3 class="font-bold text-emerald-900 mb-2">🔄 Training Modes</h3>
+				<ul class="text-sm text-emerald-800 space-y-2">
+					<li><strong>Simple:</strong> Mutation only - copy and mutate top performers</li>
+					<li><strong>SBX Crossover:</strong> Two-parent breeding using Simulated Binary Crossover. Creates offspring near parents, good for fine-tuning.</li>
+					<li><strong>Uniform Crossover:</strong> Random gene mixing from two parents. More exploration, can combine diverse strategies.</li>
+				</ul>
 			</div>
 			
 			<!-- Network Architecture -->

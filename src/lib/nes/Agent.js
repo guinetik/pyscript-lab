@@ -237,6 +237,9 @@ export class Agent {
 	}
 	
 	forward(inputs) {
+		// DEBUG: Log first forward pass to verify weights
+		const isFirstPass = this.framesAlive <= 1;
+		
 		// Hidden layer
 		const hidden = [];
 		for (let i = 0; i < CONFIG.hiddenSize; i++) {
@@ -255,6 +258,24 @@ export class Agent {
 				sum += this.W2[i][j] * hidden[j];
 			}
 			outputs.push(this.sigmoid(sum));
+		}
+		
+		// DEBUG: Log details on first pass
+		if (isFirstPass) {
+			const inputSum = inputs.reduce((a, b) => a + b, 0);
+			const hiddenSum = hidden.reduce((a, b) => a + b, 0);
+			console.log('[Agent Forward Debug]', {
+				inputSum: inputSum.toFixed(2),
+				b1: this.b1.map(v => v.toFixed(3)),
+				hidden: hidden.map(v => v.toFixed(3)),
+				b2: this.b2.map(v => v.toFixed(3)),
+				preActivation: outputs.map((o, i) => {
+					let sum = this.b2[i];
+					for (let j = 0; j < hidden.length; j++) sum += this.W2[i][j] * hidden[j];
+					return sum.toFixed(3);
+				}),
+				outputs: outputs.map(v => v.toFixed(3))
+			});
 		}
 		
 		this.lastOutputs = outputs;

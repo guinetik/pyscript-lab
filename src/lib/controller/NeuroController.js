@@ -152,7 +152,11 @@ setup_js_bridge()
 
     // === AI / Training Logic ===
 
-    async startTraining() {
+    /**
+     * Start training with specified evolution mode.
+     * @param {string} mode - Evolution mode: 'simple', 'sbx', or 'uniform'
+     */
+    async startTraining(mode = 'simple') {
         this.resetNES();
         
         // Store ROM and state on window for Python
@@ -181,11 +185,16 @@ setup_js_bridge()
             (success) => {
                 if (this.callbacks.onComplete) this.callbacks.onComplete(success);
                 this.resetNES();
-            }
+            },
+            mode  // Pass evolution mode to Python
         );
         
         if (success) {
             window.startTraining();
+            if (this.callbacks.onStatus) {
+                const modeLabels = { simple: 'Simple (Mutation)', sbx: 'SBX Crossover', uniform: 'Uniform Crossover' };
+                this.callbacks.onStatus(`Training started [${modeLabels[mode] || mode}]`);
+            }
         } else {
             if (this.callbacks.onStatus) this.callbacks.onStatus('Error: Failed to initialize trainer');
         }
@@ -232,9 +241,8 @@ setup_js_bridge()
             this.nes.nes.frame = () => {
                 if (isDone) return;
                 
-                this.originalNesFrame();
-                frameCount++;
-                
+                // CRITICAL: Get buttons BEFORE running frame (matches Python trainer)
+                // This ensures agent reacts to current state, not previous state
                 const buttons = this.agent.update(this.nes.nes);
                 const newPressed = new Set(buttons);
                 
@@ -245,6 +253,10 @@ setup_js_bridge()
                     if (!this.pressedButtons.has(btn)) this.nes.nes.buttonDown(1, btn);
                 }
                 this.pressedButtons = newPressed;
+                
+                // NOW run the frame with buttons already set
+                this.originalNesFrame();
+                frameCount++;
                 
                 // Stats
                 const stats = this.agent.getStats(this.nes.nes);
@@ -307,9 +319,7 @@ setup_js_bridge()
         let aiWinDetected = false;
         
         this.nes.nes.frame = () => {
-            this.originalNesFrame();
-            aiFrameCount++;
-            
+            // Get buttons BEFORE running frame (matches Python trainer timing)
             const buttons = this.agent.update(this.nes.nes);
             const newPressed = new Set(buttons);
             
@@ -320,6 +330,10 @@ setup_js_bridge()
                 if (!this.pressedButtons.has(btn)) this.nes.nes.buttonDown(1, btn);
             }
             this.pressedButtons = newPressed;
+            
+            // NOW run the frame
+            this.originalNesFrame();
+            aiFrameCount++;
             
             const stats = this.agent.getStats(this.nes.nes);
             if (this.callbacks.onStats) this.callbacks.onStats(stats);

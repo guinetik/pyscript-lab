@@ -248,6 +248,12 @@ class GrokTrainer:
         self.running = False
         self.grok_detected = False
         self.grok_epoch = -1
+        
+        # Smoothed metrics (exponential moving average)
+        self.ema_train_acc = 0.0
+        self.ema_test_acc = 0.0
+        self.ema_alpha = 0.1  # Smoothing factor (lower = smoother)
+        
         # ORIGINAL parameters that work for grokking!
         self.config = {
             'n_tokens': 67,       # Original value
@@ -274,6 +280,10 @@ class GrokTrainer:
         self.train_data, self.test_data = split_data(all_data, self.config['train_fraction'])
         self.grok_detected = False
         self.grok_epoch = -1
+        
+        # Reset smoothed metrics
+        self.ema_train_acc = 0.0
+        self.ema_test_acc = 0.0
         
         print(f"[Trainer] Initialized: {len(self.train_data)} train, {len(self.test_data)} test")
         return len(self.train_data), len(self.test_data)
@@ -318,12 +328,25 @@ class GrokTrainer:
             
             # Calculate and send metrics (fast with sampling!)
             if epoch % ui_update_interval == 0 or epoch <= ui_update_interval:
-                # Sample-based accuracy is fast
-                train_acc = calc_accuracy(self.network, self.train_data, sample_size=100)
-                test_acc = calc_accuracy(self.network, self.test_data, sample_size=150)
+                # Sample-based accuracy with larger samples for stability
+                raw_train_acc = calc_accuracy(self.network, self.train_data, sample_size=200)
+                raw_test_acc = calc_accuracy(self.network, self.test_data, sample_size=300)
                 
-                # Check for grokking
-                if not self.grok_detected and train_acc > 0.95 and test_acc > 0.9:
+                # Apply exponential moving average for smooth chart
+                if epoch <= ui_update_interval:
+                    # First few updates - initialize EMA to raw value
+                    self.ema_train_acc = raw_train_acc
+                    self.ema_test_acc = raw_test_acc
+                else:
+                    # EMA update: new_ema = alpha * raw + (1-alpha) * old_ema
+                    self.ema_train_acc = self.ema_alpha * raw_train_acc + (1 - self.ema_alpha) * self.ema_train_acc
+                    self.ema_test_acc = self.ema_alpha * raw_test_acc + (1 - self.ema_alpha) * self.ema_test_acc
+                
+                train_acc = self.ema_train_acc
+                test_acc = self.ema_test_acc
+                
+                # Check for grokking (use raw values for detection to be accurate)
+                if not self.grok_detected and raw_train_acc > 0.95 and raw_test_acc > 0.9:
                     self.grok_detected = True
                     self.grok_epoch = epoch
                     print(f"[Trainer] GROKKING at epoch {epoch}!")
@@ -356,6 +379,8 @@ class GrokTrainer:
             self.network.reset()
         self.grok_detected = False
         self.grok_epoch = -1
+        self.ema_train_acc = 0.0
+        self.ema_test_acc = 0.0
     
     def predict(self, a, b):
         """Get prediction for a single input."""
