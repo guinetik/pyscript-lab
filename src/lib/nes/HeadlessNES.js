@@ -1,9 +1,11 @@
 /**
  * HeadlessNES - Fast NES emulator for background training
- * 
+ *
  * No rendering, no audio - just raw emulation speed.
  * Used for evaluating neural network populations during training.
  */
+
+import telemetry from '../Telemetry.js';
 
 export class HeadlessNES {
 	constructor() {
@@ -11,10 +13,10 @@ export class HeadlessNES {
 		this.isLoaded = false;
 		this.romData = null;
 		this.initialState = null;
-		
-		console.log('[HeadlessNES] Created');
+
+		telemetry.log('headless', 'Created');
 	}
-	
+
 	/**
 	 * Initialize with ROM binary string
 	 * @param {string} romBinaryString - ROM as binary string
@@ -23,22 +25,37 @@ export class HeadlessNES {
 		if (!window.jsnes) {
 			throw new Error('JSNes not loaded');
 		}
-		
+
 		this.romData = romBinaryString;
-		
-		// Create NES with no-op callbacks (maximum speed)
+
+		// Get proper sample rate (matches visual NES)
+		// JSNes uses sampleRate for internal timing calculations
+		let sampleRate = 44100;
+		if (window.AudioContext) {
+			try {
+				const ctx = new AudioContext();
+				sampleRate = ctx.sampleRate;
+				ctx.close();
+			} catch (e) {
+				// Use default
+			}
+		}
+
+		// Create NES with no-op callbacks but proper sample rate
+		// CRITICAL: sampleRate must match visual NES for consistent physics timing
 		this.nes = new window.jsnes.NES({
 			onFrame: () => {},
 			onAudioSample: () => {},
-			onStatusUpdate: () => {}
+			onStatusUpdate: () => {},
+			sampleRate: sampleRate
 		});
-		
+
 		this.nes.loadROM(romBinaryString);
 		this.isLoaded = true;
-		
-		console.log('[HeadlessNES] Initialized');
+
+		telemetry.log('headless', 'Initialized', { sampleRate });
 	}
-	
+
 	/**
 	 * Set initial state for quick resets
 	 * @param {object} state - NES state object
@@ -47,7 +64,7 @@ export class HeadlessNES {
 		// Deep copy to ensure we have a clean state
 		this.initialState = JSON.parse(JSON.stringify(state));
 	}
-	
+
 	/**
 	 * Reset to initial state (fast)
 	 */
@@ -55,22 +72,43 @@ export class HeadlessNES {
 		if (this.nes && this.initialState) {
 			// Load the saved state
 			this.nes.fromJSON(this.initialState);
-			
-			// Run a few frames for memory to settle after state load
-			for (let i = 0; i < 10; i++) {
+
+			// Capture state after fromJSON
+			const mem = this.nes.cpu.mem;
+			const afterFromJSON = {
+				x: mem[0x06D] * 256 + mem[0x086],
+				yOff: mem[0x3B8],
+				xOff: mem[0x3AD]
+			};
+
+			// Run settle frames for game to properly start and Mario to spawn
+			// Need ~100 frames for Mario to fall to ground from spawn
+			const SETTLE_FRAMES = 100;
+			for (let i = 0; i < SETTLE_FRAMES; i++) {
 				this.nes.frame();
 			}
-			
+
+			// Capture state after settle frames
+			const afterSettle = {
+				x: mem[0x06D] * 256 + mem[0x086],
+				yOff: mem[0x3B8],
+				xOff: mem[0x3AD],
+				settleFrames: SETTLE_FRAMES
+			};
+
+			// Log reset with both states for comparison
+			telemetry.logReset('headless', afterFromJSON, afterSettle);
+
 			// Clear any button presses from state
 			for (let i = 0; i < 8; i++) {
 				this.nes.buttonUp(1, i);
 			}
 		} else if (this.nes) {
-			console.warn('[HeadlessNES] No initialState, doing hard reset');
+			telemetry.log('headless', 'No initialState, doing hard reset');
 			this.nes.reset();
 		}
 	}
-	
+
 	/**
 	 * Advance one frame
 	 */
@@ -79,7 +117,7 @@ export class HeadlessNES {
 			this.nes.frame();
 		}
 	}
-	
+
 	/**
 	 * Run multiple frames (batch processing)
 	 * @param {number} count - Number of frames to run
@@ -89,7 +127,7 @@ export class HeadlessNES {
 			this.frame();
 		}
 	}
-	
+
 	/**
 	 * Press button
 	 */
@@ -98,7 +136,7 @@ export class HeadlessNES {
 			this.nes.buttonDown(controller, button);
 		}
 	}
-	
+
 	/**
 	 * Release button
 	 */
@@ -107,25 +145,25 @@ export class HeadlessNES {
 			this.nes.buttonUp(controller, button);
 		}
 	}
-	
+
 	/**
 	 * Set button state directly
 	 * @param {number[]} buttons - Array of button indices to press
 	 */
 	setButtons(buttons) {
 		if (!this.nes || !this.isLoaded) return;
-		
+
 		// Release all buttons first
 		for (let i = 0; i < 8; i++) {
 			this.nes.buttonUp(1, i);
 		}
-		
+
 		// Press specified buttons
 		for (const btn of buttons) {
 			this.nes.buttonDown(1, btn);
 		}
 	}
-	
+
 	/**
 	 * Read RAM byte
 	 */
@@ -135,7 +173,7 @@ export class HeadlessNES {
 		}
 		return 0;
 	}
-	
+
 	/**
 	 * Read multiple RAM bytes
 	 * @param {number[]} addresses - Array of addresses
@@ -145,14 +183,14 @@ export class HeadlessNES {
 		if (!this.nes || !this.isLoaded) return addresses.map(() => 0);
 		return addresses.map(addr => this.nes.cpu.mem[addr]);
 	}
-	
+
 	/**
 	 * Get full CPU memory reference (for agent)
 	 */
 	get mem() {
 		return this.nes?.cpu?.mem || null;
 	}
-	
+
 	/**
 	 * Get Mario's current X position (for debugging)
 	 */
@@ -160,7 +198,7 @@ export class HeadlessNES {
 		if (!this.nes?.cpu?.mem) return 0;
 		return this.nes.cpu.mem[0x06D] * 256 + this.nes.cpu.mem[0x086];
 	}
-	
+
 	/**
 	 * Get memory as plain array (for Python interop)
 	 * Converts Uint8Array to regular Array for better PyScript compatibility
@@ -170,7 +208,7 @@ export class HeadlessNES {
 		if (!this.nes?.cpu?.mem) return [];
 		return Array.from(this.nes.cpu.mem);
 	}
-	
+
 	/**
 	 * Get only the RAM addresses needed for Mario AI - MUCH faster than getMemArray()
 	 * Returns a plain object with all values needed for build_inputs, is_dead, did_win, etc.
@@ -179,7 +217,7 @@ export class HeadlessNES {
 	getGameState() {
 		if (!this.nes?.cpu?.mem) return null;
 		const mem = this.nes.cpu.mem;
-		
+
 		// Player position
 		const playerXLevel = mem[0x06D];
 		const playerXScreen = mem[0x086];
@@ -189,7 +227,7 @@ export class HeadlessNES {
 		const playerVerticalScreen = mem[0xB5];
 		const playerState = mem[0x000E];
 		const playerFloatState = mem[0x001D];
-		
+
 		// Enemies (5 slots)
 		const enemies = [];
 		for (let i = 0; i < 5; i++) {
@@ -201,13 +239,13 @@ export class HeadlessNES {
 				yScreen: mem[0xCF + i]
 			});
 		}
-		
+
 		// Tiles: 2 pages × 208 bytes = 416 bytes (much smaller than 65KB!)
 		const tiles = [];
 		for (let i = 0; i < 416; i++) {
 			tiles.push(mem[0x500 + i]);
 		}
-		
+
 		return {
 			playerXLevel,
 			playerXScreen,
@@ -221,7 +259,7 @@ export class HeadlessNES {
 			tiles
 		};
 	}
-	
+
 	/**
 	 * Save state
 	 */
@@ -231,7 +269,7 @@ export class HeadlessNES {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Load state
 	 */
@@ -240,7 +278,7 @@ export class HeadlessNES {
 			this.nes.fromJSON(state);
 		}
 	}
-	
+
 	/**
 	 * Clean up
 	 */
@@ -262,16 +300,16 @@ export class HeadlessNESPool {
 		this.romData = null;
 		this.initialState = null;
 	}
-	
+
 	/**
 	 * Initialize pool with ROM data
 	 */
 	initialize(romBinaryString, initialState = null) {
 		this.romData = romBinaryString;
 		this.initialState = initialState;
-		
-		console.log('[HeadlessNESPool] Initializing pool...');
-		
+
+		telemetry.log('headless', 'Pool initializing', { size: this.size });
+
 		// Create pool of headless instances
 		for (let i = 0; i < this.size; i++) {
 			const instance = new HeadlessNES();
@@ -284,21 +322,23 @@ export class HeadlessNESPool {
 			}
 			this.pool.push(instance);
 		}
-		
+
 		// Verify first instance position
 		if (this.pool.length > 0 && this.pool[0].nes) {
-			const x = this.pool[0].nes.cpu.mem[0x06D] * 256 + this.pool[0].nes.cpu.mem[0x086];
-			console.log(`[HeadlessNESPool] Ready - initial Mario x=${x}`);
+			const mem = this.pool[0].nes.cpu.mem;
+			const x = mem[0x06D] * 256 + mem[0x086];
+			const yOff = mem[0x3B8];
+			telemetry.log('headless', 'Pool ready', { initialX: x, initialYOff: yOff });
 		}
 	}
-	
+
 	/**
 	 * Get an instance from pool
 	 */
 	getInstance(index) {
 		return this.pool[index % this.size];
 	}
-	
+
 	/**
 	 * Reset all instances to initial state
 	 */
@@ -307,7 +347,7 @@ export class HeadlessNESPool {
 			instance.reset();
 		}
 	}
-	
+
 	/**
 	 * Destroy all instances
 	 */
@@ -325,5 +365,5 @@ export function initHeadlessNESFactory() {
 	window.createHeadlessNESPool = (size) => new HeadlessNESPool(size);
 	window.HeadlessNES = HeadlessNES;
 	window.HeadlessNESPool = HeadlessNESPool;
-	console.log('[HeadlessNES] Factory functions available on window');
+	telemetry.log('headless', 'Factory functions available on window');
 }

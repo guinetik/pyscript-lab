@@ -2,6 +2,8 @@
  * Mario AI Agent
  */
 
+import telemetry from '../Telemetry.js';
+
 // Network config (world 1-1)
 const CONFIG = {
 	startRow: 4,
@@ -20,18 +22,18 @@ const RAM = {
 	Player_Y_Position_Screen_Offset: 0x3B8,
 	Player_Y_Pos_On_Screen: 0xCE,
 	Player_Vertical_Screen_Position: 0xB5,
-	
+
 	// Enemies (5 max)
 	Enemy_Drawn: 0x0F,
 	Enemy_Type: 0x16,
 	Enemy_X_Position_In_Level: 0x6E,
 	Enemy_X_Position_On_Screen: 0x87,
 	Enemy_Y_Position_On_Screen: 0xCF,
-	
+
 	// Game state
 	Player_State: 0x0E,
 	Player_Dying: 0x001D,
-	
+
 	// Tiles
 	Tile_Base: 0x500,
 	Tile_Page_Size: 208
@@ -51,19 +53,19 @@ export class Agent {
 		this.W2 = null;
 		this.b2 = null;
 		this.loaded = false;
-		
+
 		this.framesAlive = 0;
 		this.farthestX = 0;
 		this.framesSinceProgress = 0;
 		this.maxFramesStuck = 60 * 3;
-		
+
 		// For debugging
 		this.lastInputs = [];
 		this.lastOutputs = [];
-		
-		console.log('[Agent] Created');
+
+		telemetry.log('agent', 'Agent created');
 	}
-	
+
 	async loadWeights(basePath = '/data/reference_weights') {
 		const [W1, b1, W2, b2] = await Promise.all([
 			fetch(`${basePath}/W1.json`).then(r => r.json()),
@@ -71,43 +73,43 @@ export class Agent {
 			fetch(`${basePath}/W2.json`).then(r => r.json()),
 			fetch(`${basePath}/b2.json`).then(r => r.json())
 		]);
-		
+
 		this.W1 = W1;
 		this.b1 = b1;
 		this.W2 = W2;
 		this.b2 = b2;
 		this.loaded = true;
-		
-		console.log('[Agent] Weights loaded:', {
+
+		telemetry.log('agent', 'Weights loaded', {
 			W1: `${W1.length}x${W1[0].length}`,
 			b1: b1.length,
 			W2: `${W2.length}x${W2[0].length}`,
 			b2: b2.length
 		});
-		
+
 		return this;
 	}
-	
+
 	reset() {
 		this.framesAlive = 0;
 		this.farthestX = 0;
 		this.framesSinceProgress = 0;
 	}
-	
+
 	// Reference: SMB.get_mario_location_in_level
 	getMarioLocationInLevel(ram) {
 		const x = ram[RAM.Player_X_Position_In_Level] * 256 + ram[RAM.Player_X_Position_On_Screen];
 		const y = ram[RAM.Player_Y_Position_Screen_Offset];
 		return { x, y };
 	}
-	
+
 	// Reference: SMB.get_mario_location_on_screen
 	getMarioLocationOnScreen(ram) {
 		const x = ram[RAM.Player_X_Position_Screen_Offset];
 		const y = ram[RAM.Player_Y_Pos_On_Screen] * ram[RAM.Player_Vertical_Screen_Position] + SPRITE_HEIGHT;
 		return { x, y };
 	}
-	
+
 	// Reference: SMB.get_mario_row_col
 	getMarioRowCol(ram) {
 		const y = ram[RAM.Player_Y_Position_Screen_Offset] + 16;
@@ -116,28 +118,28 @@ export class Agent {
 		const row = Math.floor(y / 16);
 		return { row, col };
 	}
-	
+
 	// Reference: SMB.get_tile with group_non_zero_tiles=true
 	getTile(ram, x, y) {
 		const page = Math.floor(x / 256) % 2;
 		const subX = Math.floor((x % 256) / 16);
 		const subY = Math.floor((y - 32) / 16);
-		
+
 		if (subY < 0 || subY >= 13) {
 			return 0; // Empty (StaticTileType.Empty)
 		}
-		
+
 		const addr = RAM.Tile_Base + page * RAM.Tile_Page_Size + subY * 16 + subX;
 		const tile = ram[addr];
-		
+
 		// group_non_zero_tiles: if non-zero, return 1 (Fake/solid)
 		return tile !== 0 ? 1 : 0;
 	}
-	
+
 	// Reference: SMB.get_enemy_locations
 	getEnemies(ram) {
 		const enemies = [];
-		
+
 		for (let i = 0; i < 5; i++) {
 			const drawn = ram[RAM.Enemy_Drawn + i];
 			if (drawn) {
@@ -148,64 +150,64 @@ export class Agent {
 				enemies.push({ x, y });
 			}
 		}
-		
+
 		return enemies;
 	}
-	
+
 	// Reference: SMB.get_tiles - builds tile dictionary for screen
 	getTiles(ram) {
 		const tiles = {};
-		
+
 		const marioLevel = this.getMarioLocationInLevel(ram);
 		const marioScreen = this.getMarioLocationOnScreen(ram);
 		const xStart = marioLevel.x - marioScreen.x;
-		
+
 		const enemies = this.getEnemies(ram);
-		
+
 		let row = 0;
 		for (let yPos = 0; yPos < 240; yPos += 16) {
 			let col = 0;
 			for (let xPos = xStart; xPos < xStart + 256; xPos += 16) {
 				const key = `${row},${col}`;
-				
+
 				// PPU/status bar (first 2 rows)
 				if (row < 2) {
 					tiles[key] = 0;
 				} else {
 					tiles[key] = this.getTile(ram, xPos, yPos);
 				}
-				
+
 				// Check for enemies at this position
 				for (const enemy of enemies) {
 					const ex = enemy.x;
 					const ey = enemy.y + 8; // Reference uses +8 offset
-					
+
 					// Reference: if abs(x_pos - ex) <= 8 and abs(y_pos - ey) <= 8
 					if (Math.abs(xPos - ex) <= 8 && Math.abs(yPos - ey) <= 8) {
 						tiles[key] = -1; // Enemy
 					}
 				}
-				
+
 				col++;
 			}
 			row++;
 		}
-		
+
 		return tiles;
 	}
-	
+
 	// Reference: Mario.set_input_as_array
 	buildInputs(ram) {
 		const { row: marioRow, col: marioCol } = this.getMarioRowCol(ram);
 		const tiles = this.getTiles(ram);
 		const inputs = [];
-		
+
 		// Vision grid: 10 rows starting at row 4, 7 cols starting at mario_col
 		for (let row = CONFIG.startRow; row < CONFIG.startRow + CONFIG.vizHeight; row++) {
 			for (let col = marioCol; col < marioCol + CONFIG.vizWidth; col++) {
 				const key = `${row},${col}`;
 				const tile = tiles[key];
-				
+
 				if (tile === undefined) {
 					inputs.push(0);
 				} else if (tile === -1) {
@@ -217,29 +219,26 @@ export class Agent {
 				}
 			}
 		}
-		
+
 		// Row encoding: one-hot for mario's row relative to vision start
 		const relativeRow = marioRow - CONFIG.startRow;
 		for (let i = 0; i < CONFIG.vizHeight; i++) {
 			inputs.push(i === relativeRow && relativeRow >= 0 && relativeRow < CONFIG.vizHeight ? 1 : 0);
 		}
-		
+
 		this.lastInputs = inputs;
 		return inputs;
 	}
-	
+
 	relu(x) {
 		return Math.max(0, x);
 	}
-	
+
 	sigmoid(x) {
 		return 1.0 / (1.0 + Math.exp(-x));
 	}
-	
+
 	forward(inputs) {
-		// DEBUG: Log first forward pass to verify weights
-		const isFirstPass = this.framesAlive <= 1;
-		
 		// Hidden layer
 		const hidden = [];
 		for (let i = 0; i < CONFIG.hiddenSize; i++) {
@@ -249,7 +248,7 @@ export class Agent {
 			}
 			hidden.push(this.relu(sum));
 		}
-		
+
 		// Output layer
 		const outputs = [];
 		for (let i = 0; i < CONFIG.outputSize; i++) {
@@ -259,54 +258,34 @@ export class Agent {
 			}
 			outputs.push(this.sigmoid(sum));
 		}
-		
-		// DEBUG: Log details on first pass
-		if (isFirstPass) {
-			const inputSum = inputs.reduce((a, b) => a + b, 0);
-			const hiddenSum = hidden.reduce((a, b) => a + b, 0);
-			console.log('[Agent Forward Debug]', {
-				inputSum: inputSum.toFixed(2),
-				b1: this.b1.map(v => v.toFixed(3)),
-				hidden: hidden.map(v => v.toFixed(3)),
-				b2: this.b2.map(v => v.toFixed(3)),
-				preActivation: outputs.map((o, i) => {
-					let sum = this.b2[i];
-					for (let j = 0; j < hidden.length; j++) sum += this.W2[i][j] * hidden[j];
-					return sum.toFixed(3);
-				}),
-				outputs: outputs.map(v => v.toFixed(3))
-			});
-		}
-		
+
 		this.lastOutputs = outputs;
 		return outputs;
 	}
-	
+
 	isDead(ram) {
 		const state = ram[RAM.Player_State];
 		return state === 0x0B || state === 0x06 || ram[0xB5] === 2;
 	}
-	
+
 	didWin(ram) {
 		return ram[0x001D] === 3;
 	}
-	
+
 	update(nes) {
 		if (!this.loaded) return [];
-		
+
 		const ram = nes.cpu.mem;
 		this.framesAlive++;
-		
+
 		if (this.isDead(ram)) {
-			console.log('[Agent] Mario died at frame', this.framesAlive);
 			return [];
 		}
-		
+
 		if (this.didWin(ram)) {
-			console.log('[Agent] Mario won at frame', this.framesAlive);
 			return [];
 		}
-		
+
 		const pos = this.getMarioLocationInLevel(ram);
 		if (pos.x > this.farthestX) {
 			this.farthestX = pos.x;
@@ -314,50 +293,18 @@ export class Agent {
 		} else {
 			this.framesSinceProgress++;
 		}
-		
+
 		if (this.framesSinceProgress > this.maxFramesStuck) {
-			console.log('[Agent] Mario stuck at x=', pos.x);
 			return [];
 		}
-		
+
 		const inputs = this.buildInputs(ram);
 		const outputs = this.forward(inputs);
-		
-		// Debug logging
-		if (this.framesAlive % 60 === 0 || this.framesAlive < 5) {
-			const { row, col } = this.getMarioRowCol(ram);
-			const vision = inputs.slice(0, 70);
-			const rowEnc = inputs.slice(70);
-			const solids = vision.filter(v => v === 1).length;
-			const enemies = vision.filter(v => v === -1).length;
-			const activeRow = rowEnc.findIndex(v => v === 1);
-			const buttonNames = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'A', 'B'];
-			const active = outputs.map((v, i) => v > 0.5 ? buttonNames[i] : null).filter(Boolean);
-			
-			console.log(`[Agent] Frame ${this.framesAlive}: x=${pos.x} row=${row} col=${col}`);
-			console.log(`  Vision: ${solids} solids, ${enemies} enemies, rowEnc=${activeRow}`);
-			console.log(`  Outputs: [${outputs.map(v => v.toFixed(3)).join(', ')}]`);
-			console.log(`  Buttons: [${active.join(', ')}]`);
-			
-			// Print vision grid for first few frames
-			if (this.framesAlive < 3) {
-				let grid = '\n';
-				for (let r = 0; r < 10; r++) {
-					let line = `  Row ${r + 4}: `;
-					for (let c = 0; c < 7; c++) {
-						const v = vision[r * 7 + c];
-						line += v === 1 ? '█' : v === -1 ? 'E' : '.';
-					}
-					grid += line + '\n';
-				}
-				console.log('Vision grid:' + grid);
-			}
-		}
-		
+
 		// Convert to button presses
 		// Network outputs: [UP, DOWN, LEFT, RIGHT, A, B]
 		// OUTPUT_TO_BUTTON: [4, 5, 6, 7, 0, 1]
-		// 
+		//
 		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		// DO NOT REMOVE THE UP/DOWN FILTERING BELOW!
 		// The reference weights were trained with this filtering.
@@ -375,15 +322,10 @@ export class Agent {
 				}
 			}
 		}
-		
-		// Debug: log actual button indices being returned
-		if (this.framesAlive % 60 === 0 || this.framesAlive < 5) {
-			console.log(`  Returned buttons (indices): [${buttons.join(', ')}]`);
-		}
-		
+
 		return buttons;
 	}
-	
+
 	getStats(nes) {
 		const ram = nes.cpu.mem;
 		const pos = this.getMarioLocationInLevel(ram);
