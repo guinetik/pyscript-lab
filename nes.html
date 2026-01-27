@@ -48,11 +48,11 @@
 	<div id="controls">
 		<button onclick="document.getElementById('romFile').click()">Load ROM File</button>
 		<input type="file" id="romFile" accept=".nes" onchange="handleROMFile(event)">
-		<button onclick="loadROMFromURL()">Load from /data/mario.nes</button>
+		<button onclick="loadROMFromURL()">Load from /data/package.nes</button>
 		<button onclick="toggleAudio()">Toggle Audio</button>
 	</div>
 	<canvas id="nes-canvas" width="256" height="240"></canvas>
-	<div id="status">Load a ROM or use /data/mario.nes</div>
+	<div id="status">Load a ROM or use /data/package.nes</div>
 
 	<script src="https://unpkg.com/jsnes@1.2.1/dist/jsnes.min.js"></script>
 	<script>
@@ -224,10 +224,10 @@
 		}
 
 		async function loadROMFromURL() {
-			updateStatus('Loading ROM from /data/mario.nes...');
+			updateStatus('Loading ROM from /data/package.nes...');
 			
 			try {
-				const response = await fetch('/data/mario.nes');
+				const response = await fetch('/data/package.nes');
 				if (!response.ok) {
 					throw new Error(`Failed to fetch ROM: ${response.statusText}`);
 				}
