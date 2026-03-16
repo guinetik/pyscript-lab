@@ -21,46 +21,65 @@ SPRITE_HEIGHT = 16
 
 def convert_state(js_state):
     """Convert JsProxy state to pure Python dict for faster access.
-    
+
     Call this once per state, then use the result for all operations.
     Avoids repeated JsProxy boundary crossing overhead.
+
+    NOTE: to_py() returns empty dict for JS objects from HeadlessNES.
+    We must manually extract properties using dot notation on JsProxy.
     """
     if js_state is None:
         return None
-        
+
     # Already a dict? Return as-is
     if isinstance(js_state, dict):
         return js_state
-    
-    # Convert JsProxy to Python
-    if hasattr(js_state, 'to_py'):
-        return js_state.to_py()
-    
-    # Manual conversion for JsProxy without to_py
-    tiles = js_state['tiles']
-    if hasattr(tiles, 'to_py'):
-        tiles = tiles.to_py()
-    else:
-        tiles = list(tiles)
-        
-    enemies = js_state['enemies']
-    if hasattr(enemies, 'to_py'):
-        enemies = enemies.to_py()
-    else:
-        enemies = [dict(e) if hasattr(e, 'keys') else e for e in enemies]
-    
-    return {
-        'playerXLevel': int(js_state['playerXLevel']),
-        'playerXScreen': int(js_state['playerXScreen']),
-        'playerXScreenOffset': int(js_state['playerXScreenOffset']),
-        'playerYScreenOffset': int(js_state['playerYScreenOffset']),
-        'playerYScreen': int(js_state['playerYScreen']),
-        'playerVerticalScreen': int(js_state['playerVerticalScreen']),
-        'playerState': int(js_state['playerState']),
-        'playerFloatState': int(js_state['playerFloatState']),
-        'tiles': tiles,
-        'enemies': enemies
-    }
+
+    # JsProxy: access properties via dot notation (NOT subscript!)
+    # to_py() returns {} for these objects, so we extract manually
+    try:
+        # Extract scalar values first
+        xLevel = int(js_state.playerXLevel)
+        xScreen = int(js_state.playerXScreen)
+        xOff = int(js_state.playerXScreenOffset)
+        yOff = int(js_state.playerYScreenOffset)
+
+        # Extract tiles array
+        tiles_proxy = js_state.tiles
+        if hasattr(tiles_proxy, 'to_py'):
+            tiles = tiles_proxy.to_py()
+        else:
+            tiles = list(tiles_proxy)
+
+        # Extract enemies array
+        enemies_proxy = js_state.enemies
+        enemies = []
+        for i in range(5):  # Always 5 enemy slots
+            e = enemies_proxy[i]
+            enemies.append({
+                'drawn': int(e.drawn),
+                'type': int(e.type),
+                'xLevel': int(e.xLevel),
+                'xScreen': int(e.xScreen),
+                'yScreen': int(e.yScreen)
+            })
+
+        return {
+            'playerXLevel': xLevel,
+            'playerXScreen': xScreen,
+            'playerXScreenOffset': xOff,
+            'playerYScreenOffset': yOff,
+            'playerYScreen': int(js_state.playerYScreen),
+            'playerVerticalScreen': int(js_state.playerVerticalScreen),
+            'playerState': int(js_state.playerState),
+            'playerFloatState': int(js_state.playerFloatState),
+            'tiles': tiles,
+            'enemies': enemies
+        }
+    except Exception as e:
+        from js import window
+        window.telemetryLog('trainer', f'convert_state error: {e}')
+        return None
 
 
 def get_mario_location_in_level(state):
@@ -260,45 +279,63 @@ def is_dead(state):
 
 def did_win(state):
     """Check if Mario reached the flag.
-    
+
     Args:
         state: Game state object or full memory array
+
+    Returns:
+        True only if playerFloatState==3 AND Mario is past the finish line (x > 3000).
+        This prevents false positives from stale emulator state.
     """
     if isinstance(state, dict) or hasattr(state, 'playerFloatState'):
         float_state = state['playerFloatState']
     else:
         float_state = state[0x001D]
-    return float_state == 3
+
+    # Must have flag state AND be at finish line (prevents stale state bugs)
+    if float_state != 3:
+        return False
+
+    x = get_mario_location_in_level(state)
+    return x > 3000  # Finish line is around 3100+
 
 
 def calculate_fitness(distance, frames, score=0, died=False, won=False):
-    """Calculate fitness score.
-    
+    """Calculate fitness score - matches SuperMarioBros-AI reference exactly.
+
+    Reference formula:
+    fitness = max(
+        distance ** 1.8 -
+        frames ** 1.5 +
+        min(max(distance - 50, 0), 1) * 2500 +
+        did_win * 1e6,
+        0.00001
+    )
+
     Args:
         distance: X position reached
         frames: Number of frames taken
-        score: Game score (optional)
-        died: Whether Mario died
+        score: Game score (optional, not used in reference)
+        died: Whether Mario died (not used in reference)
         won: Whether Mario reached flag
-        
+
     Returns:
-        Fitness value
+        Fitness value (always positive, min 0.00001)
     """
-    # Base fitness is distance with exponential reward
-    fitness = distance ** 1.5
-    
-    # Time penalty (encourage faster completion)
-    fitness -= frames * 0.1
-    
-    # Score bonus
-    fitness += score * 2
-    
-    # Death penalty
-    if died:
-        fitness -= 100
-        
-    # Win bonus
+    # Distance reward - exponential (^1.8 heavily rewards progress)
+    fitness = distance ** 1.8
+
+    # Time penalty - exponential (^1.5 makes later frames increasingly costly)
+    fitness -= frames ** 1.5
+
+    # Bonus for getting past starting area (distance > 50)
+    # This is a discrete +2500 bonus, capped at 1 occurrence
+    if distance > 50:
+        fitness += 2500
+
+    # Win bonus - massive reward for completing level
     if won:
-        fitness += 10000
-        
-    return max(0, fitness)
+        fitness += 1e6  # 1,000,000
+
+    # Ensure positive (required for roulette wheel selection)
+    return max(0.00001, fitness)

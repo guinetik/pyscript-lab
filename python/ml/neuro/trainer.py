@@ -6,10 +6,22 @@ Yields after EACH generation to keep browser responsive.
 
 import asyncio
 import numpy as np
-from js import window, console
+from js import window
 import json
 import time
 import copy
+
+
+def tlog(message, data=None):
+    """Log to telemetry system."""
+    if hasattr(window, 'telemetryLog'):
+        window.telemetryLog('trainer', message, data)
+
+
+def tlog_frame(frame_num, state):
+    """Log frame state to telemetry for comparison."""
+    if hasattr(window, 'telemetryLogFrame'):
+        window.telemetryLogFrame('headless', frame_num, state)
 
 from .agent import NeuralAgent, Population
 from .utils import (
@@ -42,7 +54,8 @@ class Trainer:
         self.headless_pool = None
         self.initial_state = None
         self.rom_data = None
-        
+        self.mode = 'simple'  # Evolution mode
+
         # State
         self.running = False
         self.total_generations = 0
@@ -51,10 +64,15 @@ class Trainer:
         # Track BEST BY DISTANCE (what we actually care about)
         self.best_distance_ever = 0
         self.best_distance_weights = None
-        
+
         # Track best fitness too for stats
         self.best_fitness_ever = 0
-        
+
+        # Track wins
+        self.total_wins = 0
+        self.best_win_frames = float('inf')  # Fewest frames to win
+        self.best_win_weights = None
+
         self.level_complete = False
         
         # Callbacks (set from JS)
@@ -65,17 +83,19 @@ class Trainer:
         
     def initialize(self, rom_data, initial_state, mode='simple'):
         """Initialize with ROM and state.
-        
+
         Args:
             rom_data: NES ROM binary
             initial_state: NES state to start from
-            mode: Evolution mode ('simple', 'sbx', 'uniform')
+            mode: Evolution mode ('simple', 'sbx', 'uniform', 'optimize')
         """
         self.rom_data = rom_data
         self.initial_state = initial_state
-        
+        self.mode = mode  # Store mode for later checks
+
         # Create population with specified mode
-        self.population = Population(20, mode=mode)
+        # Reference uses 100 agents (10 parents + 90 offspring)
+        self.population = Population(100, mode=mode)
         self.population.initialize()
         
         # Create headless pool - pass window references directly to avoid proxy issues
@@ -91,9 +111,9 @@ class Trainer:
             # Verify pool is working
             test_nes = self.headless_pool.getInstance(0)
             test_x = test_nes.getMarioX()
-            console.log(f"[Trainer] HeadlessNES pool ready - initial Mario x={test_x}")
+            tlog('HeadlessNES pool ready', {'initialX': test_x})
         else:
-            console.error("[Trainer] HeadlessNES not available!")
+            tlog('HeadlessNES not available!')
             return False
             
         # Reset state
@@ -103,9 +123,12 @@ class Trainer:
         self.best_distance_ever = 0
         self.best_distance_weights = None
         self.best_fitness_ever = 0
+        self.total_wins = 0
+        self.best_win_frames = float('inf')
+        self.best_win_weights = None
         self.level_complete = False
         
-        console.log("[Trainer] Initialized")
+        tlog('Initialized')
         return True
         
     async def start(self):
@@ -115,48 +138,60 @@ class Trainer:
         This lets you see the agent multiple times, then train to improve.
         """
         if self.running:
-            console.log("[Trainer] Already running")
+            tlog('Already running')
             return
-            
+
         self.running = True
-        console.log(f"[Trainer] Starting training loop ({FOREGROUND_SESSIONS} foreground, {BACKGROUND_GENERATIONS} background)")
+        tlog('Starting training loop', {'foregroundSessions': FOREGROUND_SESSIONS, 'backgroundGenerations': BACKGROUND_GENERATIONS})
         
         # Main training loop
         while self.running and self.total_generations < MAX_GENERATIONS:
             
             # === FOREGROUND PHASE ===
             # Show current best agent multiple times
+            if hasattr(window, 'telemetrySetPhase'):
+                window.telemetrySetPhase('foreground')
             if self.on_state:
                 self.on_state("FOREGROUND")
                 
+            self._foreground_won = False  # Track if agent wins during foreground
             for session in range(FOREGROUND_SESSIONS):
                 if not self.running:
                     break
-                    
+
                 if self.on_foreground:
-                    # Use best weights if we have them, otherwise use a random agent's weights
-                    if self.best_distance_weights:
+                    # Priority: fastest winner > best distance > random
+                    if self.best_win_weights:
+                        weights_json = json.dumps(self.best_win_weights)
+                        tlog('Foreground session', {'session': session + 1, 'total': FOREGROUND_SESSIONS, 'type': 'WINNER', 'frames': self.best_win_frames})
+                    elif self.best_distance_weights:
                         weights_json = json.dumps(self.best_distance_weights)
-                        # Debug: log weight signature to verify correct weights
                         w1_sum = sum(sum(row) for row in self.best_distance_weights['W1'])
-                        console.log(f"[Trainer] Foreground {session + 1}/{FOREGROUND_SESSIONS} - champion ({self.best_distance_ever}px) W1sum={w1_sum:.2f}")
+                        tlog('Foreground session', {'session': session + 1, 'total': FOREGROUND_SESSIONS, 'type': 'champion', 'distance': self.best_distance_ever, 'W1sum': w1_sum})
                     else:
                         # First run - use random weights from first agent
                         weights_json = json.dumps(self.population.agents[0].get_weights())
-                        console.log(f"[Trainer] Foreground {session + 1}/{FOREGROUND_SESSIONS} - random agent")
-                        
+                        tlog('Foreground session', {'session': session + 1, 'total': FOREGROUND_SESSIONS, 'type': 'random'})
+
                     self.on_foreground(weights_json)
-                    
-                    # Wait for foreground to complete (death/stuck)
+
+                    # Wait for foreground to complete (death/stuck/win)
                     self._waiting_for_foreground = True
                     while self._waiting_for_foreground and self.running:
                         await asyncio.sleep(0.1)
+
+                    # If agent won, skip remaining foreground sessions
+                    if self._foreground_won:
+                        tlog('Agent won - skipping remaining foreground sessions')
+                        break
                     
             if not self.running:
                 break
                 
             # === BACKGROUND PHASE ===
             # Train for X generations
+            if hasattr(window, 'telemetrySetPhase'):
+                window.telemetrySetPhase('background')
             if self.on_state:
                 self.on_state("BACKGROUND")
                 await asyncio.sleep(0.05)  # Let UI render
@@ -169,45 +204,95 @@ class Trainer:
                 
                 # Check if level complete
                 if self.level_complete:
-                    console.log("[Trainer] LEVEL COMPLETE!")
+                    tlog('LEVEL COMPLETE!')
                     if self.on_complete:
                         self.on_complete(True)
                     self.running = False
                     break
                 
                 # Auto-restart: if stuck after N generations, start fresh
-                if (self.total_generations == AUTO_RESTART_GENERATIONS and 
+                # Skip for optimize mode since we're starting from good weights
+                if (self.mode != 'optimize' and
+                    self.total_generations == AUTO_RESTART_GENERATIONS and
                     self.best_distance_ever < AUTO_RESTART_MIN_DISTANCE):
-                    console.log(f"[Trainer] AUTO-RESTART: Only {self.best_distance_ever}px after {AUTO_RESTART_GENERATIONS} gens (need {AUTO_RESTART_MIN_DISTANCE}px)")
+                    tlog('AUTO-RESTART', {'distance': self.best_distance_ever, 'generations': AUTO_RESTART_GENERATIONS, 'minRequired': AUTO_RESTART_MIN_DISTANCE})
                     self._auto_restart()
                     break  # Exit inner loop to restart foreground phase
-                    
+
+            # Dump telemetry at end of background phase
+            if hasattr(window, 'telemetryDump'):
+                window.telemetryDump(f'Background Phase (Gen {self.total_generations})')
+
         # Done
         self.running = False
         if self.on_state:
             self.on_state("IDLE")
-        console.log("[Trainer] Training loop ended")
+        tlog('Training loop ended')
         
     async def _train_one_generation(self):
         """Train a single generation - yields to browser after."""
         start_time = time.time()
-        
+
+        # Sanity check: if best_win_frames is impossibly low, it's from a bug - reset it
+        if self.best_win_frames < 500:
+            tlog('Invalid best_win_frames - resetting', {'bestWinFrames': self.best_win_frames})
+            self.best_win_frames = float('inf')
+            self.best_win_weights = None
+
+        # CRITICAL: Inject best-ever weights into population slot 0
+        # This prevents losing the champion to mutation drift
+        champion_weights = self.best_win_weights or self.best_distance_weights
+        champion_injected = False
+        if champion_weights:
+            self.population.inject_champion(champion_weights)
+            champion_injected = True
+
         # Evaluate all agents
         gen_best_distance = 0
         gen_best_agent = None
-        
+        gen_wins = 0
+
         for i, agent in enumerate(self.population.agents):
             if not self.running:
                 break
-                
+
+            # Skip evaluation for injected champion (slot 0) - preserve its guaranteed top position
+            if i == 0 and champion_injected:
+                # Give champion a high fitness based on its known performance
+                if self.best_win_weights and self.best_win_frames >= 500:
+                    agent.fitness = 500000 + (3000 - self.best_win_frames) * 100  # Match win fitness formula
+                    agent.won = True
+                    agent.frames = self.best_win_frames
+                    agent.farthest_x = 3200  # Past finish line
+                    gen_wins += 1  # Count champion's win in gen stats
+                else:
+                    agent.fitness = self.best_fitness_ever
+                    agent.farthest_x = self.best_distance_ever
+                # Track for gen stats
+                if agent.farthest_x > gen_best_distance:
+                    gen_best_distance = agent.farthest_x
+                    gen_best_agent = agent
+                tlog('Champion preserved', {'slot': 0, 'fitness': agent.fitness, 'distance': agent.farthest_x})
+                continue
+
             fitness = self._evaluate_agent(agent, i)
             agent.fitness = fitness
-            
+
+            # Track wins (sanity check: must take at least 500 frames to actually win)
+            if getattr(agent, 'won', False) and agent.frames >= 500:
+                gen_wins += 1
+                self.total_wins += 1
+                # Track fastest win
+                if agent.frames < self.best_win_frames:
+                    self.best_win_frames = agent.frames
+                    self.best_win_weights = copy.deepcopy(agent.get_weights())
+                    tlog('NEW FASTEST WIN', {'frames': agent.frames})
+
             # Track best distance this generation
             if agent.farthest_x > gen_best_distance:
                 gen_best_distance = agent.farthest_x
                 gen_best_agent = agent
-                
+
             # Track best distance EVER
             if agent.farthest_x > self.best_distance_ever:
                 self.best_distance_ever = agent.farthest_x
@@ -215,20 +300,21 @@ class Trainer:
                 self.best_distance_weights = copy.deepcopy(agent.get_weights())
                 # Debug: log weight signature to verify saves
                 w1_sum = sum(sum(row) for row in self.best_distance_weights['W1'])
-                console.log(f"[Trainer] NEW BEST DISTANCE: {self.best_distance_ever} (W1sum={w1_sum:.2f})")
-                
+                tlog('NEW BEST DISTANCE', {'distance': self.best_distance_ever, 'W1sum': w1_sum})
+
             if agent.fitness > self.best_fitness_ever:
                 self.best_fitness_ever = agent.fitness
-                
-            if agent.farthest_x > 3000:
+
+            # In optimize mode, don't stop on level complete - keep training for better performance
+            if agent.farthest_x > 3000 and self.mode != 'optimize':
                 self.level_complete = True
-                
+
         # Evolve population
         self.population.evolve()
         self.total_generations += 1
-        
+
         elapsed = time.time() - start_time
-        
+
         # Progress callback
         if self.on_progress:
             self.on_progress(
@@ -236,8 +322,17 @@ class Trainer:
                 self.best_fitness_ever,
                 self.best_distance_ever
             )
-            
-        console.log(f"[Gen {self.total_generations}] best_dist={self.best_distance_ever}, gen_dist={gen_best_distance} ({elapsed:.1f}s)")
+
+        # Log generation summary
+        tlog('Generation complete', {
+            'generation': self.total_generations,
+            'bestDistance': self.best_distance_ever,
+            'genDistance': gen_best_distance,
+            'genWins': gen_wins,
+            'bestWinFrames': self.best_win_frames if self.best_win_frames < float('inf') else None,
+            'elapsed': elapsed,
+            'bestFitness': self.best_fitness_ever
+        })
         
         # YIELD to browser - this is critical!
         await asyncio.sleep(0)
@@ -272,6 +367,19 @@ class Trainer:
             inputs = build_inputs(state)
             outputs = agent.forward(inputs)
             buttons = agent.get_buttons(outputs)
+
+            # Debug: log first few frames to compare with JS
+            if frames < 5 or frames in [60, 120, 180]:
+                x = get_mario_location_in_level(state)
+                row, col = (state['playerYScreenOffset'] + 16) // 16, (state['playerXScreenOffset'] + 12) // 16
+                solids = sum(1 for v in inputs[:70] if v == 1)
+                # Raw RAM values for comparison
+                yOff = state['playerYScreenOffset']
+                xOff = state['playerXScreenOffset']
+                tlog_frame(frames, {
+                    'x': x, 'row': row, 'col': col, 'solids': solids,
+                    'yOff': yOff, 'xOff': xOff, 'buttons': list(buttons)
+                })
             
             # Early termination: if agent keeps pressing LEFT at start, kill it
             # LEFT button index is 6 in JSNes
@@ -297,38 +405,46 @@ class Trainer:
             else:
                 stuck_frames += 1
                 
-            if is_dead(state) or did_win(state) or stuck_frames > STUCK_THRESHOLD:
+            won = did_win(state)
+            if is_dead(state) or won or stuck_frames > STUCK_THRESHOLD:
+                # Store win info on agent for tracking
+                agent.won = won
+                agent.frames = frames
                 break
-                
-        return calculate_fitness(agent.farthest_x, frames, died=is_dead(state), won=did_win(state))
+
+        won = did_win(state) if state else False
+        agent.won = won
+        agent.frames = frames
+        return calculate_fitness(agent.farthest_x, frames, died=is_dead(state) if state else False, won=won)
         
     def _auto_restart(self):
         """Reset population and stats for a fresh start."""
-        console.log("[Trainer] Resetting population for fresh start...")
-        
+        tlog('Resetting population for fresh start')
+
         # Reset population with fresh random weights
         self.population.initialize()
-        
+
         # Reset tracking stats
         self.total_generations = 0
         self.best_distance_ever = 0
         self.best_distance_weights = None
         self.best_fitness_ever = 0
-        
+
         # Clear elite pool if using crossover modes
         if hasattr(self.population, 'elite_pool'):
             self.population.elite_pool = []
+
+        tlog('Fresh population ready - restarting training')
         
-        console.log("[Trainer] Fresh population ready - restarting training")
-        
-    def resume_from_foreground(self):
+    def resume_from_foreground(self, did_win=False):
         """Called by JS when foreground display is done."""
-        console.log("[Trainer] Foreground complete, resuming...")
+        tlog('Foreground complete', {'won': did_win})
+        self._foreground_won = did_win
         self._waiting_for_foreground = False
-        
+
     def stop(self):
         """Stop training."""
-        console.log("[Trainer] Stopping...")
+        tlog('Stopping')
         self.running = False
         self._waiting_for_foreground = False
         
@@ -379,9 +495,8 @@ def init_trainer(on_progress, on_foreground, on_state, on_complete, mode='simple
     # Get ROM and state directly from window (avoids proxy issues)
     rom_data = window._trainingRomData
     initial_state = window._trainingInitialState
-    
-    console.log(f"[Trainer] Got ROM ({len(str(rom_data))} chars) and state from window")
-    console.log(f"[Trainer] Evolution mode: {mode}")
+
+    tlog('Got ROM and state from window', {'romLength': len(str(rom_data)), 'mode': mode})
     
     return trainer.initialize(rom_data, initial_state, mode=mode)
 
@@ -396,10 +511,10 @@ def stop_training():
     trainer = get_trainer()
     trainer.stop()
 
-def foreground_complete():
+def foreground_complete(did_win=False):
     """Called by JS when foreground display is done."""
     trainer = get_trainer()
-    trainer.resume_from_foreground()
+    trainer.resume_from_foreground(did_win)
 
 def get_stats():
     """Get current training stats as JSON."""
@@ -412,7 +527,7 @@ def reset_trainer():
     if _trainer:
         _trainer.stop()
     _trainer = None
-    console.log("[Trainer] Reset")
+    tlog('Reset')
 
 
 def setup_js_bridge():
@@ -423,4 +538,4 @@ def setup_js_bridge():
     window.foregroundComplete = foreground_complete
     window.getTrainerStats = get_stats
     window.resetTrainer = reset_trainer
-    console.log("[Trainer] JS bridge ready")
+    tlog('JS bridge ready')
