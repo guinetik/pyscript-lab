@@ -14,6 +14,11 @@
 
 	// Animation state (not reactive - used only in animation loop)
 	let pulsePhase = 0;
+	let lastDrawTime = 0;
+
+	// Throttle: 30fps to reduce main-thread load (was 60fps)
+	const TARGET_FPS = 30;
+	const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
 
 	// Layout constants - HORIZONTAL LAYOUT (rows not columns)
 	const CANVAS_WIDTH = 1000;
@@ -46,25 +51,51 @@
 	};
 
 	$effect(() => {
+		const hasData = vizData && vizData.layer_sizes;
+
 		if (canvas) {
 			ctx = canvas.getContext('2d');
-			startAnimation();
+
+			if (hasData) {
+				startAnimation();
+			} else {
+				stopAnimation();
+				drawEmptyState();
+			}
 		}
 
-		return () => {
-			if (animationFrameId) {
-				cancelAnimationFrame(animationFrameId);
-			}
-		};
+		return () => stopAnimation();
 	});
 
+	function stopAnimation() {
+		if (animationFrameId) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+	}
+
 	function startAnimation() {
-		function animate() {
+		stopAnimation();
+		lastDrawTime = 0;
+
+		function animate(timestamp) {
+			animationFrameId = requestAnimationFrame(animate);
+
+			// Throttle to TARGET_FPS - skip frame if too soon
+			if (timestamp - lastDrawTime < FRAME_INTERVAL_MS) return;
+			lastDrawTime = timestamp;
+
+			// Pause if vizData was cleared (e.g. training reset)
+			if (!vizData || !vizData.layer_sizes) {
+				drawEmptyState();
+				return;
+			}
+
 			pulsePhase = (pulsePhase + 0.01) % (Math.PI * 2);
 			drawNetwork();
-			animationFrameId = requestAnimationFrame(animate);
 		}
-		animate();
+
+		animationFrameId = requestAnimationFrame(animate);
 	}
 
 	function drawNetwork() {

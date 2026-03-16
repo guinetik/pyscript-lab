@@ -15,16 +15,16 @@
   // Default to standard if not provided
   const split = props.split || 'standard';
 </script>
-<main class="w-full h-[calc(100%-120px)]">
-  <div class="py-10 w-full flex items-center justify-center h-full">
-    <div class="bg-white rounded-lg shadow-2xl overflow-hidden w-10/12">
+<main class="w-full min-h-[calc(100vh-120px)] flex flex-col">
+  <div class="py-10 w-full flex-1 min-h-0 flex items-stretch justify-center">
+    <div class="bg-white rounded-lg shadow-2xl overflow-hidden w-10/12 flex flex-col min-h-0">
       <!--     image -->
-      <div class="md:flex">
-        <section class="bg-slate-300 md:flex-grow md:w-full min-h-[380px] md:rounded-l-lg {split === 'balanced' ? 'lg:w-1/2' : 'lg:w-3/4'}">
+      <div class="md:flex flex-1 min-h-0">
+        <section class="bg-slate-300 md:flex-grow md:w-full min-h-[380px] md:rounded-l-lg flex flex-col {split === 'balanced' ? 'lg:w-1/2' : 'lg:w-3/4'}">
           <slot name="py_slot" />
         </section>
         <section
-          class="p-4 space-y-3 md:w-1/2 border-t border-slate-900 md:border-l md:rounded-r-lg {split === 'balanced' ? 'lg:w-1/2' : 'lg:w-4/12'}"
+          class="p-4 space-y-3 md:w-1/2 border-t border-slate-900 md:border-l md:rounded-r-lg flex flex-col {split === 'balanced' ? 'lg:w-1/2' : 'lg:w-4/12'}"
         >
           <slot name="content_slot" />
           <div class="flex">

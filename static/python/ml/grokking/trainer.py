@@ -288,7 +288,7 @@ class GrokTrainer:
         print(f"[Trainer] Initialized: {len(self.train_data)} train, {len(self.test_data)} test")
         return len(self.train_data), len(self.test_data)
     
-    async def train(self, max_epochs=50000, epochs_per_yield=3, ui_update_interval=15):
+    async def train(self, max_epochs=50000, epochs_per_yield=3, ui_update_interval=50):
         """
         Train with periodic yields for UI responsiveness.
         

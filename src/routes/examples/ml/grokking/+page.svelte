@@ -305,7 +305,7 @@
 		{/if}
 	</div>
 	
-	<div slot="content_slot" class="space-y-4 overflow-y-auto max-h-[600px]">
+	<div slot="content_slot" class="space-y-4">
 		<h2 class="text-xl font-bold">{$exampleText.title || 'Grokking Neural Networks'}</h2>
 		
 		<!-- What is Grokking -->

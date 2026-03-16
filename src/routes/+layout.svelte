@@ -33,7 +33,9 @@
 {:else}
 	<Nav />
 
-	<main class="flex h-[calc(100%-120px)] w-full flex-col justify-center">
-		{@render children()}
+	<main class="flex min-h-[calc(100vh-120px)] w-full flex-col">
+		<div class="flex-1 min-h-0 flex flex-col">
+			{@render children()}
+		</div>
 	</main>
 {/if}
