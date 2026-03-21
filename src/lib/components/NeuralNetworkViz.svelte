@@ -481,12 +481,13 @@
 
 <style>
 	.neural-viz-container {
-		background: #0f172a;
+		background: #FBF8F3;
 		border-radius: 8px;
-		border: 2px solid #1e293b;
+		border: 1px solid #D6CFC5;
 		padding: 12px;
 		overflow: visible;
 		width: 100%;
+		box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 	}
 
 	.neural-canvas {
@@ -501,9 +502,9 @@
 		gap: 16px;
 		margin-top: 12px;
 		padding: 8px;
-		background: #1e293b;
+		background: #F3EDE4;
 		border-radius: 4px;
-		font-family: monospace;
+		font-family: 'Source Code Pro', monospace;
 		font-size: 12px;
 	}
 
@@ -513,11 +514,11 @@
 	}
 
 	.label {
-		color: #94a3b8;
+		color: #6B6560;
 		font-weight: 600;
 	}
 
 	.value {
-		color: #22d3ee;
+		color: #306998;
 	}
 </style>
