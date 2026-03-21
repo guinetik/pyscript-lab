@@ -2,6 +2,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import NeuralNetworkViz from '$lib/components/NeuralNetworkViz.svelte';
 	import MetricsChart from '$lib/components/MetricsChart.svelte';
 	import BreedingViz from '$lib/components/BreedingViz.svelte';
@@ -312,21 +314,21 @@
 		
 		<!-- Keyboard Controls Help -->
 		{#if mode === 'playing'}
-			<div class="bg-purple-50 border-2 border-purple-200 rounded p-3">
-				<h3 class="font-bold text-purple-900 mb-2">⌨️ Keyboard Controls</h3>
-				<div class="grid grid-cols-2 gap-2 text-sm text-purple-800">
-					<div><kbd class="bg-purple-100 px-1 rounded">←→↑↓</kbd> Move</div>
-					<div><kbd class="bg-purple-100 px-1 rounded">Z</kbd> Jump</div>
-					<div><kbd class="bg-purple-100 px-1 rounded">X</kbd> Run</div>
-					<div><kbd class="bg-purple-100 px-1 rounded">Enter</kbd> Start</div>
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">⌨️ Keyboard Controls</h3>
+				<div class="grid grid-cols-2 gap-2 text-sm">
+					<div><kbd class="bg-surface-alt px-1 rounded">←→↑↓</kbd> Move</div>
+					<div><kbd class="bg-surface-alt px-1 rounded">Z</kbd> Jump</div>
+					<div><kbd class="bg-surface-alt px-1 rounded">X</kbd> Run</div>
+					<div><kbd class="bg-surface-alt px-1 rounded">Enter</kbd> Start</div>
 				</div>
-			</div>
+			</Callout>
 		{/if}
 	</div>
 	
 	<div slot="content_slot" class="space-y-4">
 		<div>
-			<h2 class="text-xl font-bold text-slate-900">Mario AI — Neuroevolution</h2>
+			<h2 class="text-xl font-heading font-bold text-text-primary">Mario AI — Neuroevolution</h2>
 			<p class="mt-1 text-sm text-slate-600 leading-relaxed">
 				PyScript runs a full population in Python; the NES game view and charts are in the browser. Use
 				<strong>Play</strong> for human control, <strong>Start AI</strong> for a single network playing live, and
@@ -347,28 +349,28 @@
 		
 		<!-- Info Sections -->
 		<div class="space-y-3">
-			<div class="bg-purple-50 border-2 border-purple-200 rounded p-4">
-				<h3 class="font-bold text-purple-900 mb-2">🧬 What is neuroevolution?</h3>
-				<p class="text-sm text-purple-800 leading-relaxed">
+			<Callout>
+				<h3 class=”mb-2 font-heading font-bold”>🧬 What is neuroevolution?</h3>
+				<p class=”text-sm leading-relaxed”>
 					Instead of gradients (backprop), we <strong>score</strong> many networks by how far Mario gets, then
 					<strong>breed and mutate</strong> the best ones to form the next generation. Fitness here is tied to
 					in-game performance (distance, survival, etc.), computed while each agent plays a short episode.
 				</p>
-				<ol class="list-decimal pl-5 mt-3 text-sm text-purple-800 space-y-1.5">
+				<ol class=”list-decimal pl-5 mt-3 text-sm space-y-1.5”>
 					<li><strong>Initialize</strong> a population (random weights, or reference weights in Optimize mode)</li>
 					<li><strong>Evaluate</strong> every agent in the population (many runs happen in the background)</li>
 					<li><strong>Rank</strong> by fitness and record the best-ever “champion”</li>
 					<li><strong>Evolve</strong> — copy elites / champion, crossover or mutate the rest (mode-dependent)</li>
 					<li><strong>Repeat</strong> until the level is cleared or you stop training</li>
 				</ol>
-			</div>
+			</Callout>
 
-			<div class="bg-amber-50 border-2 border-amber-300 rounded p-4">
-				<h3 class="font-bold text-amber-950 mb-2">⚡ Background vs foreground training</h3>
-				<p class="text-sm text-amber-950/90 leading-relaxed mb-2">
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">⚡ Background vs foreground training</h3>
+				<p class="text-sm leading-relaxed mb-2">
 					Training alternates phases so you get speed <em>and</em> feedback:
 				</p>
-				<ul class="text-sm text-amber-950/90 space-y-2 list-disc pl-5">
+				<ul class="text-sm space-y-2 list-disc pl-5">
 					<li>
 						<strong>BACKGROUND</strong> — The canvas shows a 🧬 overlay while the trainer evaluates the whole
 						population headlessly (no visible Mario). Python steps through agents quickly; this is where most
@@ -382,50 +384,50 @@
 						<strong>IDLE</strong> — Training stopped; you can change the training mode and start again.
 					</li>
 				</ul>
-				<p class="text-xs text-amber-900/80 mt-3 leading-relaxed">
+				<p class="text-xs mt-3 leading-relaxed">
 					Champion weights are carried forward so the next background batch keeps improving from the best network
 					seen so far — not only from the last generation’s rank order.
 				</p>
-			</div>
+			</Callout>
 			
-			<div class="bg-emerald-50 border-2 border-emerald-200 rounded p-4">
-				<h3 class="font-bold text-emerald-900 mb-2">🔄 Training modes (dropdown)</h3>
-				<ul class="text-sm text-emerald-800 space-y-2 leading-relaxed">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">🔄 Training modes (dropdown)</h3>
+				<ul class="text-sm space-y-2 leading-relaxed">
 					<li><strong>Simple:</strong> Preserve the top ~10% as unchanged elites; remaining slots are roulette-selected elite offspring with Gaussian mutation (every generation).</li>
 					<li><strong>SBX:</strong> Preserve slot 0 (champion); all other slots are two-parent Simulated Binary Crossover plus mutation each generation.</li>
 					<li><strong>Uniform:</strong> Same as SBX but with uniform crossover between parents, then mutation.</li>
 					<li><strong>Optimize:</strong> Seed from shipped reference weights, preserve only the champion, then mutation-only fine-tuning (good when you already have a strong prior).</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="bg-slate-100 border-2 border-slate-300 rounded p-4">
-				<h3 class="font-bold text-slate-900 mb-2">🎛️ Panels & toggles</h3>
-				<ul class="text-sm text-slate-800 space-y-2 leading-relaxed list-disc pl-5">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">🎛️ Panels & toggles</h3>
+				<ul class="text-sm space-y-2 leading-relaxed list-disc pl-5">
 					<li><strong>Metrics</strong> — Fitness and best distance over time; lives <strong>under the buttons</strong> on the left when enabled.</li>
 					<li><strong>Neurons</strong> — Live network diagram; animation pauses during <strong>BACKGROUND</strong> to keep the tab responsive while PyScript works.</li>
 					<li><strong>Lineage</strong> — 3D particle helix with real rotating projection plus a small table of <strong>preserved</strong> champions/elites only.</li>
 					<li><strong>Neurons + BACKGROUND</strong> — The diagram shows the <strong>last foreground</strong> snapshot; it does not repaint on every headless eval tick.</li>
 				</ul>
-			</div>
+			</Callout>
 			
-			<div class="bg-blue-50 border-2 border-blue-200 rounded p-4">
-				<h3 class="font-bold text-blue-900 mb-2">🏗️ Network architecture</h3>
-				<p class="text-sm text-blue-800 leading-relaxed">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">🏗️ Network architecture</h3>
+				<p class="text-sm leading-relaxed">
 					<strong>Input:</strong> 80 values — 7×10 tile vision plus row encoding<br>
 					<strong>Hidden:</strong> 9 neurons, ReLU<br>
 					<strong>Output:</strong> 6 actions (LEFT, RIGHT, A, B, filtered UP/DOWN)<br>
 					<strong>Population:</strong> 100 agents evolved each step; all logic runs in Python via PyScript.
 				</p>
-			</div>
+			</Callout>
 			
-			<div class="bg-violet-50 border-2 border-violet-200 rounded p-4">
-				<h3 class="font-bold text-violet-900 mb-2">🐍 Python & data flow</h3>
-				<p class="text-sm text-violet-900 leading-relaxed">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">🐍 Python & data flow</h3>
+				<p class="text-sm leading-relaxed">
 					The trainer emits progress (generation, fitness, distance), optional breeding lineage JSON for the helix,
 					and tensor snapshots for the neuron view. The UI never guesses evolution details — it reflects what the
 					backend reported for the last generation.
 				</p>
-			</div>
+			</Callout>
 		</div>
 	</div>
 </ExperimentCard>

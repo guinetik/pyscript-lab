@@ -8,6 +8,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import NeuralNetworkViz from '$lib/components/NeuralNetworkViz.svelte';
 	import MetricsChart from '$lib/components/MetricsChart.svelte';
 	import { GrokController } from '$lib/controller/GrokController.js';
@@ -306,80 +308,80 @@
 	</div>
 	
 	<div slot="content_slot" class="space-y-4">
-		<h2 class="text-xl font-bold">{$exampleText.title || 'Grokking Neural Networks'}</h2>
+		<h2 class="text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Grokking Neural Networks'}</h2>
 		
 		<!-- What is Grokking -->
-		<div class="bg-purple-50 border-2 border-purple-200 rounded p-4">
-			<h3 class="font-bold text-purple-900 mb-2">{$exampleText.sections?.whatIs?.title || '🧠 What is Grokking?'}</h3>
-			<p class="text-sm text-purple-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.whatIs?.title || '🧠 What is Grokking?'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.whatIs?.description || 'Grokking is a fascinating phenomenon where neural networks suddenly "get it" after appearing to only memorize. The network first achieves 100% training accuracy (memorization), then much later, test accuracy suddenly jumps (generalization).'}
 			</p>
-		</div>
+		</Callout>
 		
 		<!-- The Task -->
-		<div class="bg-blue-50 border-2 border-blue-200 rounded p-4">
-			<h3 class="font-bold text-blue-900 mb-2">{$exampleText.sections?.task?.title || '➕ The Task: Modular Arithmetic'}</h3>
-			<p class="text-sm text-blue-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.task?.title || '➕ The Task: Modular Arithmetic'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.task?.description || 'The network learns modular addition: (a + b) mod 67. For example, 45 + 30 mod 67 = 8. This seems simple, but discovering the underlying pattern (instead of memorizing) requires the network to learn the structure of modular arithmetic.'}
 			</p>
-			<div class="mt-2 p-2 bg-white rounded font-mono text-sm">
+			<div class="mt-2 p-2 bg-surface-alt rounded font-mono text-sm">
 				(a + b) mod p = c
 			</div>
-		</div>
+		</Callout>
 		
 		<!-- Why it Happens -->
-		<div class="bg-amber-50 border-2 border-amber-200 rounded p-4">
-			<h3 class="font-bold text-amber-900 mb-2">{$exampleText.sections?.why?.title || '⚡ Why Does Grokking Happen?'}</h3>
-			<p class="text-sm text-amber-800">
+		<Callout type="tip">
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.why?.title || '⚡ Why Does Grokking Happen?'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.why?.description || 'The key is HIGH weight decay (regularization). Without it, networks just memorize. With strong weight decay, the network is pushed toward simpler solutions that generalize. This takes time - the "grokking" moment happens when the network finally discovers the generalizing solution.'}
 			</p>
-			<ul class="mt-2 list-disc pl-5 text-sm text-amber-800 space-y-1">
+			<ul class="mt-2 list-disc pl-5 text-sm space-y-1">
 				<li><strong>Weight Decay = 1.0</strong> (very high!)</li>
 				<li>Forces simpler weight patterns</li>
 				<li>Memorization uses more "capacity"</li>
 				<li>Generalization is more efficient</li>
 			</ul>
-		</div>
+		</Callout>
 		
 		<!-- The Timeline -->
-		<div class="bg-green-50 border-2 border-green-200 rounded p-4">
-			<h3 class="font-bold text-green-900 mb-2">{$exampleText.sections?.timeline?.title || '📊 The Grokking Timeline'}</h3>
-			<ol class="list-decimal pl-5 text-sm text-green-800 space-y-1">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.timeline?.title || '📊 The Grokking Timeline'}</h3>
+			<ol class="list-decimal pl-5 text-sm space-y-1">
 				<li><strong>Phase 1 - Memorization:</strong> Train accuracy quickly reaches ~100%</li>
 				<li><strong>Phase 2 - Plateau:</strong> Test accuracy stays low (20-40%)</li>
 				<li><strong>Phase 3 - Grokking:</strong> Suddenly, test accuracy jumps to ~100%!</li>
 			</ol>
-			<p class="mt-2 text-sm text-green-800 italic">
+			<p class="mt-2 text-sm italic">
 				{$exampleText.sections?.timeline?.note || 'This can take thousands of epochs. Be patient and watch the charts!'}
 			</p>
-		</div>
+		</Callout>
 		
 		<!-- Architecture -->
-		<div class="bg-slate-50 border-2 border-slate-200 rounded p-4">
-			<h3 class="font-bold text-slate-900 mb-2">{$exampleText.sections?.architecture?.title || '🏗️ Network Architecture'}</h3>
-			<p class="text-sm text-slate-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || '🏗️ Network Architecture'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.architecture?.description || "Based on Google's Factored MLP with tied embeddings:"}
 			</p>
-			<ul class="mt-2 list-disc pl-5 text-sm text-slate-800 space-y-1">
+			<ul class="mt-2 list-disc pl-5 text-sm space-y-1">
 				<li><strong>Input:</strong> Two tokens (a, b) embedded to 500 dimensions</li>
 				<li><strong>Hidden:</strong> 64 neurons with ReLU activation</li>
 				<li><strong>Output:</strong> 67 classes (one per possible result)</li>
 				<li><strong>Tied weights:</strong> Same embedding for input and output</li>
 				<li><strong>Optimizer:</strong> AdamW with weight decay = 1.0</li>
 			</ul>
-		</div>
+		</Callout>
 		
 		<!-- Technical Info -->
-		<div class="bg-cyan-50 border-2 border-cyan-200 rounded p-4">
-			<h3 class="font-bold text-cyan-900 mb-2">🔧 Technical: PyScript</h3>
-			<p class="text-sm text-cyan-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">🔧 Technical: PyScript</h3>
+			<p class="text-sm">
 				The neural network is implemented in pure Python, running via PyScript's Pyodide runtime directly in your browser. Training uses asyncio to yield control periodically, keeping the UI responsive. No server required!
 			</p>
-		</div>
+		</Callout>
 		
 		<p class="text-sm">
 			<a
-				class="text-sky-500 hover:text-sky-700"
+				class="text-accent hover:underline"
 				href="https://pair.withgoogle.com/explorables/grokking/"
 				target="_blank"
 			>

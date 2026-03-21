@@ -1,5 +1,7 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { DigitRecognitionController } from '$lib/controller/DigitRecognitionController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
@@ -220,7 +222,7 @@
 		</div>
 	</div>
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Machine Learning - Digit Recognition'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Machine Learning - Digit Recognition'}</h2>
 		<p class="mb-4">
 			{$exampleText.description || 'Draw a digit (0-9) on the canvas and click "Predict" to see what the machine learning model thinks you drew!'}
 		</p>
@@ -242,9 +244,9 @@
 		<!-- Training examples component -->
 		<TrainingExamples data={trainingExamplesData} onHide={hideTrainingExamples} />
 
-		<div class="mt-6 rounded-lg bg-blue-50 p-4">
-			<h3 class="mb-2 font-bold text-blue-900">{$exampleText.sections?.howItWorks?.title || 'How it works:'}</h3>
-			<ul class="list-disc space-y-2 pl-5 text-sm text-blue-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.howItWorks?.title || 'How it works:'}</h3>
+			<ul class="list-disc space-y-2 pl-5 text-sm">
 				<li>{$exampleText.sections?.howItWorks?.bullet1 || "The model is trained on scikit-learn's digits dataset (1,797 samples of 8×8 images)"}</li>
 				<li>{$exampleText.sections?.howItWorks?.bullet2 || 'When you click Predict, your drawing is converted to base64'}</li>
 				<li>{$exampleText.sections?.howItWorks?.bullet3 || 'Python receives the image, preprocesses it to 8×8 grayscale with adaptive thresholding'}</li>
@@ -253,28 +255,28 @@
 				<li>{$exampleText.sections?.howItWorks?.bullet6 || 'Active learning: If the prediction is wrong, you can correct it and retrain the model live!'}</li>
 				<li>{$exampleText.sections?.howItWorks?.bullet7 || 'All processing happens in your browser using PyScript!'}</li>
 			</ul>
-		</div>
+		</Callout>
 
-		<div class="mt-4 rounded-lg bg-green-50 p-4">
-			<h3 class="mb-2 font-bold text-green-900">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning with Positive & Negative Feedback'}</h3>
-			<p class="text-sm text-green-800">
+		<Callout type="tip">
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning with Positive & Negative Feedback'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.activeLearning?.description || 'This model learns from both correct and incorrect predictions! After each prediction, you can:'}
 			</p>
-			<ul class="list-disc space-y-1 pl-5 text-sm text-green-800 mt-2">
+			<ul class="list-disc space-y-1 pl-5 text-sm mt-2">
 				<li>{$exampleText.sections?.activeLearning?.feedbackYes || 'Click YES if correct → Reinforces the model\'s understanding of your drawing style'}</li>
 				<li>{$exampleText.sections?.activeLearning?.feedbackNo || 'Click NO if wrong → Lets you correct it and retrain with the right label'}</li>
 			</ul>
-			<p class="text-sm text-green-800 mt-2">
+			<p class="text-sm mt-2">
 				{$exampleText.sections?.activeLearning?.conclusion || 'The more feedback you give (positive or negative), the better it gets at recognizing your handwriting!'}
 			</p>
-		</div>
+		</Callout>
 
-		<div class="mt-4 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
-			<p class="text-sm text-orange-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.architecture?.description || 'This example demonstrates proper separation of concerns with event-driven initialization:'}
 			</p>
-			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
+			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
 				<li>
 					<strong>{$exampleText.sections?.architecture?.component1?.split(' - ')[0] || 'PyScriptManager'}</strong> - {$exampleText.sections?.architecture?.component1?.split(' - ')[1] || 'Event-driven lifecycle management (no polling!)'}
 				</li>
@@ -288,11 +290,11 @@
 					<strong>{$exampleText.sections?.architecture?.component4?.split(' - ')[0] || 'Svelte Components'}</strong> - {$exampleText.sections?.architecture?.component4?.split(' - ')[1] || 'Pure UI rendering with reactive state'}
 				</li>
 			</ul>
-		</div>
+		</Callout>
 
 		<p class="mt-4">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/digit_recognition.py"
 				target="_blank">{$exampleText.links?.viewSource || 'View source'}</a
 			>

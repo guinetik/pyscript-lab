@@ -1,5 +1,7 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { SentimentAnalysisController } from '$lib/controller/SentimentAnalysisController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
@@ -397,30 +399,30 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Sentiment Analysis'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Sentiment Analysis'}</h2>
 		<p class="mb-4">
 			{$exampleText.description || 'Analyze the sentiment of any text using machine learning! The model classifies text as Positive, Negative, or Neutral with confidence scores.'}
 		</p>
 
-		<div class="my-6 rounded-lg bg-purple-50 p-4">
-			<h3 class="mb-3 font-bold text-purple-900">{$exampleText.examples?.sectionTitle || 'Try These Examples:'}</h3>
+		<Callout>
+			<h3 class="mb-3 font-heading font-bold">{$exampleText.examples?.sectionTitle || 'Try These Examples:'}</h3>
 			<div class="space-y-2">
 				{#each examples as example, i}
 					<button
 						onclick={() => tryExample(example)}
-						class="block w-full rounded border border-purple-200 bg-white p-2 text-left text-sm hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed"
+						class="block w-full rounded border border-border bg-surface p-2 text-left text-sm hover:bg-surface-alt disabled:opacity-50 disabled:cursor-not-allowed"
 						disabled={isInitializing}
 					>
-						<span class="font-medium text-purple-700">Example {i + 1}:</span>
-						<span class="text-gray-700">{example}</span>
+						<span class="font-medium text-accent">Example {i + 1}:</span>
+						<span class="text-text-primary">{example}</span>
 					</button>
 				{/each}
 			</div>
-		</div>
+		</Callout>
 
-		<div class="mt-6 rounded-lg bg-blue-50 p-4">
-			<h3 class="mb-2 font-bold text-blue-900">{$exampleText.sections?.howItWorks?.title || 'How it works:'}</h3>
-			<ul class="list-disc space-y-2 pl-5 text-sm text-blue-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.howItWorks?.title || 'How it works:'}</h3>
+			<ul class="list-disc space-y-2 pl-5 text-sm">
 				<li>
 					{$exampleText.sections?.howItWorks?.bullet1 || 'The model uses TF-IDF (Term Frequency-Inverse Document Frequency) to convert text to numbers'}
 				</li>
@@ -431,12 +433,12 @@
 				<li>{$exampleText.sections?.howItWorks?.bullet4 || 'Shows confidence scores for all three sentiment categories'}</li>
 				<li>{$exampleText.sections?.howItWorks?.bullet5 || 'All processing happens in your browser using PyScript!'}</li>
 			</ul>
-		</div>
+		</Callout>
 
-		<div class="mt-4 rounded-lg bg-green-50 p-4">
-			<h3 class="mb-2 font-bold text-green-900">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning'}</h3>
-			<p class="text-sm text-green-800">{$exampleText.sections?.activeLearning?.description || 'After each prediction, you can provide feedback:'}</p>
-			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-green-800">
+		<Callout type="tip">
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning'}</h3>
+			<p class="text-sm">{$exampleText.sections?.activeLearning?.description || 'After each prediction, you can provide feedback:'}</p>
+			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
 				<li>
 					{$exampleText.sections?.activeLearning?.feedbackYes || 'Click YES if correct → Reinforces the model'}
 				</li>
@@ -444,17 +446,17 @@
 					{$exampleText.sections?.activeLearning?.feedbackNo || 'Click NO if wrong → Correct it and retrain with the right label'}
 				</li>
 			</ul>
-			<p class="mt-2 text-sm text-green-800">
+			<p class="mt-2 text-sm">
 				{$exampleText.sections?.activeLearning?.conclusion || 'The model learns from your feedback and improves over time!'}
 			</p>
-		</div>
+		</Callout>
 
-		<div class="mt-4 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
-			<p class="text-sm text-orange-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.architecture?.description || 'This example demonstrates proper separation of concerns:'}
 			</p>
-			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
+			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
 				<li>
 					<strong>{$exampleText.sections?.architecture?.python?.split(' - ')[0] || 'Python'}</strong> - {$exampleText.sections?.architecture?.python?.split(' - ')[1] || 'Pure ML logic, no HTML. Uses to_js() to convert Python dicts to JavaScript objects before calling window callbacks.'}
 				</li>
@@ -465,25 +467,25 @@
 					<strong>{$exampleText.sections?.architecture?.svelte?.split(' - ')[0] || 'Svelte UIHandler'}</strong> - {$exampleText.sections?.architecture?.svelte?.split(' - ')[1] || 'Pure UI rendering with reactive state. Updates UI based on plain objects.'}
 				</li>
 			</ul>
-			<p class="mt-2 text-xs text-orange-700">
+			<p class="mt-2 text-xs">
 				<strong>Key lesson:</strong> {$exampleText.sections?.architecture?.keyLesson || 'Python dicts must be explicitly converted using to_js(dict, dict_converter=Object.fromEntries) to work properly with JavaScript.'}
 			</p>
-		</div>
+		</Callout>
 
-		<div class="mt-4 rounded-lg bg-yellow-50 p-4">
-			<h3 class="mb-2 font-bold text-yellow-900">{$exampleText.sections?.note?.title || '📝 Note'}</h3>
-			<p class="text-sm text-yellow-800">
+		<Callout type="warning">
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.note?.title || '📝 Note'}</h3>
+			<p class="text-sm">
 				{$exampleText.sections?.note?.description || "This is a simple demonstration model. For production use, you'd want to train on a much larger dataset (thousands of examples) for better accuracy and generalization."}
 			</p>
-		</div>
+		</Callout>
 
 		{#if $exampleText.sections?.useCases}
-			<div class="mt-4 rounded-lg bg-indigo-50 p-4">
-				<h3 class="mb-2 font-bold text-indigo-900">{$exampleText.sections?.useCases?.title || '💼 Real-World Use Cases'}</h3>
-				<p class="text-sm text-indigo-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.useCases?.title || '💼 Real-World Use Cases'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.sections?.useCases?.description || 'Sentiment analysis is widely used in:'}
 				</p>
-				<ul class="space-y-1 text-sm text-indigo-800">
+				<ul class="space-y-1 text-sm">
 					{#if $exampleText.sections?.useCases?.case1}
 						<li>• {$exampleText.sections?.useCases?.case1}</li>
 					{/if}
@@ -500,12 +502,12 @@
 						<li>• {$exampleText.sections?.useCases?.case5}</li>
 					{/if}
 				</ul>
-			</div>
+			</Callout>
 		{/if}
 
 		<p class="mt-4">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/ml/sentiment_analysis.py"
 				target="_blank">{$exampleText.links?.viewSource || 'View source'}</a
 			>
