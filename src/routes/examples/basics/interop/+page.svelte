@@ -4,6 +4,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 
 	// Translation store
 	const exampleText = exampleTranslationStore('interop');
@@ -141,7 +143,7 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Interoperability (JS to Python)'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Interoperability (JS to Python)'}</h2>
 
 		<p class="mb-4">
 			{$exampleText.description || "PyScript's interoperability allows seamless communication between Python and JavaScript..."}
@@ -185,12 +187,12 @@
 			>{$exampleText.runButton || 'Run'}</button
 		>
 
-		<div class="mt-6 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.architecture?.title || '🏗️ Architecture Highlights'}</h3>
-			<p class="text-sm text-orange-800 mb-2">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.architecture?.title || 'Architecture Highlights'}</h3>
+			<p class="text-sm mb-2">
 				{$exampleText.architecture?.description || 'This example demonstrates proper separation of concerns:'}
 			</p>
-			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-orange-800">
+			<ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
 				<li>
 					<strong>Python</strong> - {$exampleText.architecture?.python?.split(' - ')[1] || 'Pure business logic, sends only data via window callbacks (no innerHTML!)'}
 				</li>
@@ -201,19 +203,18 @@
 					<strong>Svelte UIHandler</strong> - {$exampleText.architecture?.ui?.split(' - ')[1] || 'Pure UI rendering with reactive state based on data received'}
 				</li>
 			</ul>
-		</div>
+		</Callout>
 
 		<p class="mt-4">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/interop.py"
 				target="_blank">{$exampleText.viewSource || 'View Python source'}</a
 			>
 		</p>
 
 		<div class="prose max-w-none mt-8">
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.howWorks?.title || 'How It Works:'}</h3>
+			<ContentSection title={$exampleText.howWorks?.title || 'How It Works:'}>
 				<ul class="list-disc space-y-2 pl-5">
 					<li>
 						<strong>Controller Pattern:</strong> {$exampleText.howWorks?.pattern?.split(': ')[1] || 'InteropController manages Python setup and callbacks'}
@@ -226,17 +227,17 @@
 					</li>
 					<li><strong>Event-Driven:</strong> {$exampleText.howWorks?.eventDriven?.split(': ')[1] || 'User interactions trigger Python functions'}</li>
 				</ul>
-			</div>
+			</ContentSection>
 
-			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.useCases?.title || 'Use Cases:'}</h3>
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.useCases?.title || 'Use Cases:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
 					<li>{$exampleText.useCases?.formData || 'Process form data with Python\'s powerful libraries'}</li>
 					<li>{$exampleText.useCases?.dynamicUI || 'Update UI dynamically based on Python computations'}</li>
 					<li>{$exampleText.useCases?.combine || 'Combine JavaScript frameworks (like Svelte) with Python logic'}</li>
 					<li>{$exampleText.useCases?.dataSci || 'Access Python\'s data science ecosystem from web interfaces'}</li>
 				</ul>
-			</div>
+			</Callout>
 		</div>
 	</article>
 </ExperimentCard>

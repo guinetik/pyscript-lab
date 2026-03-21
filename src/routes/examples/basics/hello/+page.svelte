@@ -7,6 +7,8 @@
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 
 	// Reactive store that updates when locale changes
 	const exampleText = exampleTranslationStore('hello');
@@ -21,7 +23,7 @@
                     print("hello world")
 				</script>
 			</PyExample>
-			<button class="open-console-btn" onclick={() => window.openConsole()}>🖥️ Open Console to see script output</button>
+			<button class="open-console-btn" onclick={() => window.openConsole()}>Open Console to see script output</button>
 			<hr class="my-4" />
 			<h1>{$exampleText.examples?.example2 || 'Example 2'}</h1>
 			<PyExample title={$exampleText.examples?.currentDateTime || 'Current date and time, as computed by Python:'}>
@@ -44,15 +46,14 @@
 		</section>
 	</div>
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'HELLO WORLD'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'HELLO WORLD'}</h2>
 
 		<div class="prose max-w-none">
 			<p class="mb-4">
 				{$exampleText.description || 'PyScript allows you to run Python code directly in your web browser without any server-side processing.'}
 			</p>
 
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.keyFeatures?.title || 'Key Features:'}</h3>
+			<ContentSection title={$exampleText.keyFeatures?.title || 'Key Features:'}>
 				<ul class="list-disc space-y-2 pl-5">
 					<li><strong>{$exampleText.keyFeatures?.zeroSetup || 'Zero Server Setup:'}</strong> {$exampleText.keyFeatures?.zeroSetupDesc || 'Python runs entirely in the browser using WebAssembly'}</li>
 					<li><strong>{$exampleText.keyFeatures?.stdLib || 'Standard Library Access:'}</strong> {$exampleText.keyFeatures?.stdLibDesc || 'Use familiar Python modules like datetime, sys, and more'}</li>
@@ -60,31 +61,31 @@
 					<li><strong>{$exampleText.keyFeatures?.externalScripts || 'External Scripts:'}</strong> {$exampleText.keyFeatures?.externalScriptsDesc || 'Load Python code from files using the src attribute'}</li>
 					<li><strong>{$exampleText.keyFeatures?.consoleOutput || 'Console Output:'}</strong> {$exampleText.keyFeatures?.consoleOutputDesc || 'View results in the browser console or write to the DOM'}</li>
 				</ul>
-			</div>
+			</ContentSection>
 
-			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.theExamples?.title || 'The Examples:'}</h3>
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.theExamples?.title || 'The Examples:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
 					<li><strong>{$exampleText.examples?.example1 || 'Example 1'}</strong>: {$exampleText.theExamples?.example1 || 'Classic "Hello World" - The simplest PyScript program'}</li>
 					<li><strong>{$exampleText.examples?.example2 || 'Example 2'}</strong>: {$exampleText.theExamples?.example2 || 'Current date/time - Demonstrates external Python scripts and datetime module'}</li>
 					<li><strong>{$exampleText.examples?.example3 || 'Example 3'}</strong>: {$exampleText.theExamples?.example3 || 'Fibonacci sequence - Shows algorithmic computation and list comprehension'}</li>
 					<li><strong>{$exampleText.examples?.example4 || 'Example 4'}</strong>: {$exampleText.theExamples?.example4 || 'Snake traversal - Matrix manipulation and DOM manipulation from Python'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="mb-4 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.gettingStarted?.title || 'Getting Started:'}</h3>
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.gettingStarted?.title || 'Getting Started:'}</h3>
 				<p class="mb-2">{$exampleText.gettingStarted?.description || 'The basic pattern for running Python in the browser is simple:'}</p>
-				<pre class="rounded bg-white p-3 text-sm overflow-x-auto"><code>&lt;script type="py"&gt;
+				<pre class="rounded bg-surface-alt p-3 font-mono text-sm overflow-x-auto"><code>&lt;script type="py"&gt;
   print("Hello from Python!")
 &lt;/script&gt;
 
 &lt;!-- Or load from a file --&gt;
 &lt;script type="py" src="/path/to/script.py"&gt;&lt;/script&gt;</code></pre>
 				<p class="mt-3 text-sm">
-					{$exampleText.gettingStarted?.footer || 'Click the "🖥️ Open Console" button above to see the output of these Python scripts!'}
+					{$exampleText.gettingStarted?.footer || 'Click the "Open Console" button above to see the output of these Python scripts!'}
 				</p>
-			</div>
+			</Callout>
 		</div>
 	</article>
 </ExperimentCard>

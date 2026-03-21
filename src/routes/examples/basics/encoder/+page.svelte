@@ -4,6 +4,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 
 	// Translation store
 	const exampleText = exampleTranslationStore('encoder');
@@ -177,58 +179,58 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Advanced Interop - Text Encoder'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Advanced Interop - Text Encoder'}</h2>
 
 		<p class="mb-4">
 			{$exampleText.description || 'This example demonstrates advanced PyScript interoperability...'}
 		</p>
 
-		<div class="my-6 rounded-lg bg-purple-50 p-4">
-			<h3 class="mb-2 font-bold text-purple-900">{$exampleText.encodings?.title || '🔐 Available Encodings'}</h3>
-			<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.encodings?.title || 'Available Encodings'}</h3>
+			<ul class="list-disc space-y-1 pl-5 text-sm">
 				<li><strong>MD5 Hash</strong> - {$exampleText.encodings?.md5?.split(' - ')[1] || '128-bit cryptographic hash'}</li>
 				<li><strong>SHA-1 Hash</strong> - {$exampleText.encodings?.sha1?.split(' - ')[1] || '160-bit cryptographic hash'}</li>
 				<li><strong>SHA-256 Hash</strong> - {$exampleText.encodings?.sha256?.split(' - ')[1] || '256-bit secure cryptographic hash'}</li>
 				<li><strong>Base64</strong> - {$exampleText.encodings?.base64?.split(' - ')[1] || 'Binary-to-text encoding'}</li>
 				<li><strong>ROT13 Cipher</strong> - {$exampleText.encodings?.rot13?.split(' - ')[1] || 'Simple letter substitution cipher'}</li>
 			</ul>
-		</div>
+		</Callout>
 
-		<div class="my-6 rounded-lg bg-blue-50 p-4">
-			<h3 class="mb-2 font-bold text-blue-900">{$exampleText.whyPython?.title || '💡 Why Python?'}</h3>
-			<p class="text-sm text-blue-800 mb-2">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.whyPython?.title || 'Why Python?'}</h3>
+			<p class="text-sm mb-2">
 				{$exampleText.whyPython?.description || 'These operations are trivial in Python thanks to built-in libraries:'}
 			</p>
-			<ul class="list-disc space-y-1 pl-5 text-sm text-blue-800">
+			<ul class="list-disc space-y-1 pl-5 text-sm">
 				<li><code>{$exampleText.whyPython?.hashlib?.split(' - ')[0] || 'hashlib'}</code> - {$exampleText.whyPython?.hashlib?.split(' - ')[1] || 'Cryptographic hashing'}</li>
 				<li><code>{$exampleText.whyPython?.base64?.split(' - ')[0] || 'base64'}</code> - {$exampleText.whyPython?.base64?.split(' - ')[1] || 'Base64 encoding/decoding'}</li>
 				<li><code>{$exampleText.whyPython?.codecs?.split(' - ')[0] || 'codecs'}</code> - {$exampleText.whyPython?.codecs?.split(' - ')[1] || 'Text encoding transformations'}</li>
 			</ul>
-			<p class="text-sm text-blue-800 mt-2">
+			<p class="text-sm mt-2">
 				{$exampleText.whyPython?.footer || 'In JavaScript, you would need...'}
 			</p>
-		</div>
+		</Callout>
 
-		<div class="my-6 rounded-lg bg-green-50 p-4">
-			<h3 class="mb-2 font-bold text-green-900">{$exampleText.pyscriptManager?.title || '🚀 What\'s New: PyScriptManager'}</h3>
-			<p class="text-sm text-green-800 mb-2">
+		<Callout type="tip">
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.pyscriptManager?.title || 'What\'s New: PyScriptManager'}</h3>
+			<p class="text-sm mb-2">
 				{$exampleText.pyscriptManager?.description || 'This example uses the new PyScriptManager system:'}
 			</p>
-			<ul class="list-disc space-y-1 pl-5 text-sm text-green-800">
+			<ul class="list-disc space-y-1 pl-5 text-sm">
 				<li><strong>Event-driven</strong> - {$exampleText.pyscriptManager?.eventDriven?.split(' - ')[1] || 'No polling'}</li>
 				<li><strong>Instant readiness</strong> - {$exampleText.pyscriptManager?.instant?.split(' - ')[1] || 'Python signals when ready'}</li>
 				<li><strong>Error handling</strong> - {$exampleText.pyscriptManager?.errorHandling?.split(' - ')[1] || 'Captures errors'}</li>
 				<li><strong>Multiple exports</strong> - {$exampleText.pyscriptManager?.multiple?.split(' - ')[1] || '6 functions loaded'}</li>
 			</ul>
-			<p class="text-sm text-green-800 mt-2">
+			<p class="text-sm mt-2">
 				{$exampleText.pyscriptManager?.footer || 'Check the browser console...'}
 			</p>
-		</div>
+		</Callout>
 
-		<div class="my-6 rounded-lg bg-orange-50 p-4">
-			<h3 class="mb-2 font-bold text-orange-900">{$exampleText.architecture?.title || '🏗️ Architecture'}</h3>
-			<p class="text-sm text-orange-800 mb-2">{$exampleText.architecture?.description || 'Clean separation of concerns:'}</p>
-			<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
+		<Callout>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.architecture?.title || 'Architecture'}</h3>
+			<p class="text-sm mb-2">{$exampleText.architecture?.description || 'Clean separation of concerns:'}</p>
+			<ul class="list-disc space-y-1 pl-5 text-sm">
 				<li>
 					<strong>Python</strong> - {$exampleText.architecture?.python?.split(' - ')[1] || 'Uses PyScriptManager'}
 				</li>
@@ -239,17 +241,17 @@
 					<strong>Svelte</strong> - {$exampleText.architecture?.svelte?.split(' - ')[1] || 'Pure UI rendering'}
 				</li>
 			</ul>
-		</div>
+		</Callout>
 
 		<p class="mt-4">
 			<a
-				class="text-sky-500 hover:underline"
+				class="text-accent hover:underline"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/basic/encoder.py"
 				target="_blank">{$exampleText.viewPythonSource || 'View Python source'}</a
 			>
 			·
 			<a
-				class="text-sky-500 hover:underline"
+				class="text-accent hover:underline"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/src/lib/PyScriptManager.js"
 				target="_blank">{$exampleText.viewPyscriptManager || 'View PyScriptManager'}</a
 			>
