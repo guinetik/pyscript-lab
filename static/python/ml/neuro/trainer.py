@@ -35,7 +35,7 @@ from .utils import (
 
 
 # Training config
-BACKGROUND_GENERATIONS = 10  # Generations per background phase
+BACKGROUND_GENERATIONS = 3  # Generations per background phase
 FOREGROUND_SESSIONS = 3      # How many times to show agent before training
 MAX_GENERATIONS = 5000
 MAX_FRAMES_PER_EPISODE = 3000
@@ -78,6 +78,7 @@ class Trainer:
         # Callbacks (set from JS)
         self.on_progress = None  # (gen, fitness, distance)
         self.on_foreground = None  # (weights_json) - show in emulator
+        self.on_breeding = None  # (breeding_json) - lineage events for frontend viz
         self.on_complete = None  # training finished
         self.on_state = None  # state change
         
@@ -97,6 +98,7 @@ class Trainer:
         # Reference uses 100 agents (10 parents + 90 offspring)
         self.population = Population(100, mode=mode)
         self.population.initialize()
+        self.mode = self.population.mode
         
         # Create headless pool - pass window references directly to avoid proxy issues
         if hasattr(window, 'createHeadlessNESPool'):
@@ -323,6 +325,13 @@ class Trainer:
                 self.best_distance_ever
             )
 
+        if self.on_breeding:
+            self.on_breeding(json.dumps({
+                'generation': self.total_generations,
+                'mode': self.population.mode,
+                'events': self.population.get_last_generation_events()
+            }))
+
         # Log generation summary
         tlog('Generation complete', {
             'generation': self.total_generations,
@@ -423,6 +432,7 @@ class Trainer:
 
         # Reset population with fresh random weights
         self.population.initialize()
+        self.mode = self.population.mode
 
         # Reset tracking stats
         self.total_generations = 0
@@ -471,7 +481,7 @@ def get_trainer():
 
 # === JS Bridge ===
 
-def init_trainer(on_progress, on_foreground, on_state, on_complete, mode='simple'):
+def init_trainer(on_progress, on_foreground, on_state, on_complete, mode='simple', on_breeding=None):
     """
     Initialize trainer with callbacks.
     
@@ -491,6 +501,7 @@ def init_trainer(on_progress, on_foreground, on_state, on_complete, mode='simple
     trainer.on_foreground = on_foreground
     trainer.on_state = on_state
     trainer.on_complete = on_complete
+    trainer.on_breeding = on_breeding
     
     # Get ROM and state directly from window (avoids proxy issues)
     rom_data = window._trainingRomData

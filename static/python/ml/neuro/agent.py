@@ -31,26 +31,12 @@ class NeuralAgent:
         self.won = False  # Did agent complete the level?
         self.frames = 0   # Frames taken (for win time tracking)
         
-    def init_random(self, use_reference_biases=False):
-        """Initialize with random weights.
-        
-        Args:
-            use_reference_biases: If True, use reference biases (simple mode).
-                                  If False, use uniform(-1, 1) for everything (crossover mode).
-        """
-        # Weights are always random uniform(-1, 1)
+    def init_random(self):
+        """Initialize weights and biases like the reference project."""
         self.W1 = np.random.uniform(-1, 1, size=(HIDDEN_SIZE, INPUT_SIZE))
         self.W2 = np.random.uniform(-1, 1, size=(OUTPUT_SIZE, HIDDEN_SIZE))
-        
-        if use_reference_biases:
-            # Use reference biases - gives agents a "behavioral prior" to move right and jump
-            # These evolved biases from SuperMarioBros-AI default to RIGHT+B
-            self.b1 = np.array([-0.757, 0.683, 0.998, -0.501, -0.335, -0.573, -0.111, 0.029, 0.780])
-            self.b2 = np.array([-0.393, 0.464, 0.458, 0.999, 0.393, 0.992])  # HIGH: RIGHT(0.999), B(0.992)
-        else:
-            # Full random - matches SuperMarioBros-AI exactly
-            self.b1 = np.random.uniform(-1, 1, size=(HIDDEN_SIZE,))
-            self.b2 = np.random.uniform(-1, 1, size=(OUTPUT_SIZE,))
+        self.b1 = np.random.uniform(-1, 1, size=(HIDDEN_SIZE,))
+        self.b2 = np.random.uniform(-1, 1, size=(OUTPUT_SIZE,))
         
     def copy_from(self, other):
         """Copy weights from another agent."""
@@ -150,10 +136,10 @@ class Population:
     """Population of agents for evolutionary training.
 
     Supports multiple evolution modes:
-    - 'simple': Mutation only (original behavior)
-    - 'sbx': Two-parent SBX crossover + mutation
-    - 'uniform': Two-parent uniform crossover + mutation
-    - 'optimize': Start from reference weights and continue training
+    - 'simple': Preserve elites, mutate copies of strong performers
+    - 'sbx': Preserve champion, breed every other slot with SBX + mutation
+    - 'uniform': Preserve champion, breed every other slot with uniform crossover + mutation
+    - 'optimize': Start from reference weights, then continue with mutation only
     """
 
     # Evolution mode constants
@@ -162,22 +148,21 @@ class Population:
     MODE_UNIFORM = 'uniform'
     MODE_OPTIMIZE = 'optimize'
     
-    def __init__(self, size=20, mode='simple', breeding_interval=3):
+    def __init__(self, size=20, mode='simple'):
         """
         Initialize population.
         
         Args:
             size: Population size
-            mode: Evolution mode ('simple', 'sbx', 'uniform')
-            breeding_interval: For crossover modes, breed every N generations
+            mode: Evolution mode ('simple', 'sbx', 'uniform', 'optimize')
         """
         self.size = size
         self.mode = mode
-        self.breeding_interval = breeding_interval
         self.agents = []
         self.generation = 0
         self.best_fitness = 0
         self.best_agent = None
+        self.last_generation_events = []
         
         # Elite pool for crossover modes (tracks best across generations)
         self.elite_pool = []
@@ -186,8 +171,7 @@ class Population:
     def initialize(self):
         """Create initial population.
 
-        For simple mode: uses reference biases (behavioral prior to move right).
-        For crossover modes: uses full random initialization.
+        For simple, sbx, and uniform modes: uses full random initialization.
         For optimize mode: loads reference weights and creates variations.
         """
         self.agents = []
@@ -209,24 +193,23 @@ class Population:
                 # Fallback to simple mode if no reference weights
                 console.log("[Population] No reference weights found, falling back to simple mode")
                 self.mode = self.MODE_SIMPLE
-                self._init_random_population(use_ref_biases=True)
+                self._init_random_population()
         else:
-            use_ref_biases = (self.mode == self.MODE_SIMPLE)
-            self._init_random_population(use_ref_biases=use_ref_biases)
+            self._init_random_population()
 
         self.generation = 0
         self.best_fitness = 0
         self.best_agent = None
         self.elite_pool = []
+        self.last_generation_events = []
 
-    def _init_random_population(self, use_ref_biases=False):
-        """Initialize population with random weights."""
+    def _init_random_population(self):
+        """Initialize population with reference-faithful random weights."""
         for _ in range(self.size):
             agent = NeuralAgent()
-            agent.init_random(use_reference_biases=use_ref_biases)
+            agent.init_random()
             self.agents.append(agent)
-        bias_str = " (reference biases)" if use_ref_biases else " (full random)"
-        console.log(f"[Population] Initialized {self.size} agents (mode: {self.mode}){bias_str}")
+        console.log(f"[Population] Initialized {self.size} agents (mode: {self.mode}) (full random)")
 
     def _load_reference_weights(self):
         """Load reference weights from window._referenceWeights (set by JS)."""
@@ -265,10 +248,46 @@ class Population:
             self.agents[0].fitness = float('inf')  # Ensure it's always #1
             console.log("[Population] Champion weights injected into slot 0")
 
+    def _clone_agent(self, agent):
+        """Clone an agent, including its learned parameters and summary stats."""
+        clone = NeuralAgent()
+        clone.copy_from(agent)
+        clone.fitness = agent.fitness
+        clone.farthest_x = agent.farthest_x
+        clone.won = agent.won
+        clone.frames = agent.frames
+        return clone
+
+    def _get_agent_slot(self, target_agent, agents):
+        """Get the slot index for an agent object within a list."""
+        for idx, agent in enumerate(agents):
+            if agent is target_agent:
+                return idx
+        return -1
+
+    def _record_generation_event(self, slot, operator, parent_slots, preserved, mutated,
+                                 mutation_rate=0.0, mutation_strength=0.0):
+        """Record lineage data for frontend breeding visualizations."""
+        self.last_generation_events.append({
+            'slot': slot,
+            'mode': self.mode,
+            'operator': operator,
+            'parent_slots': parent_slots,
+            'preserved': preserved,
+            'mutated': mutated,
+            'mutation_rate': mutation_rate,
+            'mutation_strength': mutation_strength
+        })
+
+    def get_last_generation_events(self):
+        """Get lineage events from the most recent evolution step."""
+        return [dict(event) for event in self.last_generation_events]
+
     def evolve(self):
         """Create next generation through selection and mutation/crossover."""
         # Sort by fitness
         self.agents.sort(key=lambda a: a.fitness, reverse=True)
+        self.last_generation_events = []
 
         # Track best
         if self.agents[0].fitness > self.best_fitness:
@@ -315,105 +334,102 @@ class Population:
         return agents[idx]
 
     def _evolve_simple(self):
-        """Simple evolution: mutation only - matches SuperMarioBros-AI reference.
+        """Mutation-only evolution for simple and optimize modes.
 
-        Reference uses:
-        - 10 elite parents (for pop size 100)
-        - Roulette wheel selection (fitness-proportional) for parent picking
-        - Gaussian mutation with rate=0.05, scale=0.2
-        - Weight clipping to [-1, 1]
+        Simple mode preserves the top 10 percent as elites.
+        Optimize mode preserves only the champion after reference seeding.
         """
-        # Keep top performers (10% of population, min 2)
         elite_count = max(2, self.size // 10)
-        new_agents = self.agents[:elite_count]
+        preserved_count = 1 if self.mode == self.MODE_OPTIMIZE else elite_count
+        new_agents = []
+
+        for slot in range(preserved_count):
+            preserved_agent = self._clone_agent(self.agents[slot])
+            new_agents.append(preserved_agent)
+            self._record_generation_event(
+                slot=slot,
+                operator='preserve',
+                parent_slots=[slot],
+                preserved=True,
+                mutated=False
+            )
 
         # Fill rest with mutations of elites using roulette wheel selection
         while len(new_agents) < self.size:
             # Roulette wheel select from elites (fitness-proportional)
             parent = self._roulette_wheel_select(self.agents[:elite_count])
-            child = NeuralAgent()
-            child.copy_from(parent)
+            parent_slot = self._get_agent_slot(parent, self.agents)
+            child = self._clone_agent(parent)
             # Reference: mutation_rate=0.05, gaussian_mutation_scale=0.2
             child.mutate(rate=0.05, strength=0.2)
+            self._record_generation_event(
+                slot=len(new_agents),
+                operator='mutation',
+                parent_slots=[parent_slot],
+                preserved=False,
+                mutated=True,
+                mutation_rate=0.05,
+                mutation_strength=0.2
+            )
             new_agents.append(child)
 
         self.agents = new_agents
     
     def _evolve_crossover(self):
-        """Crossover evolution: two-parent breeding + mutation."""
+        """Crossover evolution: preserve champion, breed the rest every generation."""
         from .crossover import crossover_networks
 
-        # Keep top performers as elites (10% of population, min 2)
         elite_count = max(2, self.size // 10)
-        new_agents = self.agents[:elite_count]
-
-        # Decide if this is a breeding generation
-        is_breeding_gen = (self.generation > 0 and
-                          self.generation % self.breeding_interval == 0 and
-                          len(self.elite_pool) >= 2)
+        parent_pool = self.agents[:elite_count]
+        new_agents = [self._clone_agent(self.agents[0])]
+        self._record_generation_event(
+            slot=0,
+            operator='preserve',
+            parent_slots=[0],
+            preserved=True,
+            mutated=False
+        )
 
         while len(new_agents) < self.size:
-            if is_breeding_gen and len(self.elite_pool) >= 2:
-                # Two-parent crossover from elite pool
-                parent1, parent2 = self._select_parents()
+            parent1, parent2 = self._select_parents(parent_pool)
+            parent1_slot = self._get_agent_slot(parent1, self.agents)
+            parent2_slot = self._get_agent_slot(parent2, self.agents)
 
-                offspring_weights = crossover_networks(
-                    parent1.get_weights(),
-                    parent2.get_weights(),
-                    method=self.mode,
-                    eta=100.0  # High eta = offspring close to parents
-                )
+            offspring_weights = crossover_networks(
+                parent1.get_weights(),
+                parent2.get_weights(),
+                method=self.mode,
+                eta=100.0  # High eta = offspring close to parents
+            )
 
-                child = NeuralAgent()
-                child.set_weights(offspring_weights)
-                # Light mutation after crossover (reference: rate=0.05, scale=0.2)
-                child.mutate(rate=0.05, strength=0.2)
-            else:
-                # Regular mutation from current generation elites
-                # Use roulette wheel selection (fitness-proportional)
-                parent = self._roulette_wheel_select(self.agents[:elite_count])
-                child = NeuralAgent()
-                child.copy_from(parent)
-                # Reference: mutation_rate=0.05, gaussian_mutation_scale=0.2
-                child.mutate(rate=0.05, strength=0.2)
+            child = NeuralAgent()
+            child.set_weights(offspring_weights)
+            child.mutate(rate=0.05, strength=0.2)
+            self._record_generation_event(
+                slot=len(new_agents),
+                operator=self.mode,
+                parent_slots=[parent1_slot, parent2_slot],
+                preserved=False,
+                mutated=True,
+                mutation_rate=0.05,
+                mutation_strength=0.2
+            )
 
             new_agents.append(child)
-
-        if is_breeding_gen:
-            console.log(f"[Population] Breeding generation! Elite pool: {len(self.elite_pool)}")
 
         self.agents = new_agents
     
     def _update_elite_pool(self):
-        """Update elite pool with best performers."""
-        # Add current best to elite pool if good enough
-        current_best = self.agents[0]
-        
-        if len(self.elite_pool) < self.elite_pool_size:
-            # Pool not full, add current best
-            elite = NeuralAgent()
-            elite.copy_from(current_best)
-            elite.fitness = current_best.fitness
-            elite.farthest_x = current_best.farthest_x
-            self.elite_pool.append(elite)
-        else:
-            # Pool full, replace worst if current is better
-            worst_idx = min(range(len(self.elite_pool)), 
-                          key=lambda i: self.elite_pool[i].fitness)
-            if current_best.fitness > self.elite_pool[worst_idx].fitness:
-                elite = NeuralAgent()
-                elite.copy_from(current_best)
-                elite.fitness = current_best.fitness
-                elite.farthest_x = current_best.farthest_x
-                self.elite_pool[worst_idx] = elite
+        """Refresh the elite pool from the current generation's top performers."""
+        elite_count = max(2, self.size // 10)
+        pool_count = min(self.elite_pool_size, elite_count, len(self.agents))
+        self.elite_pool = [self._clone_agent(agent) for agent in self.agents[:pool_count]]
     
-    def _select_parents(self):
-        """Select two parents from elite pool via roulette wheel selection.
+    def _select_parents(self, pool):
+        """Select two parents from the current elite pool via roulette wheel selection.
 
         Using fitness-proportional selection to match reference implementation.
         """
-        pool = self.elite_pool
-
         # Roulette wheel for parent 1
         parent1 = self._roulette_wheel_select(pool)
 

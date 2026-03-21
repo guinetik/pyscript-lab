@@ -4,6 +4,7 @@
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import NeuralNetworkViz from '$lib/components/NeuralNetworkViz.svelte';
 	import MetricsChart from '$lib/components/MetricsChart.svelte';
+	import BreedingViz from '$lib/components/BreedingViz.svelte';
 	import { NeuroController } from '$lib/controller/NeuroController.js';
 
 	// === State ===
@@ -18,10 +19,10 @@
 	// Training mode selection
 	let trainingMode = $state('simple'); // 'simple' | 'sbx' | 'uniform' | 'optimize'
 	const trainingModes = [
-		{ value: 'simple', label: 'Simple (Mutation Only)', description: 'Original behavior - mutate top performers' },
-		{ value: 'sbx', label: 'SBX Crossover', description: 'Two-parent breeding with Simulated Binary Crossover' },
-		{ value: 'uniform', label: 'Uniform Crossover', description: 'Two-parent breeding with random gene mixing' },
-		{ value: 'optimize', label: 'Optimize (From Reference)', description: 'Start from reference weights and continue training' }
+		{ value: 'simple', label: 'Simple (Elite + Mutation)', description: 'Preserve top elites and fill the rest with mutated elite copies' },
+		{ value: 'sbx', label: 'SBX Breeding', description: 'Preserve the champion, then breed every other slot with two-parent SBX plus mutation' },
+		{ value: 'uniform', label: 'Uniform Breeding', description: 'Preserve the champion, then breed every other slot with uniform crossover plus mutation' },
+		{ value: 'optimize', label: 'Optimize (Reference Seed)', description: 'Seed from reference weights, preserve the champion, then continue with mutation-only evolution' }
 	];
 	
 	// Training state
@@ -37,10 +38,24 @@
 	// Visualization toggles
 	let showNeurons = $state(false);
 	let showMetrics = $state(false);
+	let showBreeding = $state(false);
 	let networkVizData = $state(null);
+	let breedingData = $state(null);
+
+	/** Last live neuron snapshot while not in background training — shown frozen during BACKGROUND (no redraw churn). */
+	let frozenNetworkViz = $state(null);
+
+	const trainingBackground = $derived(mode === 'training' && trainerState === 'BACKGROUND');
+	const neuronDisplayViz = $derived(trainingBackground ? frozenNetworkViz : networkVizData);
 	
 	// Metrics history for chart
 	let metricsHistory = $state([]);
+
+	$effect(() => {
+		if (!trainingBackground && networkVizData) {
+			frozenNetworkViz = networkVizData;
+		}
+	});
 	
 	// === Setup on mount ===
 	onMount(async () => {
@@ -55,6 +70,9 @@
 				bestDistance = dist;
 				status = `Training: Gen ${gen} | Fitness: ${fit.toFixed(0)} | Dist: ${dist}`;
 				metricsHistory = [...metricsHistory.slice(-99), { gen, fitness: fit, distance: dist }];
+			},
+			onBreeding: (data) => {
+				breedingData = data;
 			},
 			onState: (newState) => {
 				trainerState = newState;
@@ -108,6 +126,8 @@
 		metricsHistory = [];
 		showNeurons = true;
 		showMetrics = true;
+		showBreeding = true;
+		breedingData = null;
 		
 		await controller.startTraining(trainingMode);
 	}
@@ -251,7 +271,7 @@
 		</div>
 
 		<!-- Secondary Controls -->
-		<div class="grid grid-cols-4 gap-2">
+		<div class="grid grid-cols-5 gap-2">
 			<button 
 				onclick={stop}
 				disabled={mode === 'idle'}
@@ -277,7 +297,18 @@
 			>
 				📈 Metrics
 			</button>
+			<button 
+				onclick={() => showBreeding = !showBreeding}
+				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showBreeding ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
+			>
+				🧬 Lineage
+			</button>
 		</div>
+
+		<!-- Metrics live here (left column) so the doc panel stays readable -->
+		{#if showMetrics}
+			<MetricsChart metricsHistory={metricsHistory} />
+		{/if}
 		
 		<!-- Keyboard Controls Help -->
 		{#if mode === 'playing'}
@@ -294,65 +325,105 @@
 	</div>
 	
 	<div slot="content_slot" class="space-y-4">
-		<h2 class="text-xl font-bold">Mario AI - Neuroevolution</h2>
+		<div>
+			<h2 class="text-xl font-bold text-slate-900">Mario AI — Neuroevolution</h2>
+			<p class="mt-1 text-sm text-slate-600 leading-relaxed">
+				PyScript runs a full population in Python; the NES game view and charts are in the browser. Use
+				<strong>Play</strong> for human control, <strong>Start AI</strong> for a single network playing live, and
+				<strong>Train</strong> to evolve a population. Training turns on <strong>Neurons</strong>,
+				<strong>Metrics</strong> (chart under the buttons on the left), and <strong>Lineage</strong> by default — you
+				can toggle them anytime.
+			</p>
+		</div>
 		
 		<!-- Neural Network Visualization -->
 		{#if showNeurons}
-			<NeuralNetworkViz bind:vizData={networkVizData} />
+			<NeuralNetworkViz vizData={neuronDisplayViz} paused={trainingBackground} />
 		{/if}
-		
-		<!-- Metrics Chart -->
-		{#if showMetrics}
-			<MetricsChart metricsHistory={metricsHistory} />
+
+		{#if showBreeding}
+			<BreedingViz breedingData={breedingData} />
 		{/if}
 		
 		<!-- Info Sections -->
 		<div class="space-y-3">
-			<!-- What is Neuroevolution -->
 			<div class="bg-purple-50 border-2 border-purple-200 rounded p-4">
-				<h3 class="font-bold text-purple-900 mb-2">🧬 What is Neuroevolution?</h3>
-				<p class="text-sm text-purple-800">
-					<strong>Neuroevolution</strong> trains neural networks using genetic algorithms instead of 
-					traditional backpropagation. Networks "evolve" through mutation and selection - just like 
-					biological evolution!
+				<h3 class="font-bold text-purple-900 mb-2">🧬 What is neuroevolution?</h3>
+				<p class="text-sm text-purple-800 leading-relaxed">
+					Instead of gradients (backprop), we <strong>score</strong> many networks by how far Mario gets, then
+					<strong>breed and mutate</strong> the best ones to form the next generation. Fitness here is tied to
+					in-game performance (distance, survival, etc.), computed while each agent plays a short episode.
 				</p>
-				<ol class="list-decimal pl-5 mt-2 text-sm text-purple-800 space-y-1">
-					<li><strong>Create</strong> random neural network weights</li>
-					<li><strong>Evaluate</strong> by playing the game (fitness = distance traveled)</li>
-					<li><strong>Select</strong> the best performers</li>
-					<li><strong>Mutate/Breed</strong> to create new generation</li>
-					<li><strong>Repeat</strong> until it beats the level!</li>
+				<ol class="list-decimal pl-5 mt-3 text-sm text-purple-800 space-y-1.5">
+					<li><strong>Initialize</strong> a population (random weights, or reference weights in Optimize mode)</li>
+					<li><strong>Evaluate</strong> every agent in the population (many runs happen in the background)</li>
+					<li><strong>Rank</strong> by fitness and record the best-ever “champion”</li>
+					<li><strong>Evolve</strong> — copy elites / champion, crossover or mutate the rest (mode-dependent)</li>
+					<li><strong>Repeat</strong> until the level is cleared or you stop training</li>
 				</ol>
 			</div>
+
+			<div class="bg-amber-50 border-2 border-amber-300 rounded p-4">
+				<h3 class="font-bold text-amber-950 mb-2">⚡ Background vs foreground training</h3>
+				<p class="text-sm text-amber-950/90 leading-relaxed mb-2">
+					Training alternates phases so you get speed <em>and</em> feedback:
+				</p>
+				<ul class="text-sm text-amber-950/90 space-y-2 list-disc pl-5">
+					<li>
+						<strong>BACKGROUND</strong> — The canvas shows a 🧬 overlay while the trainer evaluates the whole
+						population headlessly (no visible Mario). Python steps through agents quickly; this is where most
+						generations advance.
+					</li>
+					<li>
+						<strong>FOREGROUND</strong> — The best current agent plays on the canvas so you can see behavior.
+						The status line shows you’re watching the top performer, not the whole population at once.
+					</li>
+					<li>
+						<strong>IDLE</strong> — Training stopped; you can change the training mode and start again.
+					</li>
+				</ul>
+				<p class="text-xs text-amber-900/80 mt-3 leading-relaxed">
+					Champion weights are carried forward so the next background batch keeps improving from the best network
+					seen so far — not only from the last generation’s rank order.
+				</p>
+			</div>
 			
-			<!-- Training Modes -->
 			<div class="bg-emerald-50 border-2 border-emerald-200 rounded p-4">
-				<h3 class="font-bold text-emerald-900 mb-2">🔄 Training Modes</h3>
-				<ul class="text-sm text-emerald-800 space-y-2">
-					<li><strong>Simple:</strong> Mutation only - copy and mutate top performers</li>
-					<li><strong>SBX Crossover:</strong> Two-parent breeding using Simulated Binary Crossover. Creates offspring near parents, good for fine-tuning.</li>
-					<li><strong>Uniform Crossover:</strong> Random gene mixing from two parents. More exploration, can combine diverse strategies.</li>
-					<li><strong>Optimize:</strong> Start from pre-trained reference weights and continue training. Good for pushing past Level 1-1!</li>
+				<h3 class="font-bold text-emerald-900 mb-2">🔄 Training modes (dropdown)</h3>
+				<ul class="text-sm text-emerald-800 space-y-2 leading-relaxed">
+					<li><strong>Simple:</strong> Preserve the top ~10% as unchanged elites; remaining slots are roulette-selected elite offspring with Gaussian mutation (every generation).</li>
+					<li><strong>SBX:</strong> Preserve slot 0 (champion); all other slots are two-parent Simulated Binary Crossover plus mutation each generation.</li>
+					<li><strong>Uniform:</strong> Same as SBX but with uniform crossover between parents, then mutation.</li>
+					<li><strong>Optimize:</strong> Seed from shipped reference weights, preserve only the champion, then mutation-only fine-tuning (good when you already have a strong prior).</li>
+				</ul>
+			</div>
+
+			<div class="bg-slate-100 border-2 border-slate-300 rounded p-4">
+				<h3 class="font-bold text-slate-900 mb-2">🎛️ Panels & toggles</h3>
+				<ul class="text-sm text-slate-800 space-y-2 leading-relaxed list-disc pl-5">
+					<li><strong>Metrics</strong> — Fitness and best distance over time; lives <strong>under the buttons</strong> on the left when enabled.</li>
+					<li><strong>Neurons</strong> — Live network diagram; animation pauses during <strong>BACKGROUND</strong> to keep the tab responsive while PyScript works.</li>
+					<li><strong>Lineage</strong> — 3D particle helix with real rotating projection plus a small table of <strong>preserved</strong> champions/elites only.</li>
+					<li><strong>Neurons + BACKGROUND</strong> — The diagram shows the <strong>last foreground</strong> snapshot; it does not repaint on every headless eval tick.</li>
 				</ul>
 			</div>
 			
-			<!-- Network Architecture -->
 			<div class="bg-blue-50 border-2 border-blue-200 rounded p-4">
-				<h3 class="font-bold text-blue-900 mb-2">🏗️ Network Architecture</h3>
-				<p class="text-sm text-blue-800">
-					<strong>Input:</strong> 80 values (7×10 tile vision + 10 row encoding)<br>
-					<strong>Hidden:</strong> 9 neurons with ReLU activation<br>
-					<strong>Output:</strong> 6 buttons (LEFT, RIGHT, A, B + filtered UP/DOWN)
+				<h3 class="font-bold text-blue-900 mb-2">🏗️ Network architecture</h3>
+				<p class="text-sm text-blue-800 leading-relaxed">
+					<strong>Input:</strong> 80 values — 7×10 tile vision plus row encoding<br>
+					<strong>Hidden:</strong> 9 neurons, ReLU<br>
+					<strong>Output:</strong> 6 actions (LEFT, RIGHT, A, B, filtered UP/DOWN)<br>
+					<strong>Population:</strong> 100 agents evolved each step; all logic runs in Python via PyScript.
 				</p>
 			</div>
 			
-			<!-- Training Pipeline -->
-			<div class="bg-amber-50 border-2 border-amber-200 rounded p-4">
-				<h3 class="font-bold text-amber-900 mb-2">⚡ Training Pipeline</h3>
-				<p class="text-sm text-amber-800">
-					<strong>Foreground:</strong> Shows best performer playing<br>
-					<strong>Background:</strong> Runs population evaluation (headless, fast)<br>
-					<strong>Python:</strong> Handles neural network evolution via PyScript
+			<div class="bg-violet-50 border-2 border-violet-200 rounded p-4">
+				<h3 class="font-bold text-violet-900 mb-2">🐍 Python & data flow</h3>
+				<p class="text-sm text-violet-900 leading-relaxed">
+					The trainer emits progress (generation, fitness, distance), optional breeding lineage JSON for the helix,
+					and tensor snapshots for the neuron view. The UI never guesses evolution details — it reflects what the
+					backend reported for the last generation.
 				</p>
 			</div>
 		</div>

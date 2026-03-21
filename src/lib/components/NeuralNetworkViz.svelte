@@ -4,8 +4,13 @@
 	 * Renders a visual representation of the neural network with live activations
 	 */
 
-	// Props
-	let { vizData = $bindable(null) } = $props();
+	/**
+	 * @typedef {Object} NeuralNetworkVizProps
+	 * @property {unknown} [vizData]
+	 * @property {boolean} [paused] When true, no rAF — single `drawNetwork`. During headless training pass a **stable** frozen snapshot so `vizData` identity does not change every tick (see neuro `+page.svelte`).
+	 */
+	/** @type {NeuralNetworkVizProps} */
+	let { vizData = $bindable(null), paused = false } = $props();
 
 	// Local state
 	let canvas = $state(null);
@@ -51,17 +56,23 @@
 	};
 
 	$effect(() => {
+		void paused;
+		if (!canvas) return;
+		ctx = canvas.getContext('2d');
+
 		const hasData = vizData && vizData.layer_sizes;
 
-		if (canvas) {
-			ctx = canvas.getContext('2d');
+		if (!hasData) {
+			stopAnimation();
+			drawEmptyState();
+			return;
+		}
 
-			if (hasData) {
-				startAnimation();
-			} else {
-				stopAnimation();
-				drawEmptyState();
-			}
+		if (paused) {
+			stopAnimation();
+			drawNetwork();
+		} else {
+			startAnimation();
 		}
 
 		return () => stopAnimation();

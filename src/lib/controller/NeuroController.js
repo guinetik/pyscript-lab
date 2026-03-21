@@ -21,6 +21,7 @@ export class NeuroController {
         // Callbacks
         this.callbacks = {
             onProgress: null, // (gen, fit, dist)
+            onBreeding: null, // (breedingData)
             onState: null,    // (state)
             onStats: null,    // (stats)
             onViz: null,      // (vizData)
@@ -228,13 +229,19 @@ setup_js_bridge()
                 this.resetNES();
                 telemetry.log('trainer', 'Training complete', { success });
             },
-            mode  // Pass evolution mode to Python
+            mode,  // Pass evolution mode to Python
+            (breedingJson) => this.onTrainerBreeding(breedingJson)
         );
 
         if (success) {
             window.startTraining();
             if (this.callbacks.onStatus) {
-                const modeLabels = { simple: 'Simple (Mutation)', sbx: 'SBX Crossover', uniform: 'Uniform Crossover', optimize: 'Optimize (Reference)' };
+                const modeLabels = {
+                    simple: 'Simple (Elite + Mutation)',
+                    sbx: 'SBX Breeding',
+                    uniform: 'Uniform Breeding',
+                    optimize: 'Optimize (Reference Seed)'
+                };
                 this.callbacks.onStatus(`Training started [${modeLabels[mode] || mode}]`);
             }
             telemetry.log('trainer', 'Training started', { mode });
@@ -260,6 +267,18 @@ setup_js_bridge()
 
         // Pass win status to trainer so it can skip remaining foreground sessions
         window.foregroundComplete?.(didWin);
+    }
+
+    /**
+     * Forward breeding lineage payloads from Python to the UI.
+     * @param {string} breedingJson - JSON string containing the latest breeding events.
+     */
+    onTrainerBreeding(breedingJson) {
+        const breedingData = JSON.parse(breedingJson);
+        if (this.callbacks.onBreeding) {
+            this.callbacks.onBreeding(breedingData);
+        }
+        telemetry.log('trainer', 'Breeding', breedingData);
     }
 
     runForegroundDisplay() {
