@@ -104,78 +104,80 @@
 	</div>
 
 	{#if breedingData && events.length > 0}
-		<div class="mb-3 grid grid-cols-2 gap-2 md:grid-cols-4">
-			<div class="rounded-xl border border-border bg-surface-alt p-2.5">
-				<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Events</div>
-				<div class="mt-1 text-xl font-black text-text-primary">{events.length}</div>
-			</div>
-			<div class="rounded-xl border border-border bg-surface-alt p-2.5">
-				<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Preserved</div>
-				<div class="mt-1 text-xl font-black text-accent">{preservedCount}</div>
-			</div>
-			<div class="rounded-xl border border-border bg-surface-alt p-2.5">
-				<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Bred Slots</div>
-				<div class="mt-1 text-xl font-black text-accent">{bredCount}</div>
-			</div>
-			<div class="rounded-xl border border-border bg-surface-alt p-2.5">
-				<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Parents Used</div>
-				<div class="mt-1 text-xl font-black text-accent">{uniqueParents}</div>
-			</div>
-		</div>
-
-		<div class="mb-3">
-			<BreedingGenArt breedingData={breedingData} />
-		</div>
-
-		<div class="mb-3 rounded-xl border border-border bg-callout px-3 py-2.5 text-[11px] leading-relaxed text-text-primary">
-			<p class="font-semibold text-accent">How to read the helix</p>
-			<ul class="mt-1.5 list-disc space-y-1 pl-4">
-				<li>
-					Each <strong>step along the helix</strong> is one population slot (one end = low slot index).
-					Dot/rung color = how that slot was made:
-					<span class="whitespace-nowrap text-amber-600">Champion</span>
-					<span class="mx-1 text-text-muted">·</span>
-					<span class="whitespace-nowrap text-sky-600">SBX</span>
-					<span class="mx-1 text-text-muted">·</span>
-					<span class="whitespace-nowrap text-fuchsia-600">Uniform</span>
-					<span class="mx-1 text-text-muted">·</span>
-					<span class="whitespace-nowrap text-emerald-600">Mutation</span>
-				</li>
-			</ul>
-		</div>
-
-		{#if championEvents.length > 0}
-			<p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">Preserved champions / elites</p>
-			<div class="overflow-hidden rounded-2xl border border-border bg-surface-alt">
-				<div class="grid grid-cols-[72px_minmax(0,1fr)_110px] gap-0 border-b border-border bg-surface px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">
-					<div>Slot</div>
-					<div>Lineage</div>
-					<div>Operator</div>
+		<div class="flex flex-col md:flex-row gap-3">
+			<!-- Left: Helix canvas -->
+			<div class="md:w-1/2 flex-shrink-0">
+				<BreedingGenArt breedingData={breedingData} />
+				<div class="mt-2 rounded-lg border border-border bg-callout px-3 py-2 text-[11px] leading-relaxed text-text-primary">
+					<p class="font-semibold text-accent">How to read the helix</p>
+					<p class="mt-1">
+						Each step = one population slot. Dot color = operator:
+						<span class="whitespace-nowrap text-amber-600">Champion</span>
+						<span class="mx-0.5 text-text-muted">·</span>
+						<span class="whitespace-nowrap text-sky-600">SBX</span>
+						<span class="mx-0.5 text-text-muted">·</span>
+						<span class="whitespace-nowrap text-fuchsia-600">Uniform</span>
+						<span class="mx-0.5 text-text-muted">·</span>
+						<span class="whitespace-nowrap text-emerald-600">Mutation</span>
+					</p>
 				</div>
-				{#each championEvents as event (event.slot)}
-					{@const theme = operatorTheme(event.operator)}
-					<div class={`grid grid-cols-[72px_minmax(0,1fr)_110px] items-center gap-0 border-t border-border px-3 py-2 text-xs text-text-primary ${theme.row}`}>
-						<div class="flex items-center gap-2">
-							<span class={`h-2 w-2 rounded-full ${theme.dot}`}></span>
-							<span class="font-black text-text-primary">#{event.slot}</span>
-						</div>
-						<div class="min-w-0 truncate font-semibold text-accent">
-							Champion from #{event.parent_slots[0] ?? '—'}
-						</div>
-						<div>
-							<span class={`inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${theme.badge}`}>
-								{prettyLabel(event.operator)}
-							</span>
-						</div>
-					</div>
-				{/each}
 			</div>
-		{/if}
 
-		<div class="mt-3 text-xs text-text-muted">
-			Mutated children: <span class="font-semibold text-accent">{mutatedCount}</span>
-			<span class="mx-2 text-text-muted">·</span>
-			Helix = all slots; table = preserved only
+			<!-- Right: Stats + Table -->
+			<div class="md:w-1/2 flex flex-col gap-2">
+				<div class="grid grid-cols-2 gap-2">
+					<div class="rounded-lg border border-border bg-surface-alt p-2.5">
+						<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Events</div>
+						<div class="mt-1 text-xl font-black text-text-primary">{events.length}</div>
+					</div>
+					<div class="rounded-lg border border-border bg-surface-alt p-2.5">
+						<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Preserved</div>
+						<div class="mt-1 text-xl font-black text-accent">{preservedCount}</div>
+					</div>
+					<div class="rounded-lg border border-border bg-surface-alt p-2.5">
+						<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Bred Slots</div>
+						<div class="mt-1 text-xl font-black text-accent">{bredCount}</div>
+					</div>
+					<div class="rounded-lg border border-border bg-surface-alt p-2.5">
+						<div class="text-[11px] uppercase tracking-[0.25em] text-text-muted">Parents Used</div>
+						<div class="mt-1 text-xl font-black text-accent">{uniqueParents}</div>
+					</div>
+				</div>
+
+				{#if championEvents.length > 0}
+					<p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">Preserved champions / elites</p>
+					<div class="overflow-hidden rounded-lg border border-border bg-surface-alt flex-1">
+						<div class="grid grid-cols-[60px_minmax(0,1fr)_90px] gap-0 border-b border-border bg-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+							<div>Slot</div>
+							<div>Lineage</div>
+							<div>Operator</div>
+						</div>
+						{#each championEvents as event (event.slot)}
+							{@const theme = operatorTheme(event.operator)}
+							<div class={`grid grid-cols-[60px_minmax(0,1fr)_90px] items-center gap-0 border-t border-border px-3 py-1.5 text-xs text-text-primary ${theme.row}`}>
+								<div class="flex items-center gap-2">
+									<span class={`h-2 w-2 rounded-full ${theme.dot}`}></span>
+									<span class="font-black text-text-primary">#{event.slot}</span>
+								</div>
+								<div class="min-w-0 truncate font-semibold text-accent">
+									From #{event.parent_slots[0] ?? '—'}
+								</div>
+								<div>
+									<span class={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${theme.badge}`}>
+										{prettyLabel(event.operator)}
+									</span>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
+				<div class="text-xs text-text-muted">
+					Mutated: <span class="font-semibold text-accent">{mutatedCount}</span>
+					<span class="mx-1 text-text-muted">·</span>
+					Helix = all slots; table = preserved only
+				</div>
+			</div>
 		</div>
 	{:else}
 		<div class="rounded-2xl border border-dashed border-border bg-surface-alt px-5 py-10 text-center">

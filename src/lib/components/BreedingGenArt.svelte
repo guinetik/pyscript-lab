@@ -103,7 +103,7 @@
 
 <div
 	bind:this={wrapEl}
-	class="breeding-helix-root relative w-full overflow-hidden rounded-2xl border border-violet-500/30 bg-[#0a0412] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+	class="breeding-helix-root relative w-full overflow-hidden rounded-lg border border-border bg-surface-alt"
 	aria-label="Breeding lineage as rotating 3D particle helix"
 >
 	<canvas

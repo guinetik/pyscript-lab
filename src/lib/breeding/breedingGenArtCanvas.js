@@ -113,20 +113,16 @@ export function drawBreedingHelix(canvas, data, rotationPhase = 0) {
 	const perspective = 220;
 	const cameraDistance = 170;
 
-	const bg = ctx.createRadialGradient(cx, padTop + helixH * 0.35, 0, cx, h * 0.5, w * 0.85);
-	bg.addColorStop(0, '#1e1035');
-	bg.addColorStop(0.5, '#13081f');
-	bg.addColorStop(1, '#0a0412');
-	ctx.fillStyle = bg;
+	ctx.fillStyle = '#F3EDE4';
 	ctx.fillRect(0, 0, w, h);
 
 	if (!data?.events?.length) {
-		ctx.fillStyle = 'rgba(226, 232, 240, 0.5)';
-		ctx.font = '600 13px ui-sans-serif, system-ui, sans-serif';
+		ctx.fillStyle = '#2C2C2C';
+		ctx.font = "600 13px 'Source Sans 3', sans-serif";
 		ctx.textAlign = 'center';
 		ctx.fillText('Particle helix appears when training runs', w / 2, h * 0.52);
-		ctx.fillStyle = 'rgba(167, 139, 250, 0.4)';
-		ctx.font = '500 11px ui-sans-serif, system-ui, sans-serif';
+		ctx.fillStyle = '#6B6560';
+		ctx.font = "500 11px 'Source Sans 3', sans-serif";
 		ctx.fillText('Dots = slots · helix rotates in true 3D projection', w / 2, h * 0.58);
 		return;
 	}
@@ -134,13 +130,13 @@ export function drawBreedingHelix(canvas, data, rotationPhase = 0) {
 	const events = data.events;
 	const n = events.length;
 
-	ctx.fillStyle = 'rgba(226, 232, 240, 0.9)';
-	ctx.font = '700 10px ui-sans-serif, system-ui, sans-serif';
+	ctx.fillStyle = '#2C2C2C';
+	ctx.font = "700 10px 'Source Sans 3', sans-serif";
 	ctx.textAlign = 'left';
 	ctx.fillText(`Gen ${data.generation} · ${data.mode}`, padX, 16);
 	ctx.textAlign = 'right';
-	ctx.fillStyle = 'rgba(196, 181, 253, 0.55)';
-	ctx.font = '600 9px ui-sans-serif, system-ui, sans-serif';
+	ctx.fillStyle = '#6B6560';
+	ctx.font = "600 9px 'Source Sans 3', sans-serif";
 	ctx.fillText('3D helix rotation · color = operator', w - padX, 16);
 
 	/** @type {{ sx: number, sy: number, depth: number, r: number, g: number, b: number, a: number, rad: number }[]} */
@@ -188,8 +184,8 @@ export function drawBreedingHelix(canvas, data, rotationPhase = 0) {
 	}
 
 	ctx.textAlign = 'center';
-	ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
-	ctx.font = '600 8px ui-sans-serif, system-ui, sans-serif';
+	ctx.fillStyle = '#6B6560';
+	ctx.font = "600 8px 'Source Sans 3', sans-serif";
 	ctx.fillText(`${n} loci · rotating 3D projection`, cx, h - 8);
 }
 
