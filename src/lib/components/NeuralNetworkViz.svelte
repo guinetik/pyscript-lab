@@ -47,12 +47,12 @@
 
 	// Color scheme
 	const COLORS = {
-		background: '#0f172a',
-		node: '#64748b',
-		nodeActive: '#22d3ee',
-		edge: '#334155',
-		edgeActive: '#06b6d4',
-		text: '#cbd5e1'
+		background: '#FBF8F3',
+		node: '#D6CFC5',
+		nodeActive: '#306998',
+		edge: '#D6CFC5',
+		edgeActive: '#306998',
+		text: '#2C2C2C'
 	};
 
 	$effect(() => {
@@ -279,8 +279,8 @@
 							node.x - pillWidth/2, node.y,
 							node.x + pillWidth/2, node.y
 						);
-						gradient.addColorStop(0, '#4a5a6a');
-						gradient.addColorStop(0.5, '#7a8a9a');
+						gradient.addColorStop(0, '#D6CFC5');
+						gradient.addColorStop(0.5, '#B5ADA4');
 						gradient.addColorStop(1, '#4a5a6a');
 						ctx.fillStyle = gradient;
 					}
@@ -335,7 +335,7 @@
 							node.x, node.y, 0,
 							node.x, node.y, radius
 						);
-						gradient.addColorStop(0, '#7a8a9a');
+						gradient.addColorStop(0, '#B5ADA4');
 						gradient.addColorStop(1, '#4a5a6a');
 						ctx.fillStyle = gradient;
 						ctx.beginPath();
@@ -368,7 +368,7 @@
 
 			// Draw label centered horizontally, above the layer row
 			const labelY = layer.y - 15; // Positioned above nodes
-			ctx.fillStyle = 'greenyellow';
+			ctx.fillStyle = '#306998';
 			ctx.fillText(`${label} (${nodeCount})`, CANVAS_WIDTH / 2, labelY);
 
 			// Show activation stats if available - on the right side, aligned with label
@@ -376,7 +376,7 @@
 				const act = activations[layerIdx];
 				ctx.textAlign = 'right';
 				ctx.font = '12px monospace';
-				ctx.fillStyle = '#22d3ee';
+				ctx.fillStyle = '#FFD43B';
 				ctx.fillText(
 					`Active: ${act.active_count}/${layer.size}`,
 					CANVAS_WIDTH - 20,
@@ -409,22 +409,22 @@
 						const activation = node.activation || 0;
 
 						// Button label above node
-						ctx.fillStyle = activation > 0.5 ? '#ffffff' : COLORS.text;
+						ctx.fillStyle = activation > 0.5 ? '#306998' : COLORS.text;
 						ctx.fillText(buttons[idx], node.x, node.y - 15);
 
 						// Percentage below node
 						ctx.font = '12px monospace';
-						ctx.fillStyle = activation > 0.1 ? '#ffffff' : '#94a3b8';
+						ctx.fillStyle = activation > 0.1 ? '#2C2C2C' : '#6B6560';
 						ctx.fillText(`${(activation * 100).toFixed(0)}%`, node.x, node.y + 22);
 						ctx.font = '11px monospace';
 
 						// Draw activation bar below percentage
 						const barWidth = 50;
 						const barHeight = 5;
-						ctx.fillStyle = 'rgba(100, 116, 139, 0.4)';
+						ctx.fillStyle = 'rgba(214, 207, 197, 0.6)';
 						ctx.fillRect(node.x - barWidth/2, node.y + 28, barWidth, barHeight);
 
-						ctx.fillStyle = activation > 0.5 ? '#ffffff' : COLORS.edgeActive;
+						ctx.fillStyle = COLORS.edgeActive;
 						ctx.fillRect(node.x - barWidth/2, node.y + 28, barWidth * activation, barHeight);
 					}
 				});
@@ -443,7 +443,7 @@
 		ctx.textAlign = 'center';
 		ctx.fillText('Neural network visualization', CANVAS_WIDTH / 2, canvasHeight / 2 - 20);
 		ctx.font = '12px monospace';
-		ctx.fillStyle = '#64748b';
+		ctx.fillStyle = '#6B6560';
 		ctx.fillText('Enable with: toggleNetworkVisualization(true)', CANVAS_WIDTH / 2, canvasHeight / 2 + 10);
 	}
 </script>
