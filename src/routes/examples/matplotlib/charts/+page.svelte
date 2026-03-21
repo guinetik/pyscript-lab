@@ -2,6 +2,8 @@
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
 	const exampleText = exampleTranslationStore('matplotlib_charts');
@@ -64,66 +66,66 @@
 	</div>
 
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'COVID-19 Data Charts'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'COVID-19 Data Charts'}</h2>
 
 		<div class="space-y-4">
-			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
-				<p class="text-sm text-blue-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.dataset?.intro || 'The covid_country.csv dataset contains:'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-blue-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.dataset?.items?.countries || '187 countries/regions with cumulative statistics'}</li>
 					<li>{$exampleText.dataset?.items?.stats || 'Confirmed cases, deaths, recoveries, and active cases'}</li>
 					<li>{$exampleText.dataset?.items?.weekly || 'Weekly new cases and changes'}</li>
 					<li>{$exampleText.dataset?.items?.cfr || 'Case fatality rates (death rate)'}</li>
 					<li>{$exampleText.dataset?.items?.regions || 'WHO regional categorization (Americas, Europe, Africa, etc.)'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 font-bold text-green-900">{$exampleText.about?.title || '📈 What is Matplotlib?'}</h3>
-				<p class="text-sm text-green-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.about?.title || '📈 What is Matplotlib?'}</h3>
+				<p class="text-sm">
 					{$exampleText.about?.description || 'Matplotlib is Python\'s foundational plotting library. It provides complete control over every aspect of your charts - from basic line plots to complex multi-panel visualizations. Unlike Bokeh (which focuses on interactivity), Matplotlib excels at creating publication-quality static figures with precise customization.'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.chartTypes?.title || '🔬 Chart Types Used'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.chartTypes?.title || '🔬 Chart Types Used'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.chartTypes?.items?.bar || 'Horizontal Bar Charts: Great for comparing categories when labels are long'}</li>
 					<li>{$exampleText.chartTypes?.items?.pie || 'Pie Charts: Show proportions of a whole (regional distribution)'}</li>
 					<li>{$exampleText.chartTypes?.items?.scatter || 'Scatter Plots: Reveal correlations between two variables'}</li>
 					<li>{$exampleText.chartTypes?.items?.log || 'Log Scales: Handle data spanning multiple orders of magnitude'}</li>
 					<li>{$exampleText.chartTypes?.items?.colorMap || 'Color Maps: Use color intensity to represent data values (heatmap effect)'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-orange-50 p-4">
-				<h3 class="mb-2 font-bold text-orange-900">{$exampleText.insights?.title || '💡 Data Insights'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.insights?.title || '💡 Data Insights'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.insights?.items?.deathTolls || 'The Americas and Europe regions had the highest death tolls'}</li>
 					<li>{$exampleText.insights?.items?.correlation || 'Larger outbreaks don\'t always correlate linearly with deaths (different healthcare responses)'}</li>
 					<li>{$exampleText.insights?.items?.cfr || 'Case Fatality Rate varies significantly based on healthcare capacity, testing rates, and demographics'}</li>
 					<li>{$exampleText.insights?.items?.testing || 'Countries with robust testing may show lower CFR due to detecting more mild cases'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.techniques?.title || '🎯 Technical Techniques'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-amber-800">
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.techniques?.title || '🎯 Technical Techniques'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.techniques?.items?.pandas || 'Pandas Operations: nlargest(), groupby(), filtering with boolean indexing'}</li>
 					<li>{$exampleText.techniques?.items?.color || 'Color Mapping: plt.cm.Reds, plt.cm.Set3, plt.cm.YlOrRd for visual hierarchy'}</li>
 					<li>{$exampleText.techniques?.items?.log || 'Log Scales: set_xscale(\'log\') for handling wide value ranges'}</li>
 					<li>{$exampleText.techniques?.items?.caching || 'Data Caching: All 4 charts share the same loaded CSV (efficient!)'}</li>
 					<li>{$exampleText.techniques?.items?.clientSide || 'Client-Side Processing: All analysis happens in your browser via WebAssembly'}</li>
 				</ul>
-			</div>
+			</Callout>
 		</div>
 
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/matplotlib"
 				target="_blank">{$exampleText.viewSource || 'View source files'}</a
 			>

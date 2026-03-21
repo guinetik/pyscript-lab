@@ -2,6 +2,8 @@
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
 	const exampleText = exampleTranslationStore('matplotlib_intro');
@@ -34,15 +36,15 @@
 		</section>
 	</div>
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Matplotlib Introduction'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Matplotlib Introduction'}</h2>
 
 		<div class="prose max-w-none">
 			<p class="mb-4">
 				{$exampleText.description || "Matplotlib is Python's most popular plotting library, and with PyScript, you can run it directly in your browser! Create interactive visualizations, charts, and graphs without any server-side processing—all powered by WebAssembly and Pyodide."}
 			</p>
 
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.keyFeatures?.title || 'Key Features:'}</h3>
+			<Callout>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.keyFeatures?.title || 'Key Features:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
 					<li><strong>{$exampleText.keyFeatures?.fullSupport || 'Full Matplotlib Support:'}</strong> {$exampleText.keyFeatures?.fullSupportDesc || 'Access the complete matplotlib API in the browser'}</li>
 					<li><strong>{$exampleText.keyFeatures?.numpyIntegration || 'NumPy Integration:'}</strong> {$exampleText.keyFeatures?.numpyIntegrationDesc || 'Use NumPy arrays for data manipulation'}</li>
@@ -50,19 +52,19 @@
 					<li><strong>{$exampleText.keyFeatures?.customization || 'Customization:'}</strong> {$exampleText.keyFeatures?.customizationDesc || 'Full control over colors, styles, labels, and layout'}</li>
 					<li><strong>{$exampleText.keyFeatures?.zeroBackend || 'Zero Backend:'}</strong> {$exampleText.keyFeatures?.zeroBackendDesc || 'All rendering happens client-side'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.theExamples?.title || 'The Examples:'}</h3>
+			<Callout>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.theExamples?.title || 'The Examples:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
 					<li><strong>{$exampleText.examples?.example1 || 'Example 1:'}</strong> {$exampleText.theExamples?.example1 || 'Line Plot - Shows a sine wave with customized styling'}</li>
 					<li><strong>{$exampleText.examples?.example2 || 'Example 2:'}</strong> {$exampleText.theExamples?.example2 || 'Bar Chart - Demonstrates categorical data visualization'}</li>
 					<li><strong>{$exampleText.examples?.example3 || 'Example 3:'}</strong> {$exampleText.theExamples?.example3 || 'Scatter Plot - Visualizes data correlation with color mapping'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="mb-4 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.gettingStarted?.title || 'Getting Started:'}</h3>
+			<Callout type="tip">
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.gettingStarted?.title || 'Getting Started:'}</h3>
 				<p class="mb-2">{$exampleText.gettingStarted?.description || 'To use Matplotlib in PyScript, you need to specify it in your config:'}</p>
 				<pre class="rounded bg-white p-3 text-sm overflow-x-auto"><code>&lt;py-config&gt;
   packages = ["matplotlib", "numpy"]
@@ -79,17 +81,17 @@
 				<p class="mt-3 text-sm">
 					<strong>{$exampleText.gettingStarted?.note || 'Note:'}</strong> {$exampleText.gettingStarted?.noteDesc || 'Matplotlib plots are rendered as static images in PyScript. For interactive plots, consider using Bokeh (see Bokeh examples).'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="mb-6 rounded-lg bg-yellow-50 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.useCases?.title || 'Use Cases:'}</h3>
+			<Callout type="tip">
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.useCases?.title || 'Use Cases:'}</h3>
 				<ul class="list-disc space-y-2 pl-5">
 					<li>{$exampleText.useCases?.dashboards || 'Data visualization dashboards'}</li>
 					<li>{$exampleText.useCases?.scientific || 'Scientific and educational demonstrations'}</li>
 					<li>{$exampleText.useCases?.statistical || 'Statistical analysis presentations'}</li>
 					<li>{$exampleText.useCases?.reporting || 'Report generation with charts'}</li>
 				</ul>
-			</div>
+			</Callout>
 		</div>
 	</article>
 </ExperimentCard>

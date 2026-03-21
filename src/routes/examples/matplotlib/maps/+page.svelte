@@ -2,6 +2,8 @@
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
 	const exampleText = exampleTranslationStore('matplotlib_maps');
@@ -64,76 +66,76 @@
 	</div>
 
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'COVID-19 World Map'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'COVID-19 World Map'}</h2>
 
 		<div class="space-y-4">
-			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.choropleth?.title || '🗺️ What is a Choropleth Map?'}</h3>
-				<p class="text-sm text-blue-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.choropleth?.title || '🗺️ What is a Choropleth Map?'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.choropleth?.description || 'A choropleth map is a thematic map where areas are colored or shaded according to a statistical variable. In our case, we\'re coloring countries based on COVID-19 metrics.'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-blue-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li><strong>{$exampleText.choropleth?.items?.geographic || 'Geographic Representation: Each country is a polygon with accurate boundaries'}</strong></li>
 					<li>{$exampleText.choropleth?.items?.color || 'Color Encoding: The color intensity represents data magnitude'}</li>
 					<li>{$exampleText.choropleth?.items?.interactive || 'Interactive: Hover to see exact values and country names'}</li>
 					<li>{$exampleText.choropleth?.items?.zoom || 'Zoom & Pan: Click and drag to explore different regions'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 font-bold text-green-900">{$exampleText.plotly?.title || '📊 What is Plotly?'}</h3>
-				<p class="text-sm text-green-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.plotly?.title || '📊 What is Plotly?'}</h3>
+				<p class="text-sm">
 					{$exampleText.plotly?.description || 'Plotly is an interactive graphing library for Python. Unlike Matplotlib (which creates static images), Plotly generates interactive HTML visualizations that users can explore. It excels at geographic visualizations with built-in support for choropleth maps, and handles country matching automatically using ISO-3 codes.'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.mapExplanations?.title || '🔬 The Four Maps Explained'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.mapExplanations?.title || '🔬 The Four Maps Explained'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.mapExplanations?.items?.deaths || 'Deaths Map (Red): Shows the human toll. Absolute numbers highlight heavily populated countries.'}</li>
 					<li>{$exampleText.mapExplanations?.items?.cases || 'Confirmed Cases (Blue): Visualizes total outbreak size. Useful for understanding scale of spread.'}</li>
 					<li>{$exampleText.mapExplanations?.items?.cfr || 'Case Fatality Rate (Yellow-Red): Death rate relative to cases. Indicates healthcare capacity and population vulnerability.'}</li>
 					<li>{$exampleText.mapExplanations?.items?.newCases || 'New Cases (Orange): Shows active transmission areas, identifying current hotspots.'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-orange-50 p-4">
-				<h3 class="mb-2 font-bold text-orange-900">{$exampleText.technical?.title || '🔍 Technical Implementation'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.technical?.title || '🔍 Technical Implementation'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.technical?.items?.iso3 || 'ISO-3 Country Codes: Uses standardized codes (USA, GBR, FRA) for reliable country matching'}</li>
 					<li>{$exampleText.technical?.items?.projection || 'Natural Earth Projection: A visually pleasing pseudo-cylindrical map projection'}</li>
 					<li>{$exampleText.technical?.items?.plotly || 'Plotly Choropleth: Built-in geographic support with country geometries'}</li>
 					<li>{$exampleText.technical?.items?.caching || 'Data Caching: All 4 maps share the same loaded CSV (efficient!)'}</li>
 					<li>{$exampleText.technical?.items?.async || 'Async Display: 0.5s delay ensures Plotly library fully initializes'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.insights?.title || '💡 Geographic Insights'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-amber-800">
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.insights?.title || '💡 Geographic Insights'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.insights?.items?.patterns || 'Spatial Patterns: Maps reveal regional clusters not visible in tables'}</li>
 					<li>{$exampleText.insights?.items?.absolute || 'Absolute vs Relative: Deaths map shows population, CFR normalizes by cases'}</li>
 					<li>{$exampleText.insights?.items?.temporal || 'Temporal Dimension: New cases map captures the dynamic nature of the pandemic'}</li>
 					<li>{$exampleText.insights?.items?.missing || 'Missing Data: Gray/white countries indicate no data or no ISO-3 match'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-red-50 p-4">
-				<h3 class="mb-2 font-bold text-red-900">{$exampleText.interactive?.title || '🎯 Interactive Features'}</h3>
-				<p class="text-sm text-red-800 mb-2">{$exampleText.interactive?.intro || 'Try these interactions with the maps:'}</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-red-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.interactive?.title || '🎯 Interactive Features'}</h3>
+				<p class="text-sm mb-2">{$exampleText.interactive?.intro || 'Try these interactions with the maps:'}</p>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.interactive?.items?.hover || 'Hover over any country to see detailed statistics'}</li>
 					<li>{$exampleText.interactive?.items?.pan || 'Click and drag to pan the map'}</li>
 					<li>{$exampleText.interactive?.items?.zoom || 'Use scroll wheel to zoom in/out'}</li>
 					<li>{$exampleText.interactive?.items?.reset || 'Double-click to reset view'}</li>
 					<li>{$exampleText.interactive?.items?.download || 'Click the camera icon (top-right) to download as PNG'}</li>
 				</ul>
-			</div>
+			</Callout>
 		</div>
 
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/matplotlib"
 				target="_blank">{$exampleText.viewSource || 'View source files'}</a
 			>

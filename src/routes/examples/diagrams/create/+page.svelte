@@ -1,6 +1,8 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import CodeEditor from '$lib/components/CodeEditor.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { DiagramCreatorController } from '$lib/controller/DiagramCreatorController.js';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 	import { onMount, onDestroy } from 'svelte';
@@ -169,49 +171,49 @@ with Diagram("Simple Web Service", show=False):
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Create Diagrams'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Create Diagrams'}</h2>
 
 		<div class="prose max-w-none">
 			<p class="mb-4">
 				{$exampleText.description || 'Create your own cloud architecture diagrams using Python code! This interactive editor lets you experiment with the Diagrams library and see results instantly.'}
 			</p>
 
-			<div class="mb-6 rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-blue-900">{$exampleText.sections?.howToUse?.title || 'How to Use:'}</h3>
-				<ol class="list-decimal space-y-2 pl-5 text-sm text-blue-800">
+			<Callout>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.sections?.howToUse?.title || 'How to Use:'}</h3>
+				<ol class="list-decimal space-y-2 pl-5 text-sm">
 					<li><strong>{$exampleText.sections?.howToUse?.step1?.split(' or ')[0] || 'Choose a template'}</strong> {$exampleText.sections?.howToUse?.step1?.includes(' or ') ? 'or write your own code' : ''}</li>
 					<li><strong>{$exampleText.sections?.howToUse?.step2?.split(' in ')[0] || 'Edit the code'}</strong> {$exampleText.sections?.howToUse?.step2?.includes(' in ') ? 'in the editor' : ''}</li>
 					<li><strong>{$exampleText.sections?.howToUse?.step3 || 'Click "Run Diagram" to generate the visualization'}</strong></li>
 					<li><strong>{$exampleText.sections?.howToUse?.step4 || 'Iterate and experiment - try different providers and layouts!'}</strong></li>
 				</ol>
-			</div>
+			</Callout>
 
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
-				<h3 class="mb-2 text-lg font-bold">{$exampleText.sections?.availableProviders?.title || 'Available Providers:'}</h3>
-				<div class="text-sm text-gray-700">
+			<Callout>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.sections?.availableProviders?.title || 'Available Providers:'}</h3>
+				<div class="text-sm">
 					<p class="mb-2">{$exampleText.sections?.availableProviders?.description || 'You can use components from these cloud providers:'}</p>
 					<ul class="list-disc space-y-1 pl-5">
-						<li><code class="rounded bg-white px-1">diagrams.aws.*</code> - {$exampleText.sections?.availableProviders?.aws?.split(' - ')[1] || 'Amazon Web Services'}</li>
-						<li><code class="rounded bg-white px-1">diagrams.azure.*</code> - {$exampleText.sections?.availableProviders?.azure?.split(' - ')[1] || 'Microsoft Azure'}</li>
-						<li><code class="rounded bg-white px-1">diagrams.gcp.*</code> - {$exampleText.sections?.availableProviders?.gcp?.split(' - ')[1] || 'Google Cloud Platform'}</li>
-						<li><code class="rounded bg-white px-1">diagrams.k8s.*</code> - {$exampleText.sections?.availableProviders?.k8s?.split(' - ')[1] || 'Kubernetes'}</li>
-						<li><code class="rounded bg-white px-1">diagrams.onprem.*</code> - {$exampleText.sections?.availableProviders?.onprem?.split(' - ')[1] || 'On-Premise / Generic'}</li>
+						<li><code class="rounded bg-surface-alt px-1">diagrams.aws.*</code> - {$exampleText.sections?.availableProviders?.aws?.split(' - ')[1] || 'Amazon Web Services'}</li>
+						<li><code class="rounded bg-surface-alt px-1">diagrams.azure.*</code> - {$exampleText.sections?.availableProviders?.azure?.split(' - ')[1] || 'Microsoft Azure'}</li>
+						<li><code class="rounded bg-surface-alt px-1">diagrams.gcp.*</code> - {$exampleText.sections?.availableProviders?.gcp?.split(' - ')[1] || 'Google Cloud Platform'}</li>
+						<li><code class="rounded bg-surface-alt px-1">diagrams.k8s.*</code> - {$exampleText.sections?.availableProviders?.k8s?.split(' - ')[1] || 'Kubernetes'}</li>
+						<li><code class="rounded bg-surface-alt px-1">diagrams.onprem.*</code> - {$exampleText.sections?.availableProviders?.onprem?.split(' - ')[1] || 'On-Premise / Generic'}</li>
 					</ul>
 				</div>
-			</div>
+			</Callout>
 
-			<div class="mb-6 rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-green-900">{$exampleText.sections?.tips?.title || 'Tips:'}</h3>
-				<ul class="list-disc space-y-2 pl-5 text-sm text-green-800">
-					<li>Use <code class="rounded bg-green-200 px-1">{$exampleText.sections?.tips?.dataFlow || '>>'}</code> {$exampleText.sections?.tips?.tip1?.split('to show')[1]?.substring(0, 30) || 'to show data flow direction'}</li>
-					<li>Use <code class="rounded bg-green-200 px-1">{$exampleText.sections?.tips?.connections || '-'}</code> {$exampleText.sections?.tips?.tip2?.split('for')[1] || 'for bidirectional connections'}</li>
-					<li>Use lists <code class="rounded bg-green-200 px-1">{$exampleText.sections?.tips?.parallelComponents || '[service1, service2]'}</code> {$exampleText.sections?.tips?.tip3?.split('for')[1] || 'for parallel components'}</li>
-					<li>Always set <code class="rounded bg-green-200 px-1">{$exampleText.sections?.tips?.showFalse || 'show=False'}</code> {$exampleText.sections?.tips?.tip4?.split('in')[1] || 'in the Diagram constructor'}</li>
+			<Callout type="tip">
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.sections?.tips?.title || 'Tips:'}</h3>
+				<ul class="list-disc space-y-2 pl-5 text-sm">
+					<li>Use <code class="rounded bg-surface-alt px-1">{$exampleText.sections?.tips?.dataFlow || '>>'}</code> {$exampleText.sections?.tips?.tip1?.split('to show')[1]?.substring(0, 30) || 'to show data flow direction'}</li>
+					<li>Use <code class="rounded bg-surface-alt px-1">{$exampleText.sections?.tips?.connections || '-'}</code> {$exampleText.sections?.tips?.tip2?.split('for')[1] || 'for bidirectional connections'}</li>
+					<li>Use lists <code class="rounded bg-surface-alt px-1">{$exampleText.sections?.tips?.parallelComponents || '[service1, service2]'}</code> {$exampleText.sections?.tips?.tip3?.split('for')[1] || 'for parallel components'}</li>
+					<li>Always set <code class="rounded bg-surface-alt px-1">{$exampleText.sections?.tips?.showFalse || 'show=False'}</code> {$exampleText.sections?.tips?.tip4?.split('in')[1] || 'in the Diagram constructor'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="mb-4 rounded-lg bg-yellow-50 p-4">
-				<h3 class="mb-2 text-lg font-bold text-yellow-900">{$exampleText.sections?.examplePattern?.title || 'Example Pattern:'}</h3>
+			<Callout type="tip">
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.sections?.examplePattern?.title || 'Example Pattern:'}</h3>
 				<pre class="rounded bg-white p-3 text-xs overflow-x-auto"><code>{$exampleText.sections?.examplePattern?.code || `from diagrams import Diagram
 from diagrams.aws.compute import EC2
 from diagrams.aws.database import RDS
@@ -220,11 +222,11 @@ with Diagram("My Architecture", show=False):
     web = EC2("web server")
     db = RDS("database")
     web >> db  # web connects to database`}</code></pre>
-			</div>
+			</Callout>
 		</div>
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/diagrams/diagram_creator.py"
 				target="_blank">{$exampleText.links?.creatorSource || 'View Creator Source'}</a
 			>
