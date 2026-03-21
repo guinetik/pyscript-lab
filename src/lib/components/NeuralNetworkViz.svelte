@@ -49,7 +49,7 @@
 	const COLORS = {
 		background: '#FBF8F3',
 		node: '#D6CFC5',
-		nodeActive: '#306998',
+		nodeActive: '#2E7D4F',
 		edge: '#D6CFC5',
 		edgeActive: '#306998',
 		text: '#2C2C2C'
@@ -376,7 +376,7 @@
 				const act = activations[layerIdx];
 				ctx.textAlign = 'right';
 				ctx.font = '12px monospace';
-				ctx.fillStyle = '#FFD43B';
+				ctx.fillStyle = '#2E7D4F';
 				ctx.fillText(
 					`Active: ${act.active_count}/${layer.size}`,
 					CANVAS_WIDTH - 20,
