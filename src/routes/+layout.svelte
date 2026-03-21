@@ -24,10 +24,9 @@
 </script>
 
 {#if $isLoading}
-	<div class="flex h-screen w-full items-center justify-center">
+	<div class="flex h-screen w-full items-center justify-center bg-surface">
 		<div class="text-center">
-			<div class="mb-4 text-4xl">🐍</div>
-			<div class="text-xl font-semibold text-gray-700">Loading...</div>
+			<div class="text-xl font-heading font-medium text-text-muted">Loading...</div>
 		</div>
 	</div>
 {:else}
