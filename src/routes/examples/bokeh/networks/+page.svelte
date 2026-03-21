@@ -1,6 +1,8 @@
 <script>
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
@@ -65,75 +67,75 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Bokeh + NetworkX'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Bokeh + NetworkX'}</h2>
 
 		<div class="space-y-4">
-			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.whatNetworkX?.title || '🕸️ What is NetworkX?'}</h3>
-				<p class="text-sm text-blue-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatNetworkX?.title || '🕸️ What is NetworkX?'}</h3>
+				<p class="text-sm">
 					{$exampleText.whatNetworkX?.description || 'NetworkX is Python\'s most popular library...'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 font-bold text-green-900">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
-				<p class="text-sm text-green-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.dataset?.intro || 'This network contains 115 nodes...'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-green-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.dataset?.name || 'Name (e.g., \"python\", \"javascript\", \"django\")'}</li>
 					<li>{$exampleText.dataset?.group || 'Group/category (color coding)'}</li>
 					<li>{$exampleText.dataset?.size || 'Node size (popularity/activity)'}</li>
 					<li>{$exampleText.dataset?.edges || 'Edges connecting it to related technologies'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.concepts?.title || '🔍 Network Analysis Concepts'}</h3>
-				<p class="text-sm text-purple-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.concepts?.title || '🔍 Network Analysis Concepts'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.concepts?.intro || 'Each visualization demonstrates key graph analysis techniques:'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-purple-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.concepts?.degree || 'Degree: Number of connections...'}</li>
 					<li>{$exampleText.concepts?.cliques || 'Cliques: Groups where every node...'}</li>
 					<li>{$exampleText.concepts?.centrality || 'Centrality: How important/influential...'}</li>
 					<li>{$exampleText.concepts?.subgraphs || 'Subgraphs: Extracting portions...'}</li>
 					<li>{$exampleText.concepts?.layouts || 'Layouts: Algorithms that position...'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-orange-50 p-4">
-				<h3 class="mb-2 font-bold text-orange-900">{$exampleText.layouts?.title || '🎨 Layout Algorithms'}</h3>
-				<p class="text-sm text-orange-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.layouts?.title || '🎨 Layout Algorithms'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.layouts?.intro || 'Different layouts reveal different aspects...'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-orange-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.layouts?.kamada || 'Kamada-Kawai: Optimizes distances...'}</li>
 					<li>{$exampleText.layouts?.spring || 'Spring (Fruchterman-Reingold): Force-directed...'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.howToRead?.title || '💡 How to Read These Graphs'}</h3>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-amber-800">
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.howToRead?.title || '💡 How to Read These Graphs'}</h3>
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.howToRead?.nodes || 'Nodes (circles): Technologies/languages...'}</li>
 					<li>{$exampleText.howToRead?.edges || 'Edges (lines): Show relationships...'}</li>
 					<li>{$exampleText.howToRead?.colors || 'Colors: Different groups/categories...'}</li>
 					<li>{$exampleText.howToRead?.size || 'Size: In full/clique/language...'}</li>
 					<li>{$exampleText.howToRead?.tools || 'Tools: Pan to move around...'}</li>
 				</ul>
-			</div>
+			</Callout>
 		</div>
 
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/bokeh"
 				target="_blank">{$exampleText.viewSource || 'View source files'}</a
 			>
 			<br />
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				target="_blank"
 				href="https://www.kaggle.com/code/mayeesha/network-analysis-for-dummies-stackoverflow-data/notebook"
 				>{$exampleText.kaggleLink || 'Adapted from this Kaggle'}</a

@@ -1,6 +1,8 @@
 <script>
 	import { base } from '$app/paths';
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import PyExample from '$lib/components/PyExample.svelte';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
@@ -54,60 +56,60 @@
 	</div>
 
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Community Detection'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Community Detection'}</h2>
 
 		<div class="space-y-4">
-			<div class="rounded-lg bg-indigo-50 p-4">
-				<h3 class="mb-2 font-bold text-indigo-900">{$exampleText.whatAreCommunities?.title || '🎨 What Are Communities?'}</h3>
-				<p class="text-sm text-indigo-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatAreCommunities?.title || '🎨 What Are Communities?'}</h3>
+				<p class="text-sm">
 					{$exampleText.whatAreCommunities?.description || 'In network science, a "community" is a group of nodes (technologies) that are more densely connected to each other than to the rest of the network. Think of them as natural clusters - like how web technologies (HTML, CSS, JavaScript) naturally group together, or how data science tools (Python, pandas, NumPy) form their own cluster.'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.algorithm?.title || '🔬 The Algorithm'}</h3>
-				<p class="text-sm text-blue-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.algorithm?.title || '🔬 The Algorithm'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.algorithm?.intro || 'This analysis uses Greedy Modularity Optimization:'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-blue-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.algorithm?.iterative || 'Iteratively groups nodes to maximize "modularity"'}</li>
 					<li>{$exampleText.algorithm?.modularity || 'Modularity measures how densely connected nodes are within communities vs. between'}</li>
 					<li>{$exampleText.algorithm?.fast || 'Fast and effective for discovering natural groupings in large networks'}</li>
 					<li>{$exampleText.algorithm?.deterministic || 'Deterministic - same graph always produces same communities'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.modularity?.title || '📊 Modularity Score'}</h3>
-				<p class="text-sm text-purple-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.modularity?.title || '📊 Modularity Score'}</h3>
+				<p class="text-sm">
 					{$exampleText.modularity?.description || 'The modularity score ranges from -0.5 to 1.0. Higher scores indicate stronger community structure. A score above 0.3 is generally considered significant, meaning the network has well-defined communities. The score shown in the first visualization tells you how clear the community boundaries are.'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 font-bold text-green-900">{$exampleText.understanding?.title || '🔍 Understanding the Results'}</h3>
-				<p class="text-sm text-green-800 mb-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.understanding?.title || '🔍 Understanding the Results'}</h3>
+				<p class="text-sm mb-2">
 					{$exampleText.understanding?.intro || 'What you can learn from these visualizations:'}
 				</p>
-				<ul class="list-disc space-y-1 pl-5 text-sm text-green-800">
+				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li><strong>{$exampleText.understanding?.ecosystems?.split(':')[0] || 'Technology Ecosystems'}:</strong> {$exampleText.understanding?.ecosystems?.split(':')[1] || 'See which skills naturally complement each other'}</li>
 					<li><strong>{$exampleText.understanding?.size?.split(':')[0] || 'Community Size'}:</strong> {$exampleText.understanding?.size?.split(':')[1] || 'Identify major platforms vs. specialized niches'}</li>
 					<li><strong>{$exampleText.understanding?.hubs?.split(':')[0] || 'Hub Nodes'}:</strong> {$exampleText.understanding?.hubs?.split(':')[1] || 'In the largest community, high-degree nodes are key technologies'}</li>
 					<li><strong>{$exampleText.understanding?.careers?.split(':')[0] || 'Career Paths'}:</strong> {$exampleText.understanding?.careers?.split(':')[1] || 'Communities suggest logical skill development trajectories'}</li>
 				</ul>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.applications?.title || '💡 Real-World Applications'}</h3>
-				<p class="text-sm text-amber-800">
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.applications?.title || '💡 Real-World Applications'}</h3>
+				<p class="text-sm">
 					{$exampleText.applications?.description || 'Community detection is used in social networks (friend groups), biology (protein interactions), recommendation systems (product categories), cybersecurity (attack patterns), and organizational analysis. In this example, it reveals technology ecosystems helping developers understand which skills naturally complement each other.'}
 				</p>
-			</div>
+			</Callout>
 		</div>
 
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/tree/master/static/python/bokeh"
 				target="_blank">{$exampleText.viewSource || 'View source files'}</a
 			>

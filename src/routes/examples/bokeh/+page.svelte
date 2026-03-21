@@ -1,5 +1,7 @@
 <script>
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
+	import ContentSection from '$lib/components/ContentSection.svelte';
+	import Callout from '$lib/components/Callout.svelte';
 	import { BokehController } from '$lib/controller/BokehController.js';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
@@ -45,8 +47,8 @@
 <ExperimentCard props={{ previousPage: '/examples/matplotlib/maps', nextPage: '/examples/bokeh/pandas' }}>
 	<div slot="py_slot" class="relative flex h-full items-center justify-center">
 		{#if loading}
-			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">
-				<div class="rounded-lg bg-white p-4 shadow-lg">
+			<div class="absolute inset-0 z-10 flex items-center justify-center bg-surface-alt/50">
+				<div class="rounded-lg bg-surface p-4 shadow-card">
 					<p class="text-lg">{$exampleText.loading || '🐍 Loading Python chart...'}</p>
 				</div>
 			</div>
@@ -61,19 +63,19 @@
 		<div id="chart" class="h-full w-full"></div>
 	</div>
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{$exampleText.title || 'Bokeh'}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold text-text-primary">{$exampleText.title || 'Bokeh'}</h2>
 
 		<div class="space-y-4">
-			<div class="rounded-lg bg-blue-50 p-4">
-				<h3 class="mb-2 font-bold text-blue-900">{$exampleText.whatIsBokeh?.title || '🎨 What is Bokeh?'}</h3>
-				<p class="text-sm text-blue-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatIsBokeh?.title || '🎨 What is Bokeh?'}</h3>
+				<p class="text-sm">
 					{$exampleText.whatIsBokeh?.description || 'Bokeh is a powerful Python library...'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-purple-50 p-4">
-				<h3 class="mb-2 font-bold text-purple-900">{$exampleText.howBokeh?.title || '⚙️ How Does Bokeh Generate Charts?'}</h3>
-				<p class="text-sm text-purple-800 space-y-2">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.howBokeh?.title || '⚙️ How Does Bokeh Generate Charts?'}</h3>
+				<p class="text-sm space-y-2">
 					<span class="block"
 						><strong>1.</strong> {$exampleText.howBokeh?.step1 || 'Python API: You write Python code...'}</span
 					>
@@ -87,13 +89,13 @@
 						><strong>4.</strong> {$exampleText.howBokeh?.step4 || 'Interactivity...'}</span
 					>
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-green-50 p-4">
-				<h3 class="mb-2 font-bold text-green-900">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">
 					{$exampleText.whyBokeh?.title || '🐍 Why Use Bokeh with Python Instead of Pure JavaScript?'}
 				</h3>
-				<div class="text-sm text-green-800 space-y-2">
+				<div class="text-sm space-y-2">
 					<p class="font-semibold">{$exampleText.whyBokeh?.intro || 'Even though Bokeh ultimately renders using JavaScript:'}</p>
 					<ul class="ml-4 list-disc space-y-1">
 						<li>
@@ -116,26 +118,26 @@
 						</li>
 					</ul>
 				</div>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-orange-50 p-4">
-				<h3 class="mb-2 font-bold text-orange-900">{$exampleText.workflow?.title || '🔄 The PyScript + Bokeh Workflow'}</h3>
-				<p class="text-sm text-orange-800">
+			<Callout>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.workflow?.title || '🔄 The PyScript + Bokeh Workflow'}</h3>
+				<p class="text-sm">
 					{$exampleText.workflow?.description || 'In this example, PyScript runs the Python code...'}
 				</p>
-			</div>
+			</Callout>
 
-			<div class="rounded-lg bg-amber-50 p-4">
-				<h3 class="mb-2 font-bold text-amber-900">{$exampleText.interactive?.title || '💡 Interactive Features'}</h3>
-				<p class="text-sm text-amber-800">
+			<Callout type="tip">
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.interactive?.title || '💡 Interactive Features'}</h3>
+				<p class="text-sm">
 					{$exampleText.interactive?.description || 'Try interacting with the chart above!...'}
 				</p>
-			</div>
+			</Callout>
 		</div>
 
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh_index.py"
 				target="_blank">{$exampleText.viewSource || 'View source'}</a
 			>
