@@ -41,13 +41,13 @@
 <div class="relative">
 	<button
 		onclick={toggleDropdown}
-		class="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors"
+		class="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-surface-alt transition-colors"
 		aria-label="Select language"
 		aria-expanded={isOpen}
 		aria-haspopup="true"
 	>
 		<span class="text-xl">{currentLanguage?.flag}</span>
-		<span class="font-medium text-gray-700">{currentLanguage?.name}</span>
+		<span class="font-medium text-text-muted">{currentLanguage?.name}</span>
 		<svg
 			class="h-4 w-4 transition-transform {isOpen ? 'rotate-180' : ''}"
 			fill="none"
@@ -60,14 +60,14 @@
 
 	{#if isOpen}
 		<div
-			class="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50"
+			class="absolute right-0 mt-2 w-48 rounded-lg bg-surface shadow-card border border-border z-50"
 			role="menu"
 		>
 			<div class="py-1">
 				{#each Object.values(AVAILABLE_LOCALES) as language}
 					<button
 						onclick={() => selectLocale(language.code)}
-						class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 {currentLocale === language.code ? 'bg-yellow-50 text-yellow-600 font-bold' : 'text-gray-700'}"
+						class="block w-full text-left px-4 py-2 text-sm hover:bg-surface-alt transition-colors duration-200 {currentLocale === language.code ? 'bg-surface-alt text-accent font-semibold' : 'text-text-muted'}"
 						role="menuitem"
 					>
 						<span class="mr-2">{language.flag}</span>

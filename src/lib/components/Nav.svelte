@@ -110,16 +110,16 @@
     $: currentPath = activePage || $page.url.pathname;
 </script>
 
-<nav class="bg-gray-100">
+<nav class="bg-surface border-b border-border">
     <div class="mx-auto max-w-screen-2xl px-4">
         <div class="flex justify-between">
             <div class="flex space-x-2">
                 <div>
                     <a
                         href={getLink('/')}
-                        class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"
+                        class="flex items-center px-2 py-5 text-text-primary hover:text-accent transition-colors duration-200"
                         ><img src={getLink('images/python.svg')} alt="PyScript L.A.B" />
-                        <span class="font-bold">PyScript <span class="text-green-600">L</span>.<span class="text-blue-600">A</span>.<span class="text-yellow-500">B</span></span></a
+                        <span class="font-heading font-bold">PyScript <span class="text-accent">L.A.B</span></span></a
                     >
                 </div>
                 <div class="hidden items-center space-x-1 md:flex">
@@ -128,7 +128,7 @@
                             <!-- Dropdown menu for pages with children -->
                             <div class="relative group">
                                 <button
-                                    class="py-5 px-2 hover:text-yellow-500 flex items-center gap-1 {currentPath.startsWith(link.page.url) ? 'text-yellow-500 font-bold' : 'text-gray-700'}"
+                                    class="py-5 px-2 hover:text-accent flex items-center gap-1 transition-colors duration-200 {currentPath.startsWith(link.page.url) ? 'text-text-primary font-semibold border-b-2 border-accent-warm' : 'text-text-muted'}"
                                 >
                                     {getPageTitle(link.page.id, link.page.title)}
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,12 +136,12 @@
                                     </svg>
                                 </button>
                                 <!-- Dropdown content -->
-                                <div class="absolute left-0 mt-0 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                <div class="absolute left-0 mt-0 w-56 bg-surface rounded-md shadow-card border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                                     <div class="py-1">
                                         {#each link.page.children as child}
                                             <a
                                                 href={child.url}
-                                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-yellow-500 {currentPath === child.url ? 'bg-yellow-50 text-yellow-500 font-bold' : ''}"
+                                                class="block px-4 py-2 text-sm text-text-muted hover:bg-surface-alt hover:text-accent transition-colors duration-200 {currentPath === child.url ? 'bg-surface-alt text-accent font-semibold' : ''}"
                                             >
                                                 {getPageTitle(child.id, child.title)}
                                             </a>
@@ -208,13 +208,13 @@
         id="mobile-navigation"
         class="{toggleBurgerMenu
             ? 'visible opacity-100'
-            : 'invisible opacity-0'} fixed top-0 right-0 bottom-0 left-0 z-10 backdrop-blur-sm transition-all duration-500"
+            : 'invisible opacity-0'} fixed top-0 right-0 bottom-0 left-0 z-10 transition-all duration-500"
     >
         <!-- UL Links -->
         <ul
             class="{toggleBurgerMenu
                 ? 'translate-x-0'
-                : 'translate-x-full'} absolute top-0 right-0 bottom-0 z-10 bg-white drop-shadow-2xl transition-all duration-500"
+                : 'translate-x-full'} absolute top-0 right-0 bottom-0 z-10 bg-surface shadow-card transition-all duration-500"
         >
             <div class="border-b border-inherit p-4">
                 <LanguageSwitcher />
@@ -222,9 +222,9 @@
             <div>
                 <a
                     href={getLink('/')}
-                    class="flex items-center px-2 py-5 text-gray-700 hover:text-gray-900"
+                    class="flex items-center px-2 py-5 text-text-primary hover:text-accent transition-colors duration-200"
                     ><img src={getLink('images/python.svg')} alt="PyScript L.A.B" />
-                    <span class="font-bold">PyScript <span class="text-blue-600">L</span>.<span class="text-gray-900">A</span>.<span class="text-orange-600">B</span></span></a
+                    <span class="font-heading font-bold">PyScript <span class="text-accent">L.A.B</span></span></a
                 >
             </div>
             {#each mobileLinks as link}
@@ -236,7 +236,7 @@
                             <a
                                 href={child.url}
                                 on:click={closeMenu}
-                                class="block pl-8 p-3 text-sm hover:text-white hover:bg-yellow-500 {currentPath === child.url ? 'bg-yellow-50 text-yellow-500 font-bold' : ''}"
+                                class="block pl-8 p-3 text-sm hover:text-accent hover:bg-surface-alt transition-colors duration-200 {currentPath === child.url ? 'bg-surface-alt text-accent font-semibold' : ''}"
                             >
                                 {getPageTitle(child.id, child.title)}
                             </a>
