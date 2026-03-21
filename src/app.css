@@ -1,22 +1,50 @@
 @import 'tailwindcss';
+
+@theme {
+  --color-surface: #FBF8F3;
+  --color-surface-alt: #F3EDE4;
+  --color-callout: #E8F0EA;
+  --color-callout-border: #306998;
+  --color-accent: #306998;
+  --color-accent-warm: #FFD43B;
+  --color-text-primary: #2C2C2C;
+  --color-text-muted: #6B6560;
+  --color-border: #D6CFC5;
+  --color-dark: #1A1A1A;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+
+  --font-heading: 'Literata', serif;
+  --font-body: 'Source Sans 3', sans-serif;
+  --font-mono: 'Source Code Pro', monospace;
+}
+
 html,
 body,
 .site-content {
   height: 100%;
 }
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
 .main_menu_active {
-  @apply text-white;
-  @apply bg-yellow-500;
-  @apply rounded-lg;
-  @apply transition-all;
-  @apply pointer-events-none;
+  @apply text-text-primary font-semibold pointer-events-none;
+  border-bottom: 2px solid var(--color-accent-warm);
 }
+
 .mobile_menu_active {
-  @apply text-white;
-  @apply bg-yellow-500;
-  @apply transition-all;
-  @apply pointer-events-none;
+  @apply text-text-primary font-semibold pointer-events-none;
+  background-color: var(--color-surface-alt);
 }
+
 #script_gutter {
-  @apply bg-slate-900;
+  background-color: var(--color-dark);
 }
