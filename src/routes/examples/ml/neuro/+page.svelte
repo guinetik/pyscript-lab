@@ -186,17 +186,17 @@
 		<!-- Stats Display -->
 		{#if mode === 'ai' || mode === 'playing'}
 			<div class="grid grid-cols-3 gap-2">
-				<div class="bg-blue-500 text-white rounded p-3 text-center">
-					<div class="text-xs opacity-75">Position</div>
-					<div class="text-xl font-bold">{stats.x}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Position</div>
+					<div class="text-xl font-bold text-text-primary">{stats.x}</div>
 				</div>
-				<div class="bg-green-500 text-white rounded p-3 text-center">
-					<div class="text-xs opacity-75">Farthest</div>
-					<div class="text-xl font-bold">{stats.farthestX}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Farthest</div>
+					<div class="text-xl font-bold text-text-primary">{stats.farthestX}</div>
 				</div>
-				<div class="bg-purple-500 text-white rounded p-3 text-center">
-					<div class="text-xs opacity-75">Frames</div>
-					<div class="text-xl font-bold">{stats.frames}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Frames</div>
+					<div class="text-xl font-bold text-text-primary">{stats.frames}</div>
 				</div>
 			</div>
 		{/if}
@@ -204,27 +204,27 @@
 		<!-- Training Stats -->
 		{#if mode === 'training'}
 			<div class="grid grid-cols-4 gap-2">
-				<div class="rounded p-3 text-center text-white {trainerState === 'BACKGROUND' ? 'bg-orange-500' : 'bg-cyan-500'}">
-					<div class="text-xs opacity-75">Phase</div>
-					<div class="text-lg font-bold">{trainerState}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Phase</div>
+					<div class="text-lg font-bold text-text-primary">{trainerState}</div>
 				</div>
-				<div class="bg-blue-500 text-white rounded p-3 text-center">
-					<div class="text-xs opacity-75">Generation</div>
-					<div class="text-xl font-bold">{generation}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Generation</div>
+					<div class="text-xl font-bold text-text-primary">{generation}</div>
 				</div>
-				<div class="bg-green-500 text-white rounded p-3 text-center">
-					<div class="text-xs opacity-75">Fitness</div>
-					<div class="text-xl font-bold">{fitness.toFixed(0)}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Fitness</div>
+					<div class="text-xl font-bold text-text-primary">{fitness.toFixed(0)}</div>
 				</div>
-				<div class="bg-purple-500 text-white rounded p-3 text-center">
-					<div class="text-xs opacity-75">Best Distance</div>
-					<div class="text-xl font-bold">{bestDistance}</div>
+				<div class="bg-surface-alt border border-border rounded p-3 text-center">
+					<div class="text-xs text-accent">Best Distance</div>
+					<div class="text-xl font-bold text-text-primary">{bestDistance}</div>
 				</div>
 			</div>
 			
 			{#if trainerState === 'FOREGROUND'}
-				<div class="bg-cyan-100 border-2 border-cyan-400 rounded p-2 text-center">
-					<span class="text-cyan-800 font-bold">Best agent playing...</span>
+				<div class="bg-callout border-l-2 border-callout-border rounded p-2 text-center">
+					<span class="text-text-primary font-bold">Best agent playing...</span>
 				</div>
 			{/if}
 		{/if}
@@ -234,21 +234,21 @@
 			<button 
 				onclick={startPlay}
 				disabled={mode !== 'idle'}
-				class="px-4 py-3 bg-purple-500 text-white font-bold rounded hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+				class="px-4 py-3 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
 			>
 				Play
 			</button>
 			<button
 				onclick={startAI}
 				disabled={mode !== 'idle'}
-				class="px-4 py-3 bg-green-500 text-white font-bold rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+				class="px-4 py-3 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
 			>
 				Start AI
 			</button>
 			<button
 				onclick={startTraining}
 				disabled={mode !== 'idle'}
-				class="px-4 py-3 bg-orange-500 text-white font-bold rounded hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+				class="px-4 py-3 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
 			>
 				Train
 			</button>
@@ -267,7 +267,7 @@
 					<option value={tm.value}>{tm.label}</option>
 				{/each}
 			</select>
-			<p class="text-xs text-orange-700 mt-1">
+			<p class="text-xs text-text-muted mt-1">
 				{trainingModes.find(tm => tm.value === trainingMode)?.description}
 			</p>
 		</div>
@@ -277,31 +277,31 @@
 			<button 
 				onclick={stop}
 				disabled={mode === 'idle'}
-				class="px-3 py-2 bg-red-500 text-white text-sm font-semibold rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+				class="px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
 			>
 				Stop
 			</button>
 			<button 
 				onclick={toggleMute}
-				class="px-3 py-2 bg-slate-500 text-white text-sm font-semibold rounded hover:bg-slate-600 transition"
+				class="px-3 py-2 border border-accent text-accent text-sm font-semibold rounded hover:bg-accent hover:text-white transition-colors duration-200"
 			>
 				{muted ? 'Muted' : 'Sound'}
 			</button>
 			<button 
 				onclick={() => showNeurons = !showNeurons}
-				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showNeurons ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
+				class="px-3 py-2 text-sm font-semibold rounded transition-colors duration-200 {showNeurons ? 'bg-accent text-white hover:bg-accent/90' : 'border border-accent text-accent hover:bg-accent hover:text-white'}"
 			>
 				Neurons
 			</button>
 			<button 
 				onclick={() => showMetrics = !showMetrics}
-				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showMetrics ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
+				class="px-3 py-2 text-sm font-semibold rounded transition-colors duration-200 {showMetrics ? 'bg-accent text-white hover:bg-accent/90' : 'border border-accent text-accent hover:bg-accent hover:text-white'}"
 			>
 				Metrics
 			</button>
 			<button 
 				onclick={() => showBreeding = !showBreeding}
-				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showBreeding ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
+				class="px-3 py-2 text-sm font-semibold rounded transition-colors duration-200 {showBreeding ? 'bg-accent text-white hover:bg-accent/90' : 'border border-accent text-accent hover:bg-accent hover:text-white'}"
 			>
 				Lineage
 			</button>
@@ -329,7 +329,7 @@
 	<div slot="content_slot" class="space-y-4">
 		<div>
 			<h2 class="text-xl font-heading font-bold text-text-primary">Mario AI — Neuroevolution</h2>
-			<p class="mt-1 text-sm text-slate-600 leading-relaxed">
+			<p class="mt-1 text-sm text-text-muted leading-relaxed">
 				PyScript runs a full population in Python; the NES game view and charts are in the browser. Use
 				<strong>Play</strong> for human control, <strong>Start AI</strong> for a single network playing live, and
 				<strong>Train</strong> to evolve a population. Training turns on <strong>Neurons</strong>,
