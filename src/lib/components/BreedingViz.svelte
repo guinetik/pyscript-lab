@@ -123,7 +123,7 @@
 				</div>
 			</div>
 
-			<!-- Right: Stats + Table -->
+			<!-- Right: Stats -->
 			<div class="md:w-1/2 flex flex-col gap-2">
 				<div class="grid grid-cols-2 gap-2">
 					<div class="rounded-lg border border-border bg-surface-alt p-2.5">
@@ -143,42 +143,43 @@
 						<div class="mt-1 text-xl font-black text-accent">{uniqueParents}</div>
 					</div>
 				</div>
-
-				{#if championEvents.length > 0}
-					<p class="text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">Preserved champions / elites</p>
-					<div class="overflow-hidden rounded-lg border border-border bg-surface-alt flex-1">
-						<div class="grid grid-cols-[60px_minmax(0,1fr)_90px] gap-0 border-b border-border bg-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">
-							<div>Slot</div>
-							<div>Lineage</div>
-							<div>Operator</div>
-						</div>
-						{#each championEvents as event (event.slot)}
-							{@const theme = operatorTheme(event.operator)}
-							<div class={`grid grid-cols-[60px_minmax(0,1fr)_90px] items-center gap-0 border-t border-border px-3 py-1.5 text-xs text-text-primary ${theme.row}`}>
-								<div class="flex items-center gap-2">
-									<span class={`h-2 w-2 rounded-full ${theme.dot}`}></span>
-									<span class="font-black text-text-primary">#{event.slot}</span>
-								</div>
-								<div class="min-w-0 truncate font-semibold text-accent">
-									From #{event.parent_slots[0] ?? '—'}
-								</div>
-								<div>
-									<span class={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${theme.badge}`}>
-										{prettyLabel(event.operator)}
-									</span>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
-
-				<div class="text-xs text-text-muted">
+				<div class="text-xs text-text-muted mt-auto">
 					Mutated: <span class="font-semibold text-accent">{mutatedCount}</span>
 					<span class="mx-1 text-text-muted">·</span>
 					Helix = all slots; table = preserved only
 				</div>
 			</div>
 		</div>
+
+		{#if championEvents.length > 0}
+			<div class="mt-3">
+				<p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">Preserved champions / elites</p>
+				<div class="overflow-hidden rounded-lg border border-border bg-surface-alt">
+					<div class="grid grid-cols-[72px_minmax(0,1fr)_110px] gap-0 border-b border-border bg-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+						<div>Slot</div>
+						<div>Lineage</div>
+						<div>Operator</div>
+					</div>
+					{#each championEvents as event (event.slot)}
+						{@const theme = operatorTheme(event.operator)}
+						<div class={`grid grid-cols-[72px_minmax(0,1fr)_110px] items-center gap-0 border-t border-border px-3 py-1.5 text-xs text-text-primary ${theme.row}`}>
+							<div class="flex items-center gap-2">
+								<span class={`h-2 w-2 rounded-full ${theme.dot}`}></span>
+								<span class="font-black text-text-primary">#{event.slot}</span>
+							</div>
+							<div class="min-w-0 truncate font-semibold text-accent">
+								Champion from #{event.parent_slots[0] ?? '—'}
+							</div>
+							<div>
+								<span class={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${theme.badge}`}>
+									{prettyLabel(event.operator)}
+								</span>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
 	{:else}
 		<div class="rounded-2xl border border-dashed border-border bg-surface-alt px-5 py-10 text-center">
 			<p class="text-base font-heading font-semibold text-text-primary">Breeding visualization will appear during training</p>
