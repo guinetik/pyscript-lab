@@ -93,8 +93,8 @@
     "predict": "Prever",
     "previous": "Anterior",
     "next": "Próximo",
-    "openConsole": "🖥️ Abrir Console para ver a saída do script",
-    "showTrainingExamples": "📚 Mostrar Exemplos de Treinamento",
+    "openConsole": "Abrir Console para ver a saída do script",
+    "showTrainingExamples": "Mostrar Exemplos de Treinamento",
     "hideTrainingExamples": "Ocultar Exemplos",
     "viewSource": "Ver código fonte"
   },
@@ -133,7 +133,7 @@
       "gettingStarted": {
         "title": "Começando:",
         "description": "O padrão básico para executar Python no navegador é simples:",
-        "footer": "Clique no botão \"🖥️ Abrir Console\" acima para ver a saída destes scripts Python!"
+        "footer": "Clique no botão \"Abrir Console\" acima para ver a saída destes scripts Python!"
       }
     },
     "repl": {

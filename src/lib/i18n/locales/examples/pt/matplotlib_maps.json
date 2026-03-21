@@ -4,28 +4,28 @@
   "headerDescription": "Visualização geográfica de dados de pandemia usando mapas de coropleto Plotly",
   "maps": {
     "map1": {
-      "title": "🗺️ Mapa 1: Total de Mortes",
+      "title": "Mapa 1: Total de Mortes",
       "description": "Vermelho mais escuro indica maior número de mortes. Passe o mouse sobre os países para detalhes.",
       "pyTitle": "Coropleto de mortes com escala de cores vermelhas:"
     },
     "map2": {
-      "title": "🌐 Mapa 2: Casos Confirmados",
+      "title": "Mapa 2: Casos Confirmados",
       "description": "Azul mais escuro indica mais casos confirmados. Mostra o tamanho total do surto usando os MESMOS dados em cache.",
       "pyTitle": "Coropleto de casos confirmados com escala de cores azuis:"
     },
     "map3": {
-      "title": "⚠️ Mapa 3: Taxa de Letalidade",
+      "title": "Mapa 3: Taxa de Letalidade",
       "description": "Mostra a taxa de morte como percentual de casos confirmados (países com 1000+ casos para significância estatística).",
       "pyTitle": "Coropleto de CFR com filtragem e cálculo:"
     },
     "map4": {
-      "title": "📈 Mapa 4: Atividade de Novos Casos",
+      "title": "Mapa 4: Atividade de Novos Casos",
       "description": "Novos casos recentes, mostrando áreas de transmissão ativa.",
       "pyTitle": "Coropleto de novos casos com escala de cores laranja:"
     }
   },
   "choropleth": {
-    "title": "🗺️ O que é um Mapa de Coropleto?",
+    "title": "O que é um Mapa de Coropleto?",
     "description": "Um mapa de coropleto é um mapa temático onde as áreas são coloridas ou sombreadas de acordo com uma variável estatística. No nosso caso, estamos colorindo países com base em métricas COVID-19.",
     "items": {
       "geographic": "Representação Geográfica: Cada país é um polígono com limites precisos",
@@ -35,11 +35,11 @@
     }
   },
   "plotly": {
-    "title": "📊 O que é Plotly?",
+    "title": "O que é Plotly?",
     "description": "Plotly é uma biblioteca gráfica interativa para Python. Ao contrário de Matplotlib (que cria imagens estáticas), Plotly gera visualizações HTML interativas que os usuários podem explorar. Ela se destaca em visualizações geográficas com suporte integrado para mapas de coropleto e trata a correspondência de países automaticamente usando códigos ISO-3."
   },
   "mapExplanations": {
-    "title": "🔬 Os Quatro Mapas Explicados",
+    "title": "Os Quatro Mapas Explicados",
     "items": {
       "deaths": "Mapa de Mortes (Vermelho): Mostra o custo humano. Números absolutos destacam países densamente povoados.",
       "cases": "Casos Confirmados (Azul): Visualiza o tamanho total do surto. Útil para entender a escala da propagação.",
@@ -48,7 +48,7 @@
     }
   },
   "technical": {
-    "title": "🔍 Implementação Técnica",
+    "title": "Implementação Técnica",
     "items": {
       "iso3": "Códigos ISO-3 de Países: Usa códigos padronizados (USA, GBR, FRA) para correspondência confiável de países",
       "projection": "Projeção Natural Earth: Uma projeção pseudo-cilíndrica visualmente agradável",
@@ -58,7 +58,7 @@
     }
   },
   "insights": {
-    "title": "💡 Insights Geográficos",
+    "title": "Insights Geográficos",
     "items": {
       "patterns": "Padrões Espaciais: Mapas revelam agrupamentos regionais não visíveis em tabelas",
       "absolute": "Absoluto vs Relativo: Mapa de mortes mostra população, CFR normaliza por casos",
@@ -67,7 +67,7 @@
     }
   },
   "interactive": {
-    "title": "🎯 Recursos Interativos",
+    "title": "Recursos Interativos",
     "intro": "Experimente estas interações com os mapas:",
     "items": {
       "hover": "Passe o mouse sobre qualquer país para ver estatísticas detalhadas",

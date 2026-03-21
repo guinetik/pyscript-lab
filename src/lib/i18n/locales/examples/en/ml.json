@@ -4,7 +4,7 @@
     "drawHeading": "Draw a Number",
     "clearButton": "Clear",
     "predictButton": "Predict",
-    "trainingExamplesButton": "📚 Show Training Examples"
+    "trainingExamplesButton": "Show Training Examples"
   },
   "description": "Draw a digit (0-9) on the canvas and click \"Predict\" to see what the machine learning model thinks you drew!",
   "sections": {
@@ -19,14 +19,14 @@
       "bullet7": "All processing happens in your browser using PyScript!"
     },
     "activeLearning": {
-      "title": "💡 Active Learning with Positive & Negative Feedback",
+      "title": "Active Learning with Positive & Negative Feedback",
       "description": "This model learns from both correct and incorrect predictions! After each prediction, you can:",
       "feedbackYes": "Click YES if correct → Reinforces the model's understanding of your drawing style",
       "feedbackNo": "Click NO if wrong → Lets you correct it and retrain with the right label",
       "conclusion": "The more feedback you give (positive or negative), the better it gets at recognizing your handwriting!"
     },
     "architecture": {
-      "title": "🏗️ Architecture",
+      "title": "Architecture",
       "description": "This example demonstrates proper separation of concerns with event-driven initialization:",
       "component1": "PyScriptManager - Event-driven lifecycle management (no polling!)",
       "component2": "Python - Pure ML logic, signals ready when initialized, sends only data via callbacks",

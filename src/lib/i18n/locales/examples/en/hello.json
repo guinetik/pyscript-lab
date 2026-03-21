@@ -34,6 +34,6 @@
   "gettingStarted": {
     "title": "Getting Started:",
     "description": "The basic pattern for running Python in the browser is simple:",
-    "footer": "Click the \"🖥️ Open Console\" button above to see the output of these Python scripts!"
+    "footer": "Click the \" Open Console\" button above to see the output of these Python scripts!"
   }
 }

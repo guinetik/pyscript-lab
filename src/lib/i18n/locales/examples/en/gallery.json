@@ -9,33 +9,33 @@
   },
   "sections": {
     "whatIs": {
-      "title": "📦 What is Diagrams?",
+      "title": "What is Diagrams?",
       "description": "Diagrams is a Python library that lets you draw cloud system architecture diagrams using code instead of drag-and-drop tools. Created by mingrammer, it provides a simple, declarative way to create professional architecture diagrams that can be version controlled alongside your infrastructure code.",
       "linkText": "Diagrams"
     },
     "infrastructure": {
-      "title": "🏗️ Infrastructure as Code Philosophy",
+      "title": "Infrastructure as Code Philosophy",
       "description": "Just like Infrastructure as Code (IaC) manages infrastructure through code, Diagrams as Code creates architecture diagrams programmatically. This means your diagrams can be version controlled, reviewed in pull requests, and automatically updated alongside your infrastructure changes. No more outdated diagrams in documentation!"
     },
     "multiCloud": {
-      "title": "☁️ Multi-Cloud Support",
+      "title": "Multi-Cloud Support",
       "description": "Diagrams supports all major cloud providers (AWS, Azure, GCP, Kubernetes), on-premise solutions, and SaaS services. You can mix and match components from different providers to accurately represent hybrid and multi-cloud architectures. The library includes hundreds of official provider icons."
     },
     "syntax": {
-      "title": "🔗 Simple Syntax",
+      "title": "Simple Syntax",
       "description": "The library uses intuitive Python syntax with operators like {dataFlow} for data flow, {connections} for connections, and list notation {parallel} for parallel components. Clusters group related resources together.",
       "dataFlow": ">>",
       "connections": "-",
       "parallel": "[]"
     },
     "browserMagic": {
-      "title": "🎉 Browser Magic with viz.js!",
+      "title": "Browser Magic with viz.js!",
       "description": "The Diagrams library generates Graphviz DOT format, which normally requires a native binary. We're using viz.js (Graphviz compiled to WebAssembly) to render the diagrams directly in your browser! The Python code intercepts the {digraph} class to capture DOT output.",
       "digraph": "graphviz.Digraph",
       "iconLoading": "Icon loading: Cloud provider icons are fetched from the diagrams GitHub repository, converted to base64 data URIs, and embedded directly into the SVG. This happens automatically in JavaScript before rendering!"
     },
     "useCases": {
-      "title": "💡 Real-World Use Cases",
+      "title": "Real-World Use Cases",
       "useCase1": "Document system architecture in your repository",
       "useCase2": "Auto-generate diagrams from infrastructure code",
       "useCase3": "Create visual documentation for technical proposals",
@@ -43,7 +43,7 @@
       "useCase5": "Generate diagrams in CI/CD pipelines"
     },
     "gettingStarted": {
-      "title": "🚀 Getting Started Locally",
+      "title": "Getting Started Locally",
       "description": "To use the Diagrams library in a local Python environment:",
       "command": "pip install diagrams",
       "note": "You'll also need Graphviz installed on your system. Visit diagrams.mingrammer.com for full documentation and installation instructions."

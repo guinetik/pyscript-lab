@@ -93,8 +93,8 @@
     "predict": "Predict",
     "previous": "Previous",
     "next": "Next",
-    "openConsole": "🖥️ Open Console to see script output",
-    "showTrainingExamples": "📚 Show Training Examples",
+    "openConsole": "Open Console to see script output",
+    "showTrainingExamples": "Show Training Examples",
     "hideTrainingExamples": "Hide Training Examples",
     "viewSource": "View source"
   },
@@ -133,7 +133,7 @@
       "gettingStarted": {
         "title": "Getting Started:",
         "description": "The basic pattern for running Python in the browser is simple:",
-        "footer": "Click the \"🖥️ Open Console\" button above to see the output of these Python scripts!"
+        "footer": "Click the \"Open Console\" button above to see the output of these Python scripts!"
       }
     },
     "repl": {

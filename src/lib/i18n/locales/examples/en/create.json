@@ -4,14 +4,14 @@
   "ui": {
     "quickStartTemplates": "Quick Start Templates:",
     "diagramCode": "Diagram Code:",
-    "runDiagram": "▶️ Run Diagram",
-    "generating": "⏳ Generating...",
-    "saveSvg": "💾 Save SVG",
+    "runDiagram": "Run Diagram",
+    "generating": "Generating...",
+    "saveSvg": "Save SVG",
     "yourDiagram": "Your Diagram:",
     "placeholderDefault": "Click \"Run Diagram\" to see your visualization",
     "placeholderEditor": "Enter your Diagrams code here...",
     "templateLoaded": "Template loaded. Click \"Run Diagram\" to generate.",
-    "loadingDiagramCreator": "🐍 Loading diagram creator..."
+    "loadingDiagramCreator": "Loading diagram creator..."
   },
   "status": {
     "ready": "Click \"Run Diagram\" to generate visualization",

@@ -10,7 +10,7 @@
   "loadingTitle": "Carregando Python...",
   "loadingSubtitle": "Inicializando demonstração de interoperabilidade",
   "architecture": {
-    "title": "🏗️ Destaques da Arquitetura",
+    "title": "Destaques da Arquitetura",
     "description": "Este exemplo demonstra separação adequada de responsabilidades:",
     "python": "Python - Lógica de negócio pura, envia apenas dados via callbacks de janela (sem innerHTML!)",
     "controller": "InteropController - Gerencia ciclo de vida do Python e camada de comunicação",
@@ -32,6 +32,6 @@
     "dataSci": "Acesse ecossistema de ciência de dados Python de interfaces web"
   },
   "ageDescription": "Idade: {age} | Categoria: {category}",
-  "potentialCoding": "🎂 Possível anos de programação: ~{years}",
+  "potentialCoding": "Possível anos de programação: ~{years}",
   "disclaimer": "{disclaimer}"
 }

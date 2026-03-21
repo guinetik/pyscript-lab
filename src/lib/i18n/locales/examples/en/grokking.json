@@ -3,24 +3,24 @@
   "description": "Watch a neural network suddenly 'get it' after appearing to only memorize. This demonstrates the grokking phenomenon - delayed generalization in neural networks.",
   "sections": {
     "whatIs": {
-      "title": "🧠 What is Grokking?",
+      "title": "What is Grokking?",
       "description": "Grokking is a fascinating phenomenon where neural networks suddenly 'get it' after appearing to only memorize. The network first achieves 100% training accuracy (memorization), then much later, test accuracy suddenly jumps (generalization). It's like when a student crams for an exam vs. truly understanding the material."
     },
     "task": {
-      "title": "➕ The Task: Modular Arithmetic",
+      "title": "The Task: Modular Arithmetic",
       "description": "The network learns modular addition: (a + b) mod 67. For example, 45 + 30 mod 67 = 8. This seems simple, but discovering the underlying pattern (instead of memorizing all 2,278 possible combinations) requires the network to learn the mathematical structure of modular arithmetic."
     },
     "why": {
-      "title": "⚡ Why Does Grokking Happen?",
+      "title": "Why Does Grokking Happen?",
       "description": "The key is HIGH weight decay (regularization). Without it, networks just memorize. With strong weight decay, the network is pushed toward simpler solutions that generalize. This takes time - the 'grokking' moment happens when the network finally discovers the generalizing solution."
     },
     "timeline": {
-      "title": "📊 The Grokking Timeline",
+      "title": "The Grokking Timeline",
       "description": "Watch the training and test accuracy curves in the chart below.",
       "note": "This can take thousands of epochs. Be patient and watch the charts!"
     },
     "architecture": {
-      "title": "🏗️ Network Architecture",
+      "title": "Network Architecture",
       "description": "Based on Google's Factored MLP with tied embeddings:"
     }
   },

@@ -2,36 +2,36 @@
   "title": "Bokeh + Pandas",
   "intro": "These interactive charts analyze over 20,000 AirBnb listings using Python's Pandas library and Bokeh visualization tools.",
   "heatmap": {
-    "title": "📊 Correlation Heatmap",
+    "title": "Correlation Heatmap",
     "description": "Shows how different listing features relate to each other. Yellow squares indicate strong positive relationships (when one increases, the other does too), while purple squares show negative relationships.",
     "code": "Correlation analysis using Pandas and Bokeh:"
   },
   "pie": {
-    "title": "🥧 Room Type Distribution",
+    "title": "Room Type Distribution",
     "description": "A pie chart showing the breakdown of different accommodation types (entire homes, private rooms, shared rooms). This helps understand what kinds of spaces are most commonly listed.",
     "code": "Room distribution using the SAME cached data:"
   },
   "jitter": {
-    "title": "💰 Price Analysis",
+    "title": "Price Analysis",
     "description": "Displays how prices vary across different room types. Each dot represents a listing, allowing you to see the price range and distribution for each accommodation category.",
     "code": "Price distribution with jittered scatter:"
   },
   "bar": {
-    "title": "🏠 Top Hosts",
+    "title": "Top Hosts",
     "description": "Bar chart showing the 10 most active hosts by number of listings. This reveals which hosts manage the most properties on the platform.",
     "code": "Top 10 hosts by listing count:"
   },
   "lollipop": {
-    "title": "📍 Neighborhood Activity",
+    "title": "Neighborhood Activity",
     "description": "Lollipop chart displaying listing counts by neighborhood. The length of each line shows how many properties are available in different areas of the city.",
     "code": "Listings by neighborhood group:"
   },
   "whatPandas": {
-    "title": "🐼 What is Pandas?",
+    "title": "What is Pandas?",
     "description": "Pandas is Python's most popular data analysis library. It provides DataFrames - powerful table-like structures that make it easy to clean, transform, and analyze large datasets. Think of it as Excel on steroids, but programmable and capable of handling millions of rows."
   },
   "dataset": {
-    "title": "📊 The Dataset",
+    "title": "The Dataset",
     "intro": "We're analyzing 20,837 AirBnb listings from a real-world dataset. Each row contains information like:",
     "hostId": "Host ID and listing count",
     "neighborhood": "Neighborhood and borough",
@@ -41,7 +41,7 @@
     "availability": "Availability throughout the year"
   },
   "patterns": {
-    "title": "🔍 Data Analysis Patterns",
+    "title": "Data Analysis Patterns",
     "intro": "Each chart demonstrates common Pandas operations:",
     "correlation": "Correlation: df.corr() finds relationships between numeric columns",
     "valueCounts": "Value Counts: df.column.value_counts() aggregates categories",
@@ -50,11 +50,11 @@
     "sorting": "Sorting: df.sort_values('price') orders rows"
   },
   "loading": {
-    "title": "💡 Loading Data",
+    "title": "Loading Data",
     "description": "The CSV is loaded using Pandas' read_csv() function with PyScript's HTTP fetch. The first chart loads the data, then subsequent charts reuse the cached DataFrame - no redundant network requests!"
   },
   "whyBokeh": {
-    "title": "🎨 Why Bokeh?",
+    "title": "Why Bokeh?",
     "description": "Bokeh excels at creating interactive visualizations directly from Pandas DataFrames. Unlike static charts, Bokeh plots let you pan, zoom, and hover to explore the data. It's perfect for exploratory data analysis and dashboards."
   },
   "viewSource": "View source files"

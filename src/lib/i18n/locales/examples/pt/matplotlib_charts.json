@@ -4,28 +4,28 @@
   "headerDescription": "Visualizando dados de pandemia de 187 países/regiões usando Matplotlib e Pandas",
   "charts": {
     "chart1": {
-      "title": "📊 Gráfico 1: Top 20 Países por Mortes",
+      "title": "Gráfico 1: Top 20 Países por Mortes",
       "description": "Um gráfico de barras horizontal com \"estilo mapa de calor\" mostrando os países com as maiores mortes. A intensidade da cor aumenta com a contagem de mortes.",
       "pyTitle": "Top 20 mortes com coloração de mapa de calor:"
     },
     "chart2": {
-      "title": "🌍 Gráfico 2: Mortes por Região da OMS",
+      "title": "Gráfico 2: Mortes por Região da OMS",
       "description": "Gráfico de pizza mostrando como as mortes estão distribuídas entre as regiões da OMS (Américas, Europa, África, etc.)",
       "pyTitle": "Distribuição regional usando os MESMOS dados em cache:"
     },
     "chart3": {
-      "title": "🔍 Gráfico 3: Casos Confirmados vs Mortes (Escala Logarítmica)",
+      "title": "Gráfico 3: Casos Confirmados vs Mortes (Escala Logarítmica)",
       "description": "Gráfico de dispersão revelando a relação entre casos confirmados e mortes. A escala logarítmica torna os padrões visíveis entre países de tamanhos vastamente diferentes.",
       "pyTitle": "Gráfico de dispersão com escala logarítmica:"
     },
     "chart4": {
-      "title": "⚠️ Gráfico 4: Análise da Taxa de Letalidade",
+      "title": "Gráfico 4: Análise da Taxa de Letalidade",
       "description": "Análise da Taxa de Letalidade mostrando quais países tiveram as maiores taxas de morte por caso (filtrado para países com 1000+ casos para significância estatística)",
       "pyTitle": "Análise de CFR com filtragem:"
     }
   },
   "dataset": {
-    "title": "📊 O Conjunto de Dados",
+    "title": "O Conjunto de Dados",
     "intro": "O conjunto de dados covid_country.csv contém:",
     "items": {
       "countries": "187 países/regiões com estatísticas cumulativas",
@@ -36,11 +36,11 @@
     }
   },
   "about": {
-    "title": "📈 O que é Matplotlib?",
+    "title": "O que é Matplotlib?",
     "description": "Matplotlib é a biblioteca de plotagem fundamental do Python. Ela oferece controle completo sobre todos os aspectos de seus gráficos - desde gráficos de linha básicos até visualizações complexas de múltiplos painéis. Ao contrário de Bokeh (que se concentra em interatividade), Matplotlib se destaca na criação de figuras estáticas de qualidade de publicação com personalização precisa."
   },
   "chartTypes": {
-    "title": "🔬 Tipos de Gráficos Usados",
+    "title": "Tipos de Gráficos Usados",
     "items": {
       "bar": "Gráficos de Barras Horizontais: Ótimo para comparar categorias quando os rótulos são longos",
       "pie": "Gráficos de Pizza: Mostram proporções de um todo (distribuição regional)",
@@ -50,7 +50,7 @@
     }
   },
   "insights": {
-    "title": "💡 Insights de Dados",
+    "title": "Insights de Dados",
     "items": {
       "deathTolls": "As regiões das Américas e Europa tiveram as maiores mortes",
       "correlation": "Surtos maiores nem sempre correlacionam linearmente com mortes (diferentes respostas de saúde)",
@@ -59,7 +59,7 @@
     }
   },
   "techniques": {
-    "title": "🎯 Técnicas Técnicas",
+    "title": "Técnicas Técnicas",
     "items": {
       "pandas": "Operações Pandas: nlargest(), groupby(), filtragem com indexação booleana",
       "color": "Mapeamento de Cores: plt.cm.Reds, plt.cm.Set3, plt.cm.YlOrRd para hierarquia visual",

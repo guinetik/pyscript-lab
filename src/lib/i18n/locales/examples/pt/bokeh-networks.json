@@ -2,31 +2,31 @@
   "title": "Bokeh + NetworkX",
   "intro": "Esses gráficos de rede interativos visualizam relacionamentos entre linguagens de programação e tecnologias no StackOverflow usando análise de gráficos NetworkX.",
   "fullNetwork": {
-    "title": "🕸️ Rede Completa do StackOverflow",
+    "title": "Rede Completa do StackOverflow",
     "description": "Mostra todas as 115 linguagens de programação e tecnologias como nós conectados. Cada nó representa uma linguagem/tecnologia, e linhas (bordas) conectam tópicos relacionados. As cores dos nós indicam diferentes grupos de tecnologia, e o tamanho do nó representa popularidade/atividade. Usa o algoritmo de layout Kamada-Kawai que otimiza o posicionamento dos nós com base em distâncias de gráfico.",
     "code": "Rede completa usando layout Kamada-Kawai:"
   },
   "cliques": {
-    "title": "🔗 Análise de Cliques",
+    "title": "Análise de Cliques",
     "description": "Um \"clique\" é um grupo de nós onde todos estão conectados a todos os outros - mostrando tecnologias que estão muito intimamente relacionadas. Este gráfico identifica os cliques mais fortes na rede, revelando quais tecnologias são mais comumente usadas juntas. Por exemplo, tecnologias web como HTML, CSS e JavaScript frequentemente formam cliques apertados.",
     "code": "Detecção de cliques usando os MESMOS dados em cache:"
   },
   "centrality": {
-    "title": "⭐ Centralidade de Autovetor",
+    "title": "Centralidade de Autovetor",
     "description": "Mede a influência de cada nó na rede com base na qualidade de suas conexões. Nós maiores são mais \"centrais\" ou influentes - não apenas conectados a muitos nós, mas conectados a outros nós importantes. Isso revela quais tecnologias são os hubs mais importantes do ecossistema. Pense nisso como citações acadêmicas: ser citado por artigos altamente citados importa mais do que ser citado por artigos obscuros.",
     "code": "Análise de centralidade de autovetor:"
   },
   "languages": {
-    "title": "💻 Rede de Linguagens de Programação",
+    "title": "Rede de Linguagens de Programação",
     "description": "Focado especificamente em linguagens de programação importantes (Python, Java, C++, JavaScript, etc.) e seus vizinhos imediatos. Isso mostra como essas linguagens principais se relacionam e quais tecnologias as cercam. O layout ajuda você a entender o ecossistema ao redor de cada linguagem - quais ferramentas, estruturas e tecnologias são comumente associadas a ela.",
     "code": "Subgráfico de linguagem de programação:"
   },
   "whatNetworkX": {
-    "title": "🕸️ O Que é NetworkX?",
+    "title": "O Que é NetworkX?",
     "description": "NetworkX é a biblioteca mais popular do Python para criar, analisar e visualizar redes complexas (gráficos). Um gráfico é uma coleção de nós (pontos) conectados por bordas (linhas). O NetworkX facilita o estudo de relacionamentos, encontrar padrões e computar métricas de rede como centralidade, clustering e caminhos mais curtos."
   },
   "dataset": {
-    "title": "📊 O Conjunto de Dados",
+    "title": "O Conjunto de Dados",
     "intro": "Esta rede contém 115 nós (linguagens de programação e tecnologias) e seus relacionamentos com base em co-ocorrências de tags do StackOverflow. Cada nó tem:",
     "name": "Nome (por exemplo, \"python\", \"javascript\", \"django\")",
     "group": "Grupo/categoria (codificação de cores)",
@@ -34,7 +34,7 @@
     "edges": "Bordas conectando-o a tecnologias relacionadas"
   },
   "concepts": {
-    "title": "🔍 Conceitos de Análise de Rede",
+    "title": "Conceitos de Análise de Rede",
     "intro": "Cada visualização demonstra técnicas principais de análise de gráficos:",
     "degree": "Grau: Número de conexões que cada nó tem",
     "cliques": "Cliques: Grupos onde cada nó se conecta a todos os outros",
@@ -43,13 +43,13 @@
     "layouts": "Layouts: Algoritmos que posicionam os nós esteticamente"
   },
   "layouts": {
-    "title": "🎨 Algoritmos de Layout",
+    "title": "Algoritmos de Layout",
     "intro": "Diferentes layouts revelam diferentes aspectos da estrutura da rede:",
     "kamada": "Kamada-Kawai: Otimiza distâncias entre nós com base na estrutura do gráfico - ótimo para revelar comunidades",
     "spring": "Spring (Fruchterman-Reingold): Layout de direcionamento de força onde nós conectados se atraem e outros se repelem"
   },
   "howToRead": {
-    "title": "💡 Como Ler Esses Gráficos",
+    "title": "Como Ler Esses Gráficos",
     "nodes": "Nós (círculos): Tecnologias/linguagens. Passe o mouse para ver nomes e estatísticas.",
     "edges": "Bordas (linhas): Mostram relacionamentos entre tecnologias.",
     "colors": "Cores: Diferentes grupos/categorias de tecnologias.",

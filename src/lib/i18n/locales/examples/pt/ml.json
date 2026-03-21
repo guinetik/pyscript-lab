@@ -4,7 +4,7 @@
     "drawHeading": "Desenhe um Número",
     "clearButton": "Limpar",
     "predictButton": "Prever",
-    "trainingExamplesButton": "📚 Mostrar Exemplos de Treinamento"
+    "trainingExamplesButton": "Mostrar Exemplos de Treinamento"
   },
   "description": "Desenhe um dígito (0-9) na tela e clique em \"Prever\" para ver o que o modelo de aprendizado de máquina acha que você desenhou!",
   "sections": {
@@ -19,14 +19,14 @@
       "bullet7": "Todo o processamento acontece no seu navegador usando PyScript!"
     },
     "activeLearning": {
-      "title": "💡 Aprendizado Ativo com Feedback Positivo e Negativo",
+      "title": "Aprendizado Ativo com Feedback Positivo e Negativo",
       "description": "Este modelo aprende com previsões corretas e incorretas! Após cada previsão, você pode:",
       "feedbackYes": "Clique SIM se correto → Reforça a compreensão do modelo sobre seu estilo de desenho",
       "feedbackNo": "Clique NÃO se errado → Deixa você corrigi-lo e retreinar com o rótulo correto",
       "conclusion": "Quanto mais feedback você der (positivo ou negativo), melhor ele fica em reconhecer sua letra!"
     },
     "architecture": {
-      "title": "🏗️ Arquitetura",
+      "title": "Arquitetura",
       "description": "Este exemplo demonstra uma separação adequada de responsabilidades com inicialização orientada a eventos:",
       "component1": "PyScriptManager - Gerenciamento de ciclo de vida orientado a eventos (sem polling!)",
       "component2": "Python - Lógica pura de ML, sinaliza quando inicializado, envia apenas dados via callbacks",

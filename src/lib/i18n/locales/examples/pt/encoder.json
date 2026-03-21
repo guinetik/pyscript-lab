@@ -10,13 +10,13 @@
   "outputLabel": "Saída",
   "outputPlaceholder": "O resultado codificado aparecerá aqui...",
   "initializing": "Inicializando módulo Python...",
-  "ready": "✅ Módulo Python pronto!",
-  "loadingError": "❌ Falha ao carregar o módulo Python",
+  "ready": "Módulo Python pronto!",
+  "loadingError": "Falha ao carregar o módulo Python",
   "errorNotReady": "Erro: O módulo Python ainda não está pronto",
   "errorEmpty": "Digite algum texto para codificar",
   "copiedFeedback": "✓ Copiado para a área de transferência!",
   "encodings": {
-    "title": "🔐 Codificações Disponíveis",
+    "title": "Codificações Disponíveis",
     "md5": "Hash MD5 - Hash criptográfico de 128 bits (legado, não seguro)",
     "sha1": "Hash SHA-1 - Hash criptográfico de 160 bits",
     "sha256": "Hash SHA-256 - Hash criptográfico seguro de 256 bits",
@@ -24,7 +24,7 @@
     "rot13": "Cifra ROT13 - Simples cifra de substituição de letras"
   },
   "whyPython": {
-    "title": "💡 Por Que Python?",
+    "title": "Por Que Python?",
     "description": "Essas operações são triviais em Python graças a bibliotecas integradas:",
     "hashlib": "hashlib - Hashing criptográfico (família MD5, SHA)",
     "base64": "base64 - Codificação/decodificação Base64",
@@ -32,7 +32,7 @@
     "footer": "Em JavaScript, você precisaria da API Web Crypto (assíncrona, verbosa) ou bibliotecas externas. A filosofia \"baterias incluídas\" do Python brilha aqui!"
   },
   "pyscriptManager": {
-    "title": "🚀 Novidade: PyScriptManager",
+    "title": "Novidade: PyScriptManager",
     "description": "Este exemplo usa o novo sistema PyScriptManager:",
     "eventDriven": "Orientado a eventos - Sem polling com setTimeout",
     "instant": "Prontidão instantânea - Python sinaliza quando está pronto",
@@ -41,7 +41,7 @@
     "footer": "Verifique o console do navegador para ver os eventos do ciclo de vida em ação!"
   },
   "architecture": {
-    "title": "🏗️ Arquitetura",
+    "title": "Arquitetura",
     "description": "Separação limpa de responsabilidades:",
     "python": "Python (encoder.py) - Usa PyScriptManager para exportar funções",
     "controller": "Controller (EncodingController.js) - Gerencia ciclo de vida com eventos",

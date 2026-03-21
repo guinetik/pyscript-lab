@@ -10,7 +10,7 @@
   "loadingTitle": "Loading Python...",
   "loadingSubtitle": "Initializing interoperability demo",
   "architecture": {
-    "title": "🏗️ Architecture Highlights",
+    "title": "Architecture Highlights",
     "description": "This example demonstrates proper separation of concerns:",
     "python": "Python - Pure business logic, sends only data via window callbacks (no innerHTML!)",
     "controller": "InteropController - Manages Python lifecycle and communication layer",
@@ -32,6 +32,6 @@
     "dataSci": "Access Python's data science ecosystem from web interfaces"
   },
   "ageDescription": "Age: {age} | Category: {category}",
-  "potentialCoding": "🎂 Potential coding years: ~{years}",
+  "potentialCoding": "Potential coding years: ~{years}",
   "disclaimer": "{disclaimer}"
 }

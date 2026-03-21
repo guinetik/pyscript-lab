@@ -4,28 +4,28 @@
   "headerDescription": "Geographic visualization of pandemic data using Plotly choropleth maps",
   "maps": {
     "map1": {
-      "title": "🗺️ Map 1: Total Deaths",
+      "title": "Map 1: Total Deaths",
       "description": "Darker red indicates higher death toll. Hover over countries for details.",
       "pyTitle": "Deaths choropleth with red color scale:"
     },
     "map2": {
-      "title": "🌐 Map 2: Confirmed Cases",
+      "title": "Map 2: Confirmed Cases",
       "description": "Darker blue indicates more confirmed cases. Shows total outbreak size using the SAME cached data.",
       "pyTitle": "Confirmed cases choropleth with blue color scale:"
     },
     "map3": {
-      "title": "⚠️ Map 3: Case Fatality Rate",
+      "title": "Map 3: Case Fatality Rate",
       "description": "Shows death rate as percentage of confirmed cases (countries with 1000+ cases for statistical significance).",
       "pyTitle": "CFR choropleth with filtering and calculation:"
     },
     "map4": {
-      "title": "📈 Map 4: New Cases Activity",
+      "title": "Map 4: New Cases Activity",
       "description": "Recent new cases, showing areas of active transmission.",
       "pyTitle": "New cases choropleth with orange color scale:"
     }
   },
   "choropleth": {
-    "title": "🗺️ What is a Choropleth Map?",
+    "title": "What is a Choropleth Map?",
     "description": "A choropleth map is a thematic map where areas are colored or shaded according to a statistical variable. In our case, we're coloring countries based on COVID-19 metrics.",
     "items": {
       "geographic": "Geographic Representation: Each country is a polygon with accurate boundaries",
@@ -35,11 +35,11 @@
     }
   },
   "plotly": {
-    "title": "📊 What is Plotly?",
+    "title": "What is Plotly?",
     "description": "Plotly is an interactive graphing library for Python. Unlike Matplotlib (which creates static images), Plotly generates interactive HTML visualizations that users can explore. It excels at geographic visualizations with built-in support for choropleth maps, and handles country matching automatically using ISO-3 codes."
   },
   "mapExplanations": {
-    "title": "🔬 The Four Maps Explained",
+    "title": "The Four Maps Explained",
     "items": {
       "deaths": "Deaths Map (Red): Shows the human toll. Absolute numbers highlight heavily populated countries.",
       "cases": "Confirmed Cases (Blue): Visualizes total outbreak size. Useful for understanding scale of spread.",
@@ -48,7 +48,7 @@
     }
   },
   "technical": {
-    "title": "🔍 Technical Implementation",
+    "title": "Technical Implementation",
     "items": {
       "iso3": "ISO-3 Country Codes: Uses standardized codes (USA, GBR, FRA) for reliable country matching",
       "projection": "Natural Earth Projection: A visually pleasing pseudo-cylindrical map projection",
@@ -58,7 +58,7 @@
     }
   },
   "insights": {
-    "title": "💡 Geographic Insights",
+    "title": "Geographic Insights",
     "items": {
       "patterns": "Spatial Patterns: Maps reveal regional clusters not visible in tables",
       "absolute": "Absolute vs Relative: Deaths map shows population, CFR normalizes by cases",
@@ -67,7 +67,7 @@
     }
   },
   "interactive": {
-    "title": "🎯 Interactive Features",
+    "title": "Interactive Features",
     "intro": "Try these interactions with the maps:",
     "items": {
       "hover": "Hover over any country to see detailed statistics",

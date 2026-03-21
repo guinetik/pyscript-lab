@@ -3,8 +3,8 @@
   "description": "Analyze the sentiment of any text using machine learning! The model classifies text as Positive, Negative, or Neutral with confidence scores.",
   "ui": {
     "inputLabel": "Enter text to analyze:",
-    "loadingModel": "⏳ Loading Model...",
-    "analyzeSentiment": "🔍 Analyze Sentiment",
+    "loadingModel": "Loading Model...",
+    "analyzeSentiment": "Analyze Sentiment",
     "error": "Error!",
     "analyzeAnother": "Analyze Another Text",
     "feedbackQuestion": "Was this prediction correct?",
@@ -12,14 +12,14 @@
     "yesButton": "✓ YES",
     "noButton": "✗ NO",
     "correctLabel": "What's the correct sentiment?",
-    "positiveOption": "😊 Positive",
-    "neutralOption": "😐 Neutral",
-    "negativeOption": "😞 Negative",
-    "retrainButton": "🎓 Retrain Model",
-    "resetButton": "🔄 Reset Training",
+    "positiveOption": "Positive",
+    "neutralOption": "Neutral",
+    "negativeOption": "Negative",
+    "retrainButton": "Retrain Model",
+    "resetButton": "Reset Training",
     "loadingAnalyzer": "Loading Sentiment Analyzer...",
     "initializingModel": "Initializing machine learning model",
-    "readyTitle": "🤖 Sentiment Analyzer Ready!",
+    "readyTitle": "Sentiment Analyzer Ready!",
     "readyMessage": "Enter text above and click Analyze",
     "placeholder": "Type or paste any text here...\n\nExample: 'I love this product!'",
     "modelInfo": "Training examples: {count} | Model: TF-IDF + Logistic Regression",
@@ -62,14 +62,14 @@
       "bullet5": "All processing happens in your browser using PyScript!"
     },
     "activeLearning": {
-      "title": "💡 Active Learning",
+      "title": "Active Learning",
       "description": "After each prediction, you can provide feedback:",
       "feedbackYes": "Click YES if correct → Reinforces the model",
       "feedbackNo": "Click NO if wrong → Correct it and retrain with the right label",
       "conclusion": "The model learns from your feedback and improves over time!"
     },
     "architecture": {
-      "title": "🏗️ Architecture",
+      "title": "Architecture",
       "description": "This example demonstrates proper separation of concerns:",
       "python": "Python - Pure ML logic, no HTML. Uses to_js() to convert Python dicts to JavaScript objects before calling window callbacks.",
       "controller": "Controller - Business logic layer. Receives plain JS objects and delegates to UIHandler.",
@@ -77,17 +77,17 @@
       "keyLesson": "Key lesson: Python dicts must be explicitly converted using to_js(dict, dict_converter=Object.fromEntries) to work properly with JavaScript."
     },
     "note": {
-      "title": "📝 Note",
+      "title": "Note",
       "description": "This is an improved demonstration model with 150 training examples covering diverse writing styles and scenarios. For production use, you'd still want to train on thousands of examples for better accuracy and to handle edge cases like sarcasm and mixed sentiments."
     },
     "useCases": {
-      "title": "💼 Real-World Use Cases",
+      "title": "Real-World Use Cases",
       "description": "Sentiment analysis is widely used in:",
-      "case1": "📊 Customer Feedback - Analyze product reviews, survey responses, and support tickets",
-      "case2": "📱 Social Media Monitoring - Track brand perception and customer sentiment in real-time",
-      "case3": "📧 Email Classification - Prioritize customer emails based on urgency and sentiment",
-      "case4": "🎬 Content Moderation - Detect negative or toxic content before it's published",
-      "case5": "📈 Market Research - Understand consumer opinions and trends from text data"
+      "case1": "Customer Feedback - Analyze product reviews, survey responses, and support tickets",
+      "case2": "Social Media Monitoring - Track brand perception and customer sentiment in real-time",
+      "case3": "Email Classification - Prioritize customer emails based on urgency and sentiment",
+      "case4": "Content Moderation - Detect negative or toxic content before it's published",
+      "case5": "Market Research - Understand consumer opinions and trends from text data"
     }
   },
   "links": {

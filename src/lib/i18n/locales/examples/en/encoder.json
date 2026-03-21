@@ -10,13 +10,13 @@
   "outputLabel": "Output",
   "outputPlaceholder": "Encoded result will appear here...",
   "initializing": "Initializing Python module...",
-  "ready": "✅ Python module ready!",
-  "loadingError": "❌ Failed to load Python module",
+  "ready": "Python module ready!",
+  "loadingError": "Failed to load Python module",
   "errorNotReady": "Error: Python module not ready yet",
   "errorEmpty": "Please enter some text to encode",
   "copiedFeedback": "✓ Copied to clipboard!",
   "encodings": {
-    "title": "🔐 Available Encodings",
+    "title": "Available Encodings",
     "md5": "MD5 Hash - 128-bit cryptographic hash (legacy, not secure)",
     "sha1": "SHA-1 Hash - 160-bit cryptographic hash",
     "sha256": "SHA-256 Hash - 256-bit secure cryptographic hash",
@@ -24,7 +24,7 @@
     "rot13": "ROT13 Cipher - Simple letter substitution cipher"
   },
   "whyPython": {
-    "title": "💡 Why Python?",
+    "title": "Why Python?",
     "description": "These operations are trivial in Python thanks to built-in libraries:",
     "hashlib": "hashlib - Cryptographic hashing (MD5, SHA family)",
     "base64": "base64 - Base64 encoding/decoding",
@@ -32,7 +32,7 @@
     "footer": "In JavaScript, you'd need the Web Crypto API (async, verbose) or external libraries. Python's \"batteries included\" philosophy shines here!"
   },
   "pyscriptManager": {
-    "title": "🚀 What's New: PyScriptManager",
+    "title": "What's New: PyScriptManager",
     "description": "This example uses the new PyScriptManager system:",
     "eventDriven": "Event-driven - No polling with setTimeout",
     "instant": "Instant readiness - Python signals when ready",
@@ -41,7 +41,7 @@
     "footer": "Check the browser console to see the lifecycle events in action!"
   },
   "architecture": {
-    "title": "🏗️ Architecture",
+    "title": "Architecture",
     "description": "Clean separation of concerns:",
     "python": "Python (encoder.py) - Uses PyScriptManager to export functions",
     "controller": "Controller (EncodingController.js) - Manages lifecycle with events",
