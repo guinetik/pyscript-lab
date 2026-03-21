@@ -222,7 +222,7 @@
 					const avgActivation = (from.activation + to.activation) / 2;
 					ctx.lineWidth = avgActivation > 0.5 ? 1.0 : 0.4;
 
-					ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+					ctx.strokeStyle = `rgba(48, 105, 152, ${opacity})`;
 					ctx.beginPath();
 					ctx.moveTo(from.x, from.y);
 					ctx.lineTo(to.x, to.y);
