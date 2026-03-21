@@ -85,9 +85,9 @@
 
 	<div class="rounded-lg bg-{colors.bg} p-4 mb-4">
 		<div class="flex items-center justify-center gap-3 mb-3">
-			<p class="text-4xl">🎯</p>
+			<p class="text-2xl font-heading font-bold text-accent">Result</p>
 			<div>
-				<h3 class="text-3xl font-extrabold text-{colors.text}">
+				<h3 class="text-3xl font-heading font-bold text-{colors.text}">
 					Prediction: {$predictionResult.prediction}
 				</h3>
 				<p class="text-sm text-gray-600">
@@ -100,7 +100,7 @@
 		</div>
 	</div>
 
-	<div class="rounded-lg bg-blue-50 p-4 mb-4 border-2 border-blue-200">
+	<div class="rounded-lg bg-callout p-4 mb-4 border-2 border-border">
 		<h4 class="font-bold mb-2 text-center text-blue-900">Was this prediction correct?</h4>
 		<p class="text-xs text-center text-gray-600 mb-3">Help the model learn your drawing style!</p>
 
@@ -135,12 +135,12 @@
 					<button
 						onclick={submitCorrection}
 						class="flex-1 rounded bg-orange-400 px-3 py-2 text-white hover:bg-orange-500 font-medium">
-						🎓 Retrain Model
+						Retrain Model
 					</button>
 					<button
 						onclick={resetTraining}
 						class="flex-1 rounded bg-gray-400 px-3 py-2 text-white hover:bg-gray-500 font-medium">
-						🔄 Reset Training
+						Reset Training
 					</button>
 				</div>
 			</div>

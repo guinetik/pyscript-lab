@@ -66,7 +66,7 @@
 			<Callout type="tip">
 				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.gettingStarted?.title || 'Getting Started:'}</h3>
 				<p class="mb-2">{$exampleText.gettingStarted?.description || 'To use Matplotlib in PyScript, you need to specify it in your config:'}</p>
-				<pre class="rounded bg-white p-3 text-sm overflow-x-auto"><code>&lt;py-config&gt;
+				<pre class="rounded bg-surface p-3 text-sm overflow-x-auto"><code>&lt;py-config&gt;
   packages = ["matplotlib", "numpy"]
 &lt;/py-config&gt;
 

@@ -169,7 +169,7 @@
 			{#if mode === 'training' && trainerState === 'BACKGROUND'}
 				<div class="absolute inset-0 bg-black/70 flex items-center justify-center">
 					<div class="text-center text-white">
-						<div class="text-4xl mb-2 animate-pulse">🧬</div>
+						<div class="text-xl mb-2 animate-pulse font-heading font-bold">Training</div>
 						<div class="font-bold text-lg">Training in Background</div>
 						<div class="text-sm opacity-75 mt-2">Generation {generation}</div>
 						<div class="text-xs opacity-50 mt-1">Best Distance: {bestDistance}</div>
@@ -179,7 +179,7 @@
 		</div>
 		
 		<!-- Status Bar -->
-		<div class="px-4 py-2 rounded bg-gray-100 border-2 border-gray-300">
+		<div class="px-4 py-2 rounded bg-surface-alt border-2 border-border">
 			<p class="text-sm font-mono">{status}</p>
 		</div>
 		
@@ -224,7 +224,7 @@
 			
 			{#if trainerState === 'FOREGROUND'}
 				<div class="bg-cyan-100 border-2 border-cyan-400 rounded p-2 text-center">
-					<span class="text-cyan-800 font-bold">🎮 Best agent playing...</span>
+					<span class="text-cyan-800 font-bold">Best agent playing...</span>
 				</div>
 			{/if}
 		{/if}
@@ -236,32 +236,32 @@
 				disabled={mode !== 'idle'}
 				class="px-4 py-3 bg-purple-500 text-white font-bold rounded hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 			>
-				🎮 Play
+				Play
 			</button>
-			<button 
+			<button
 				onclick={startAI}
 				disabled={mode !== 'idle'}
 				class="px-4 py-3 bg-green-500 text-white font-bold rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 			>
-				🤖 Start AI
+				Start AI
 			</button>
 			<button
 				onclick={startTraining}
 				disabled={mode !== 'idle'}
 				class="px-4 py-3 bg-orange-500 text-white font-bold rounded hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 			>
-				🧬 Train
+				Train
 			</button>
 		</div>
 
 		<!-- Training Mode Selector -->
-		<div class="bg-orange-50 border-2 border-orange-200 rounded p-3">
-			<label for="training-mode-select" class="block text-sm font-bold text-orange-900 mb-2">🧬 Training Mode</label>
+		<div class="bg-callout border-2 border-border rounded p-3">
+			<label for="training-mode-select" class="block text-sm font-bold mb-2">Training Mode</label>
 			<select
 				id="training-mode-select"
 				bind:value={trainingMode}
 				disabled={mode !== 'idle'}
-				class="w-full px-3 py-2 rounded border-2 border-orange-300 bg-white text-sm font-medium disabled:bg-gray-100 disabled:cursor-not-allowed"
+				class="w-full px-3 py-2 rounded border-2 border-border bg-surface text-sm font-medium disabled:bg-surface-alt disabled:cursor-not-allowed"
 			>
 				{#each trainingModes as tm}
 					<option value={tm.value}>{tm.label}</option>
@@ -279,31 +279,31 @@
 				disabled={mode === 'idle'}
 				class="px-3 py-2 bg-red-500 text-white text-sm font-semibold rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 			>
-				⏹️ Stop
+				Stop
 			</button>
 			<button 
 				onclick={toggleMute}
 				class="px-3 py-2 bg-slate-500 text-white text-sm font-semibold rounded hover:bg-slate-600 transition"
 			>
-				{muted ? '🔇 Muted' : '🔊 Sound'}
+				{muted ? 'Muted' : 'Sound'}
 			</button>
 			<button 
 				onclick={() => showNeurons = !showNeurons}
 				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showNeurons ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
 			>
-				🧠 Neurons
+				Neurons
 			</button>
 			<button 
 				onclick={() => showMetrics = !showMetrics}
 				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showMetrics ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
 			>
-				📈 Metrics
+				Metrics
 			</button>
 			<button 
 				onclick={() => showBreeding = !showBreeding}
 				class="px-3 py-2 text-white text-sm font-semibold rounded transition {showBreeding ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
 			>
-				🧬 Lineage
+				Lineage
 			</button>
 		</div>
 
@@ -315,7 +315,7 @@
 		<!-- Keyboard Controls Help -->
 		{#if mode === 'playing'}
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">⌨️ Keyboard Controls</h3>
+				<h3 class="mb-2 font-heading font-bold">Keyboard Controls</h3>
 				<div class="grid grid-cols-2 gap-2 text-sm">
 					<div><kbd class="bg-surface-alt px-1 rounded">←→↑↓</kbd> Move</div>
 					<div><kbd class="bg-surface-alt px-1 rounded">Z</kbd> Jump</div>
@@ -350,7 +350,7 @@
 		<!-- Info Sections -->
 		<div class="space-y-3">
 			<Callout>
-				<h3 class=”mb-2 font-heading font-bold”>🧬 What is neuroevolution?</h3>
+				<h3 class=”mb-2 font-heading font-bold”>What is neuroevolution?</h3>
 				<p class=”text-sm leading-relaxed”>
 					Instead of gradients (backprop), we <strong>score</strong> many networks by how far Mario gets, then
 					<strong>breed and mutate</strong> the best ones to form the next generation. Fitness here is tied to
@@ -366,13 +366,13 @@
 			</Callout>
 
 			<Callout type="tip">
-				<h3 class="mb-2 font-heading font-bold">⚡ Background vs foreground training</h3>
+				<h3 class="mb-2 font-heading font-bold">Background vs foreground training</h3>
 				<p class="text-sm leading-relaxed mb-2">
 					Training alternates phases so you get speed <em>and</em> feedback:
 				</p>
 				<ul class="text-sm space-y-2 list-disc pl-5">
 					<li>
-						<strong>BACKGROUND</strong> — The canvas shows a 🧬 overlay while the trainer evaluates the whole
+						<strong>BACKGROUND</strong> — The canvas shows an overlay while the trainer evaluates the whole
 						population headlessly (no visible Mario). Python steps through agents quickly; this is where most
 						generations advance.
 					</li>
@@ -391,7 +391,7 @@
 			</Callout>
 			
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">🔄 Training modes (dropdown)</h3>
+				<h3 class="mb-2 font-heading font-bold">Training modes (dropdown)</h3>
 				<ul class="text-sm space-y-2 leading-relaxed">
 					<li><strong>Simple:</strong> Preserve the top ~10% as unchanged elites; remaining slots are roulette-selected elite offspring with Gaussian mutation (every generation).</li>
 					<li><strong>SBX:</strong> Preserve slot 0 (champion); all other slots are two-parent Simulated Binary Crossover plus mutation each generation.</li>
@@ -401,7 +401,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">🎛️ Panels & toggles</h3>
+				<h3 class="mb-2 font-heading font-bold">Panels & toggles</h3>
 				<ul class="text-sm space-y-2 leading-relaxed list-disc pl-5">
 					<li><strong>Metrics</strong> — Fitness and best distance over time; lives <strong>under the buttons</strong> on the left when enabled.</li>
 					<li><strong>Neurons</strong> — Live network diagram; animation pauses during <strong>BACKGROUND</strong> to keep the tab responsive while PyScript works.</li>
@@ -411,7 +411,7 @@
 			</Callout>
 			
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">🏗️ Network architecture</h3>
+				<h3 class="mb-2 font-heading font-bold">Network architecture</h3>
 				<p class="text-sm leading-relaxed">
 					<strong>Input:</strong> 80 values — 7×10 tile vision plus row encoding<br>
 					<strong>Hidden:</strong> 9 neurons, ReLU<br>
@@ -421,7 +421,7 @@
 			</Callout>
 			
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">🐍 Python & data flow</h3>
+				<h3 class="mb-2 font-heading font-bold">Python & data flow</h3>
 				<p class="text-sm leading-relaxed">
 					The trainer emits progress (generation, fitness, distance), optional breeding lineage JSON for the helix,
 					and tensor snapshots for the neuron view. The UI never guesses evolution details — it reflects what the

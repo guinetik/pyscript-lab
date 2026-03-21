@@ -163,7 +163,7 @@
 						oscillationDetected: true
 					};
 					showCompletionOverlay = true;
-					statusMessage = $exampleText.ui?.stuckOscillatingMessage || '⏹️ Demo stopped - agent got stuck oscillating';
+					statusMessage = $exampleText.ui?.stuckOscillatingMessage || 'Demo stopped - agent got stuck oscillating';
 					return;
 				}
 
@@ -376,7 +376,7 @@
 			await new Promise(resolve => setTimeout(resolve, 300));
 		}
 
-		statusMessage = $exampleText.ui?.stoppingTrainingMessage || '⏹️ Preparing demo...';
+		statusMessage = $exampleText.ui?.stoppingTrainingMessage || 'Preparing demo...';
 
 		// Wait for Python to fully stop any active loops
 		await new Promise(resolve => setTimeout(resolve, 500));
@@ -440,8 +440,8 @@
 			{#if showCountdown}
 				<div class="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm rounded-lg">
 					<div class="text-center">
-						<div class="text-9xl font-bold text-white drop-shadow-lg animate-pulse">
-							{countdown > 0 ? countdown : '🚀'}
+						<div class="text-9xl font-bold text-white drop-shadow-card animate-pulse">
+							{countdown > 0 ? countdown : 'GO'}
 						</div>
 						<p class="text-white text-xl mt-4 font-semibold">Get ready!</p>
 					</div>
@@ -451,8 +451,8 @@
 			<!-- Completion Overlay - Success -->
 			{#if showCompletionOverlay && demoResults && demoResults.reachedGoal}
 				<div class="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-lg">
-					<div class="bg-white rounded-xl shadow-2xl p-8 max-w-md text-center">
-						<div class="text-6xl mb-4">🎉</div>
+					<div class="bg-surface rounded-xl shadow-card p-8 max-w-md text-center">
+						<div class="text-6xl mb-4" aria-hidden="true"></div>
 						<h2 class="text-3xl font-bold text-gray-900 mb-2">Goal Reached!</h2>
 						<p class="text-gray-600 mb-6">Agent successfully completed the maze using learned policy</p>
 
@@ -472,15 +472,15 @@
 						<div class="flex gap-3">
 							<button
 								onclick={() => { showCompletionOverlay = false; startTraining(); }}
-								class="flex-1 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-3 font-bold text-white hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg"
+								class="flex-1 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-3 font-bold text-white hover:from-green-600 hover:to-emerald-700 transition-all shadow-card"
 							>
-								📚 Keep Training
+								Keep Training
 							</button>
 							<button
 								onclick={() => { showCompletionOverlay = false; runDemo(); }}
-								class="flex-1 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-3 font-bold text-white hover:from-purple-600 hover:to-purple-700 transition-all shadow-lg"
+								class="flex-1 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-3 font-bold text-white hover:from-purple-600 hover:to-purple-700 transition-all shadow-card"
 							>
-								🎬 Run Again
+								Run Again
 							</button>
 						</div>
 
@@ -497,8 +497,8 @@
 			<!-- Completion Overlay - Agent Stuck -->
 			{#if showCompletionOverlay && demoResults && !demoResults.reachedGoal}
 				<div class="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-lg">
-					<div class="bg-white rounded-lg shadow-2xl p-5 max-w-sm text-center">
-						<div class="text-5xl mb-2">{demoResults.oscillationDetected ? '🔄' : '🤔'}</div>
+					<div class="bg-surface rounded-lg shadow-card p-5 max-w-sm text-center">
+						<div class="text-5xl mb-2"></div>
 						<h2 class="text-2xl font-bold text-gray-900 mb-1">
 							{demoResults.oscillationDetected ? 'Stuck Oscillating' : 'Got Stuck'}
 						</h2>
@@ -514,13 +514,13 @@
 								onclick={() => { showCompletionOverlay = false; startTraining(); }}
 								class="flex-1 rounded bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-600 transition-all"
 							>
-								📚 Train
+								Train More
 							</button>
 							<button
 								onclick={() => { showCompletionOverlay = false; runDemo(); }}
 								class="flex-1 rounded bg-purple-500 px-4 py-2 text-sm font-bold text-white hover:bg-purple-600 transition-all"
 							>
-								🎬 Retry
+								Retry
 							</button>
 							<button
 								onclick={() => showCompletionOverlay = false}
@@ -536,23 +536,23 @@
 
 		<!-- Metrics Display -->
 		<div class="grid grid-cols-5 gap-2">
-			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 text-white shadow-lg">
+			<div class="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-3 text-white shadow-card">
 				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricEpisode || 'Episode'}</div>
 				<div class="text-2xl font-bold">{typeof episode === 'number' ? episode : 0}</div>
 			</div>
-			<div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-3 text-white shadow-lg">
+			<div class="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-3 text-white shadow-card">
 				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricSteps || 'Steps'}</div>
 				<div class="text-2xl font-bold">{typeof steps === 'number' ? steps : 0}</div>
 			</div>
-			<div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-3 text-white shadow-lg">
+			<div class="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-3 text-white shadow-card">
 				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricReward || 'Reward'}</div>
 				<div class="text-2xl font-bold">{typeof totalReward === 'number' ? totalReward.toFixed(0) : '0'}</div>
 			</div>
-			<div class="rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-3 text-white shadow-lg">
+			<div class="rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-3 text-white shadow-card">
 				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricEpsilon || 'Epsilon (ε)'}</div>
 				<div class="text-2xl font-bold">{typeof epsilon === 'number' ? epsilon.toFixed(2) : '1.00'}</div>
 			</div>
-			<div class="rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 p-3 text-white shadow-lg">
+			<div class="rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 p-3 text-white shadow-card">
 				<div class="text-xs font-semibold opacity-90">{$exampleText.ui?.metricSuccessRate || 'Success Rate'}</div>
 				<div class="text-2xl font-bold">{typeof successRate === 'number' ? successRate.toFixed(1) : '0.0'}%</div>
 			</div>
@@ -582,7 +582,7 @@
 								: 'text-blue-700'}"
 			>
 				{#if status === 'initializing'}
-					<span class="inline-block animate-pulse">⏳</span>
+					<span class="inline-block animate-pulse">...</span>
 				{/if}
 				{statusMessage}
 			</p>
@@ -597,13 +597,13 @@
 					disabled={status === 'training' || status === 'initializing' || isRunningDemo}
 					class="rounded bg-blue-500 px-6 py-3 font-bold text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{$exampleText.ui?.generateButton || '🎲 Generate'}
+					{$exampleText.ui?.generateButton || 'Generate'}
 				</button>
 				<select
 					bind:value={difficulty}
 					onchange={generateMaze}
 					disabled={status === 'training' || status === 'initializing' || isRunningDemo}
-					class="rounded border-2 border-gray-300 bg-white px-4 py-3 font-semibold text-gray-700 hover:border-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+					class="rounded border-2 border-gray-300 bg-surface px-4 py-3 font-semibold text-gray-700 hover:border-gray-400 disabled:bg-surface-alt disabled:cursor-not-allowed transition-colors"
 				>
 					{#each Object.entries(difficultySettings) as [key, settings]}
 						<option value={key}>{settings.name}</option>
@@ -614,7 +614,7 @@
 					disabled={status === 'initializing' || status === 'error' || (status === 'ready' && episode === 0)}
 					class="rounded bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{$exampleText.ui?.resetButton || '🔄 Reset'}
+					{$exampleText.ui?.resetButton || 'Reset'}
 				</button>
 			</div>
 
@@ -625,28 +625,28 @@
 					disabled={!mazeData || !pythonReady || status === 'initializing' || isRunningDemo}
 					class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'training' ? ($exampleText.ui?.restartButton || '🔄 Restart') : ($exampleText.ui?.trainButton || '▶️ Train')}
+					{status === 'training' ? ($exampleText.ui?.restartButton || 'Restart') : ($exampleText.ui?.trainButton || 'Train')}
 				</button>
 				<button
 					onclick={status === 'paused' ? resumeTraining : pauseTraining}
 					disabled={status !== 'training' && status !== 'paused'}
 					class="rounded bg-yellow-500 px-6 py-3 font-bold text-white hover:bg-yellow-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{status === 'paused' ? ($exampleText.ui?.resumeButton || '▶️ Resume') : ($exampleText.ui?.pauseButton || '⏸️ Pause')}
+					{status === 'paused' ? ($exampleText.ui?.resumeButton || 'Resume') : ($exampleText.ui?.pauseButton || 'Pause')}
 				</button>
 				<button
 					onclick={runDemo}
 					disabled={!mazeData || episode === 0 || !pythonReady || status === 'initializing'}
 					class="rounded bg-purple-500 px-6 py-3 font-bold text-white hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 				>
-					{isRunningDemo ? '⏹️ Stop Demo' : ($exampleText.ui?.demoButton || '🎬 Demo')}
+					{isRunningDemo ? 'Stop Demo' : ($exampleText.ui?.demoButton || 'Demo')}
 				</button>
 				<button
 					onclick={toggleQValues}
 					disabled={!qValues || Object.keys(qValues).length === 0}
 					class="rounded px-6 py-3 font-bold text-white transition-colors {showQValues ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'} disabled:bg-gray-400 disabled:cursor-not-allowed"
 				>
-					{showQValues ? ($exampleText.ui?.hideQValuesButton || '🎨 Hide Q-values') : ($exampleText.ui?.visualizeButton || '🎨 Visualize')}
+					{showQValues ? ($exampleText.ui?.hideQValuesButton || 'Hide Q-values') : ($exampleText.ui?.visualizeButton || 'Visualize')}
 				</button>
 			</div>
 		</div>
@@ -655,7 +655,7 @@
 		<div class="space-y-3">
 			<!-- MAZE VISUALIZATION COLORS -->
 			<Callout>
-				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.ui?.visualizationTitle || '🎨 Visualization Colors'}</h3>
+				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.ui?.visualizationTitle || 'Visualization Colors'}</h3>
 				<p class="text-xs mb-2">
 					{$exampleText.ui?.visualizationDesc || 'Here\'s what each color represents in the maze:'}
 				</p>
@@ -680,7 +680,7 @@
 
 			<!-- Q-LEARNING BASICS -->
 			<Callout>
-				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.whatIsQLearning?.title || '🎓 What is Q-Learning?'}</h3>
+				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.whatIsQLearning?.title || 'What is Q-Learning?'}</h3>
 				<p class="text-xs mb-2">
 					{$exampleText.sections?.whatIsQLearning?.description || 'Q-Learning is a value-based reinforcement learning algorithm that learns the optimal action to take in each state by maintaining a Q-table:'}
 				</p>
@@ -711,7 +711,7 @@
 
 			<!-- REWARD STRUCTURE -->
 			<Callout>
-				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.rewardStructure?.title || '🎯 Reward Structure'}</h3>
+				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.rewardStructure?.title || 'Reward Structure'}</h3>
 				<p class="text-xs mb-2">{$exampleText.sections?.rewardStructure?.description || 'The agent receives rewards for its actions:'}</p>
 				<ul class="list-disc space-y-1 pl-5 text-xs">
 					<li>{$exampleText.sections?.rewardStructure?.hitWall || 'Hit Wall: -1.0 (strong discouragement)'}</li>
@@ -731,7 +731,7 @@
 
 			<!-- HOW IT LEARNS -->
 			<Callout type="tip">
-				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.howQLearningLearns?.title || '🧠 How Q-Learning Learns'}</h3>
+				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.howQLearningLearns?.title || 'How Q-Learning Learns'}</h3>
 				<ol class="list-decimal space-y-1 pl-5 text-xs">
 					<li>{$exampleText.sections?.howQLearningLearns?.step1 || 'Initialize: Start with empty Q-table (all values = 0)'}</li>
 					<li>{$exampleText.sections?.howQLearningLearns?.step2 || 'Episode Loop: Agent spawns at 🟢 green position'}</li>
@@ -746,7 +746,7 @@
 					{$exampleText.sections?.howQLearningLearns?.insight || 'Over time, Q-values propagate backward from the goal, creating a "gradient" that guides the agent! You can see this gradient visualized when you toggle "Visualize" (brighter = higher Q-value).'}
 				</p>
 				<div class="mt-2 pt-2 border-t border-border">
-					<p class="text-xs font-semibold mb-1">{$exampleText.sections?.howQLearningLearns?.smartFeaturesTitle || '✨ Smart Features:'}</p>
+					<p class="text-xs font-semibold mb-1">{$exampleText.sections?.howQLearningLearns?.smartFeaturesTitle || 'Smart Features:'}</p>
 					<ul class="list-disc space-y-0.5 pl-5 text-xs">
 						<li>{$exampleText.sections?.howQLearningLearns?.smartFeature1 || 'Difficulty-Adjusted Learning: Easy mazes learn faster (higher α), hard mazes explore more (higher ε decay)'}</li>
 						<li>{$exampleText.sections?.howQLearningLearns?.smartFeature2 || 'Reward Shaping: Direction bonus helps agent find goal faster without knowing maze structure'}</li>
@@ -757,7 +757,7 @@
 
 			<!-- TECHNICAL ARCHITECTURE -->
 			<Callout>
-				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.technicalArchitecture?.title || '⚡ Technical Architecture'}</h3>
+				<h3 class="mb-2 text-base font-heading font-bold">{$exampleText.sections?.technicalArchitecture?.title || 'Technical Architecture'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-xs">
 					<li>{$exampleText.sections?.technicalArchitecture?.mazeGeneration || 'Maze Generation: Recursive backtracker algorithm (depth-first search)'}</li>
 					<li>{$exampleText.sections?.technicalArchitecture?.stateSpace || 'State Space: Discrete grid (row, col) positions'}</li>
@@ -790,7 +790,7 @@
 
 			<!-- HOW TO USE -->
 			<Callout>
-				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.howToUse?.title || '🎯 How to Use'}</h3>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.howToUse?.title || 'How to Use'}</h3>
 				<ol class="list-decimal space-y-2 pl-5 text-sm">
 					<li><strong>{$exampleText.howToUse?.step1Title || 'Generate Maze:'}​</strong> {$exampleText.howToUse?.step1Desc || 'Click "Generate" to create a random maze. Try different difficulties!'}</li>
 					<li><strong>{$exampleText.howToUse?.step2Title || 'Start Training:'}​</strong> {$exampleText.howToUse?.step2Desc || 'Click "Start Training" to begin Q-learning'}
@@ -806,13 +806,13 @@
 					<li><strong>{$exampleText.howToUse?.step6Title || 'Compare Difficulties:'}​</strong> {$exampleText.howToUse?.step6Desc || 'Try Easy (10×10) vs Insane (30×30) to see how learning adapts!'}</li>
 				</ol>
 				<p class="mt-3 text-xs">
-					{$exampleText.howToUse?.proTip || '💡 Pro Tip: Training = agent blinks frantically between spots (exploring). Demo = agent glides smoothly (exploiting learned knowledge)!'}
+					{$exampleText.howToUse?.proTip || 'Pro Tip: Training = agent blinks frantically between spots (exploring). Demo = agent glides smoothly (exploiting learned knowledge)!'}
 				</p>
 			</Callout>
 
 			<!-- WHY Q-LEARNING -->
 			<Callout type="tip">
-				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.whyQLearning?.title || '🌟 Why Q-Learning?'}</h3>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.whyQLearning?.title || 'Why Q-Learning?'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.whyQLearning?.intro || 'Q-Learning is the perfect introduction to reinforcement learning because:'}
 				</p>
@@ -827,7 +827,7 @@
 
 			<!-- LIMITATIONS -->
 			<Callout type="warning">
-				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.limitations?.title || '⚠️ Q-Table Limitations'}</h3>
+				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.limitations?.title || 'Q-Table Limitations'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.limitations?.intro || 'Q-tables work great for discrete, small state spaces like mazes. But they don\'t scale:'}
 				</p>

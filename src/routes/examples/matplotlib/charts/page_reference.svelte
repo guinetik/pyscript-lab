@@ -63,22 +63,22 @@
 			{/if}
 
 			<div class="space-y-8 mt-6" class:opacity-0={loading} class:opacity-100={!loading} style="transition: opacity 0.3s ease-in-out;">
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
+				<div class="rounded-lg border-2 border-gray-200 bg-surface p-4">
 					<h3 class="text-lg font-bold mb-3">📊 Chart 1: Top 20 Countries by Deaths</h3>
 					<div id="covid-chart1" class="flex justify-center"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
+				<div class="rounded-lg border-2 border-gray-200 bg-surface p-4">
 					<h3 class="text-lg font-bold mb-3">🌍 Chart 2: Deaths by WHO Region</h3>
 					<div id="covid-chart2" class="flex justify-center"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
+				<div class="rounded-lg border-2 border-gray-200 bg-surface p-4">
 					<h3 class="text-lg font-bold mb-3">🔍 Chart 3: Confirmed Cases vs Deaths (Log Scale)</h3>
 					<div id="covid-chart3" class="flex justify-center"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
+				<div class="rounded-lg border-2 border-gray-200 bg-surface p-4">
 					<h3 class="text-lg font-bold mb-3">⚠️ Chart 4: Case Fatality Rate Analysis</h3>
 					<div id="covid-chart4" class="flex justify-center"></div>
 				</div>
@@ -86,7 +86,7 @@
 		</section>
 	</div>
 	<article slot="content_slot">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold">{name}</h2>
 
 		<div class="prose max-w-none">
 			<p class="mb-4">
@@ -105,7 +105,7 @@
 				</ul>
 			</div>
 
-			<div class="mb-6 rounded-lg bg-gray-100 p-4">
+			<div class="mb-6 rounded-lg bg-surface-alt p-4">
 				<h3 class="mb-2 text-lg font-bold">🔬 Technical Implementation:</h3>
 				<ul class="list-disc space-y-2 pl-5 text-sm">
 					<li><strong>Pandas:</strong> CSV loading, data filtering, grouping, and aggregation</li>

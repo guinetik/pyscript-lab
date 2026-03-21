@@ -106,7 +106,7 @@ with Diagram("Simple Web Service", show=False):
 
 		{#if loading}
 			<div class="flex items-center justify-center p-8">
-				<p class="text-lg">{$exampleText.ui?.loadingDiagramCreator || '🐍 Loading diagram creator...'}</p>
+				<p class="text-lg">{$exampleText.ui?.loadingDiagramCreator || 'Loading diagram creator...'}</p>
 			</div>
 		{:else}
 			<!-- Templates -->
@@ -139,14 +139,14 @@ with Diagram("Simple Web Service", show=False):
 				disabled={status === 'processing'}
 				class="rounded bg-green-500 px-6 py-3 font-bold text-white hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 			>
-				{status === 'processing' ? $exampleText.ui?.generating || '⏳ Generating...' : $exampleText.ui?.runDiagram || '▶️ Run Diagram'}
+				{status === 'processing' ? $exampleText.ui?.generating || 'Generating...' : $exampleText.ui?.runDiagram || 'Run Diagram'}
 			</button>
 			<button
 				onclick={saveDiagram}
 				disabled={status !== 'success'}
 				class="rounded bg-blue-500 px-6 py-3 font-bold text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
 			>
-				{$exampleText.ui?.saveSvg || '💾 Save SVG'}
+				{$exampleText.ui?.saveSvg || 'Save SVG'}
 			</button>
 		</div>
 
@@ -158,7 +158,7 @@ with Diagram("Simple Web Service", show=False):
 		</div>
 
 		<!-- Output Area -->
-		<div class="rounded-lg border-2 border-gray-200 bg-white p-4">
+		<div class="rounded-lg border-2 border-border bg-surface p-4">
 			<h3 class="text-lg font-bold mb-3">{$exampleText.ui?.yourDiagram || 'Your Diagram:'}</h3>
 			<div
 				id="user-diagram-output"
@@ -214,7 +214,7 @@ with Diagram("Simple Web Service", show=False):
 
 			<Callout type="tip">
 				<h3 class="mb-2 text-lg font-heading font-bold">{$exampleText.sections?.examplePattern?.title || 'Example Pattern:'}</h3>
-				<pre class="rounded bg-white p-3 text-xs overflow-x-auto"><code>{$exampleText.sections?.examplePattern?.code || `from diagrams import Diagram
+				<pre class="rounded bg-surface p-3 text-xs overflow-x-auto"><code>{$exampleText.sections?.examplePattern?.code || `from diagrams import Diagram
 from diagrams.aws.compute import EC2
 from diagrams.aws.database import RDS
 

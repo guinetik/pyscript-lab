@@ -18,8 +18,8 @@
 			</div>
 
 			<div class="space-y-6">
-				<div class="rounded-lg border-2 border-blue-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-blue-900">{$exampleText.charts?.chart1?.title || '📊 Chart 1: Top 20 Countries by Deaths'}</h3>
+				<div class="rounded-lg border-2 border-blue-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-blue-900">{$exampleText.charts?.chart1?.title || 'Chart 1: Top 20 Countries by Deaths'}</h3>
 					<p class="text-sm text-blue-800 mb-3">
 						{$exampleText.charts?.chart1?.description || 'A "heatmap-style" horizontal bar chart showing countries with the highest death tolls. The color intensity increases with death count.'}
 					</p>
@@ -29,8 +29,8 @@
 					<div id="covid-chart1" class="flex justify-center mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-green-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-green-900">{$exampleText.charts?.chart2?.title || '🌍 Chart 2: Deaths by WHO Region'}</h3>
+				<div class="rounded-lg border-2 border-green-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-green-900">{$exampleText.charts?.chart2?.title || 'Chart 2: Deaths by WHO Region'}</h3>
 					<p class="text-sm text-green-800 mb-3">
 						{$exampleText.charts?.chart2?.description || 'Pie chart showing how deaths are distributed across WHO regions (Americas, Europe, Africa, etc.)'}
 					</p>
@@ -40,8 +40,8 @@
 					<div id="covid-chart2" class="flex justify-center mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-purple-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-purple-900">{$exampleText.charts?.chart3?.title || '🔍 Chart 3: Confirmed Cases vs Deaths (Log Scale)'}</h3>
+				<div class="rounded-lg border-2 border-purple-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-purple-900">{$exampleText.charts?.chart3?.title || 'Chart 3: Confirmed Cases vs Deaths (Log Scale)'}</h3>
 					<p class="text-sm text-purple-800 mb-3">
 						{$exampleText.charts?.chart3?.description || 'Scatter plot revealing the relationship between confirmed cases and deaths. Log scale makes patterns visible across countries of vastly different sizes.'}
 					</p>
@@ -51,8 +51,8 @@
 					<div id="covid-chart3" class="flex justify-center mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-orange-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-orange-900">{$exampleText.charts?.chart4?.title || '⚠️ Chart 4: Case Fatality Rate Analysis'}</h3>
+				<div class="rounded-lg border-2 border-orange-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-orange-900">{$exampleText.charts?.chart4?.title || 'Chart 4: Case Fatality Rate Analysis'}</h3>
 					<p class="text-sm text-orange-800 mb-3">
 						{$exampleText.charts?.chart4?.description || 'Case Fatality Rate analysis showing which countries had the highest death-to-case ratios (filtered to countries with 1000+ cases for statistical significance)'}
 					</p>
@@ -70,7 +70,7 @@
 
 		<div class="space-y-4">
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || 'The Dataset'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.dataset?.intro || 'The covid_country.csv dataset contains:'}
 				</p>
@@ -84,14 +84,14 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.about?.title || '📈 What is Matplotlib?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.about?.title || 'What is Matplotlib?'}</h3>
 				<p class="text-sm">
 					{$exampleText.about?.description || 'Matplotlib is Python\'s foundational plotting library. It provides complete control over every aspect of your charts - from basic line plots to complex multi-panel visualizations. Unlike Bokeh (which focuses on interactivity), Matplotlib excels at creating publication-quality static figures with precise customization.'}
 				</p>
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.chartTypes?.title || '🔬 Chart Types Used'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.chartTypes?.title || 'Chart Types Used'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.chartTypes?.items?.bar || 'Horizontal Bar Charts: Great for comparing categories when labels are long'}</li>
 					<li>{$exampleText.chartTypes?.items?.pie || 'Pie Charts: Show proportions of a whole (regional distribution)'}</li>
@@ -102,7 +102,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.insights?.title || '💡 Data Insights'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.insights?.title || 'Data Insights'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.insights?.items?.deathTolls || 'The Americas and Europe regions had the highest death tolls'}</li>
 					<li>{$exampleText.insights?.items?.correlation || 'Larger outbreaks don\'t always correlate linearly with deaths (different healthcare responses)'}</li>
@@ -112,7 +112,7 @@
 			</Callout>
 
 			<Callout type="tip">
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.techniques?.title || '🎯 Technical Techniques'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.techniques?.title || 'Technical Techniques'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.techniques?.items?.pandas || 'Pandas Operations: nlargest(), groupby(), filtering with boolean indexing'}</li>
 					<li>{$exampleText.techniques?.items?.color || 'Color Mapping: plt.cm.Reds, plt.cm.Set3, plt.cm.YlOrRd for visual hierarchy'}</li>

@@ -19,8 +19,8 @@
 			</div>
 
 			<div class="space-y-4">
-				<div class="rounded-lg bg-blue-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-blue-900">{$exampleText.heatmap?.title || '📊 Correlation Heatmap'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.heatmap?.title || 'Correlation Heatmap'}</h3>
 					<p class="text-sm text-blue-800 mb-3">
 						{$exampleText.heatmap?.description || 'Shows how different listing features relate...'}
 					</p>
@@ -30,8 +30,8 @@
 					<div id="matplotlib-heatmap-output" class="w-full"></div>
 				</div>
 
-				<div class="rounded-lg bg-green-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-green-900">{$exampleText.pie?.title || '🥧 Room Type Distribution'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.pie?.title || 'Room Type Distribution'}</h3>
 					<p class="text-sm text-green-800 mb-3">
 						{$exampleText.pie?.description || 'A pie chart showing the breakdown...'}
 					</p>
@@ -41,8 +41,8 @@
 					<div id="matplotlib-pie-output" class="w-full"></div>
 				</div>
 
-				<div class="rounded-lg bg-purple-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-purple-900">{$exampleText.jitter?.title || '💰 Price Analysis'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.jitter?.title || 'Price Analysis'}</h3>
 					<p class="text-sm text-purple-800 mb-3">
 						{$exampleText.jitter?.description || 'Displays how prices vary...'}
 					</p>
@@ -52,8 +52,8 @@
 					<div id="matplotlib-jitter-output" class="w-full"></div>
 				</div>
 
-				<div class="rounded-lg bg-orange-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-orange-900">{$exampleText.bar?.title || '🏠 Top Hosts'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.bar?.title || 'Top Hosts'}</h3>
 					<p class="text-sm text-orange-800 mb-3">
 						{$exampleText.bar?.description || 'Bar chart showing the 10 most active hosts...'}
 					</p>
@@ -82,14 +82,14 @@
 
 		<div class="space-y-4">
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatPandas?.title || '🐼 What is Pandas?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatPandas?.title || 'What is Pandas?'}</h3>
 				<p class="text-sm">
 					{$exampleText.whatPandas?.description || 'Pandas is Python\'s most popular data analysis library...'}
 				</p>
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || 'The Dataset'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.dataset?.intro || 'We\'re analyzing 20,837 AirBnb listings...'}
 				</p>
@@ -104,7 +104,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.patterns?.title || '🔍 Data Analysis Patterns'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.patterns?.title || 'Data Analysis Patterns'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.patterns?.intro || 'Each chart demonstrates common Pandas operations:'}
 				</p>
@@ -118,14 +118,14 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.loading?.title || '💡 Loading Data'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.loading?.title || 'Loading Data'}</h3>
 				<p class="text-sm">
 					{$exampleText.loading?.description || 'The CSV is loaded using Pandas\' read_csv()...'}
 				</p>
 			</Callout>
 
 			<Callout type="tip">
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.whyBokeh?.title || '🎨 Why Bokeh?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whyBokeh?.title || 'Why Bokeh?'}</h3>
 				<p class="text-sm">
 					{$exampleText.whyBokeh?.description || 'Bokeh excels at creating interactive visualizations...'}
 				</p>

@@ -24,12 +24,12 @@
 
 	// Sentiment display configuration for visual feedback
 	const categoryConfig = {
-		student: { color: 'bg-purple-50 border-purple-200', emoji: '🎓', textColor: 'text-purple-900' },
-		junior: { color: 'bg-blue-50 border-blue-200', emoji: '🚀', textColor: 'text-blue-900' },
-		mid: { color: 'bg-green-50 border-green-200', emoji: '⚡', textColor: 'text-green-900' },
-		senior: { color: 'bg-orange-50 border-orange-200', emoji: '👨‍💻', textColor: 'text-orange-900' },
-		veteran: { color: 'bg-red-50 border-red-200', emoji: '🦕', textColor: 'text-red-900' },
-		legend: { color: 'bg-yellow-50 border-yellow-200', emoji: '👴', textColor: 'text-yellow-900' }
+		student: { color: 'bg-callout border-border', textColor: 'text-text-primary' },
+		junior: { color: 'bg-callout border-border', textColor: 'text-text-primary' },
+		mid: { color: 'bg-callout border-border', textColor: 'text-text-primary' },
+		senior: { color: 'bg-callout border-border', textColor: 'text-text-primary' },
+		veteran: { color: 'bg-callout border-border', textColor: 'text-text-primary' },
+		legend: { color: 'bg-callout border-border', textColor: 'text-text-primary' }
 	};
 
 	onMount(async () => {
@@ -85,8 +85,8 @@
 	<div slot="py_slot" class="flex h-full w-full flex-col items-center justify-start p-6 overflow-auto">
 		<!-- Ready State -->
 		{#if readyState && !greetingData && !errorMessage}
-			<div class="w-full rounded-lg bg-blue-100 p-6 text-center border-2 border-blue-300">
-				<p class="text-4xl mb-3">🐍</p>
+			<div class="w-full rounded-lg bg-callout p-6 text-center border-2 border-border">
+				<p class="text-2xl mb-3 font-heading font-bold text-accent">Python Ready</p>
 				<p class="text-2xl font-bold mb-2 text-blue-900">{readyState.message}</p>
 				<p class="text-sm text-blue-700">{readyState.subtitle}</p>
 			</div>
@@ -95,7 +95,7 @@
 		<!-- Error State -->
 		{#if errorMessage}
 			<div class="w-full rounded-lg bg-red-100 p-6 text-center border-2 border-red-300">
-				<p class="text-4xl mb-3">❌</p>
+				<p class="text-2xl mb-3 font-heading font-bold text-red-700">Error</p>
 				<p class="text-xl font-bold text-red-900">{errorMessage}</p>
 			</div>
 		{/if}
@@ -105,9 +105,9 @@
 			{@const config = categoryConfig[greetingData.category]}
 			<div class="w-full rounded-lg {config.color} p-6 border-2">
 				<div class="text-center mb-4">
-					<div class="text-6xl mb-3">{config.emoji}</div>
+					<div class="text-2xl mb-3 font-heading font-bold text-accent">{greetingData.category}</div>
 					<p class="text-3xl font-bold {config.textColor} mb-2">
-						{greetingData.greeting}, <span class="text-blue-600">{greetingData.name}</span>! 👋
+						{greetingData.greeting}, <span class="text-accent">{greetingData.name}</span>!
 					</p>
 					<p class="text-gray-600 mb-4">
 						{$exampleText.ageDescription?.replace('{age}', greetingData.age)?.replace('{category}', greetingData.category) || `Age: ${greetingData.age} | Category: ${greetingData.category}`}
@@ -121,12 +121,12 @@
 
 					{#if greetingData.years_coding > 0}
 						<p class="text-sm text-gray-500 mt-4">
-							{$exampleText.potentialCoding?.replace('{years}', greetingData.years_coding) || `🎂 Potential coding years: ~${greetingData.years_coding}`}
+							{$exampleText.potentialCoding?.replace('{years}', greetingData.years_coding) || `Potential coding years: ~${greetingData.years_coding}`}
 						</p>
 					{/if}
 
 					<p class="text-xs text-gray-400 mt-4 italic border-t pt-3">
-						💬 {greetingData.disclaimer}
+						{greetingData.disclaimer}
 					</p>
 				</div>
 			</div>
@@ -134,8 +134,8 @@
 
 		<!-- Loading/Empty State -->
 		{#if !readyState && !greetingData && !errorMessage}
-			<div class="w-full rounded-lg bg-gray-100 p-6 text-center border-2 border-gray-300">
-				<p class="text-3xl mb-2 animate-pulse">⏳</p>
+			<div class="w-full rounded-lg bg-surface-alt p-6 text-center border-2 border-border">
+				<p class="text-lg mb-2 animate-pulse">...</p>
 				<p class="font-bold mb-1">{$exampleText.loadingTitle || 'Loading Python...'}</p>
 				<p class="text-sm text-gray-600">{$exampleText.loadingSubtitle || 'Initializing interoperability demo'}</p>
 			</div>
@@ -153,10 +153,10 @@
 			<strong>{$exampleText.tryIt?.split(':')[0]}:</strong> {$exampleText.tryIt?.split(':')[1] || 'Enter your name and age below...'}
 		</p>
 
-		<div class="mb-8 flex items-center justify-center bg-white">
+		<div class="mb-8 flex items-center justify-center bg-surface">
 			<div class="relative rounded border-2 border-grey px-1 py-2">
 				<label
-					class="bg-white px-2 text-grey-darker"
+					class="bg-surface px-2 text-grey-darker"
 					style="position: absolute; top: -10px; left: 8px;"
 					for="txt_name">{$exampleText.nameLabel || 'Name'}</label
 				>
@@ -164,13 +164,13 @@
 					bind:value={inputName}
 					id="txt_name"
 					type="text"
-					class="w-full rounded border-2 border-white py-2 leading-tight text-grey-darker focus:border-white focus:bg-white focus:outline-none"
+					class="w-full rounded border-2 border-surface py-2 leading-tight text-grey-darker focus:border-surface focus:bg-surface focus:outline-none"
 					placeholder={$exampleText.namePlaceholder || 'Who are you?'}
 				/>
 			</div>
 			<div class="relative ml-16 rounded border-2 border-red px-1 py-2">
 				<label
-					class="bg-white px-2 text-red"
+					class="bg-surface px-2 text-red"
 					style="position: absolute; top: -10px; left: 8px;"
 					for="txt_age">{$exampleText.ageLabel || 'Age'}</label
 				>
@@ -178,7 +178,7 @@
 					bind:value={inputAge}
 					id="txt_age"
 					type="number"
-					class="w-full rounded border-2 border-white py-2 leading-tight text-grey-darker focus:border-white focus:bg-white focus:outline-none"
+					class="w-full rounded border-2 border-surface py-2 leading-tight text-grey-darker focus:border-surface focus:bg-surface focus:outline-none"
 					placeholder={$exampleText.agePlaceholder || 'How old are you?'}
 				/>
 			</div>

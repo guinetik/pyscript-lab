@@ -19,8 +19,8 @@
 			</div>
 
 			<div class="space-y-4">
-				<div class="rounded-lg bg-blue-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-blue-900">{$exampleText.fullNetwork?.title || '🕸️ Full StackOverflow Network'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.fullNetwork?.title || 'Full StackOverflow Network'}</h3>
 					<p class="text-sm text-blue-800 mb-3">
 						{$exampleText.fullNetwork?.description || 'Shows all 115 programming languages...'}
 					</p>
@@ -30,8 +30,8 @@
 					<div id="network-full-output" class="w-full"></div>
 				</div>
 
-				<div class="rounded-lg bg-purple-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-purple-900">{$exampleText.cliques?.title || '🔗 Clique Analysis'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.cliques?.title || 'Clique Analysis'}</h3>
 					<p class="text-sm text-purple-800 mb-3">
 						{$exampleText.cliques?.description || 'A \"clique\" is a group of nodes...'}
 					</p>
@@ -41,8 +41,8 @@
 					<div id="network-cliques-output" class="w-full"></div>
 				</div>
 
-				<div class="rounded-lg bg-orange-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-orange-900">{$exampleText.centrality?.title || '⭐ Eigenvector Centrality'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.centrality?.title || 'Eigenvector Centrality'}</h3>
 					<p class="text-sm text-orange-800 mb-3">
 						{$exampleText.centrality?.description || 'Measures each node\'s influence...'}
 					</p>
@@ -52,8 +52,8 @@
 					<div id="network-centrality-output" class="w-full"></div>
 				</div>
 
-				<div class="rounded-lg bg-green-50 p-3">
-					<h3 class="mb-2 text-lg font-bold text-green-900">{$exampleText.languages?.title || '💻 Programming Languages Network'}</h3>
+				<div class="rounded-lg bg-callout p-3">
+					<h3 class="mb-2 text-lg font-bold">{$exampleText.languages?.title || 'Programming Languages Network'}</h3>
 					<p class="text-sm text-green-800 mb-3">
 						{$exampleText.languages?.description || 'Focuses specifically on major programming languages...'}
 					</p>
@@ -71,14 +71,14 @@
 
 		<div class="space-y-4">
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatNetworkX?.title || '🕸️ What is NetworkX?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatNetworkX?.title || 'What is NetworkX?'}</h3>
 				<p class="text-sm">
 					{$exampleText.whatNetworkX?.description || 'NetworkX is Python\'s most popular library...'}
 				</p>
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || '📊 The Dataset'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.dataset?.title || 'The Dataset'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.dataset?.intro || 'This network contains 115 nodes...'}
 				</p>
@@ -91,7 +91,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.concepts?.title || '🔍 Network Analysis Concepts'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.concepts?.title || 'Network Analysis Concepts'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.concepts?.intro || 'Each visualization demonstrates key graph analysis techniques:'}
 				</p>
@@ -105,7 +105,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.layouts?.title || '🎨 Layout Algorithms'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.layouts?.title || 'Layout Algorithms'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.layouts?.intro || 'Different layouts reveal different aspects...'}
 				</p>
@@ -116,7 +116,7 @@
 			</Callout>
 
 			<Callout type="tip">
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.howToRead?.title || '💡 How to Read These Graphs'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.howToRead?.title || 'How to Read These Graphs'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.howToRead?.nodes || 'Nodes (circles): Technologies/languages...'}</li>
 					<li>{$exampleText.howToRead?.edges || 'Edges (lines): Show relationships...'}</li>

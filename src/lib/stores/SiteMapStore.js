@@ -137,9 +137,9 @@ const pages = [
 ];
 const siteMap = new SiteMap(pages);
 //////
-siteMap.setMainMenuTemplate("py-5 px-2 hover:text-yellow-500");
+siteMap.setMainMenuTemplate("py-5 px-2 hover:text-accent-warm");
 //////
-siteMap.setMobileTemplate("block p-4 hover:text-white hover:bg-yellow-500");
+siteMap.setMobileTemplate("block p-4 hover:text-white hover:bg-accent-warm");
 //
 export let SiteMapStore = writable(siteMap);
 export default SiteMapStore;

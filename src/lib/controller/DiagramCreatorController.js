@@ -133,7 +133,7 @@ with Diagram("Data Pipeline", show=False):
 			if (newStatus === 'error') {
 				const outputDiv = document.getElementById('user-diagram-output');
 				if (outputDiv) {
-					outputDiv.innerHTML = `<p class="text-red-600">❌ Error occurred</p>`;
+					outputDiv.innerHTML = `<p class="text-red-600">Error occurred</p>`;
 				}
 			}
 		};
@@ -235,7 +235,7 @@ with Diagram("Data Pipeline", show=False):
 		// Clear previous output
 		const outputDiv = document.getElementById('user-diagram-output');
 		if (outputDiv) {
-			outputDiv.innerHTML = '<p class="text-gray-500 animate-pulse">🔄 Generating diagram...</p>';
+			outputDiv.innerHTML = '<p class="text-gray-500 animate-pulse">Generating diagram...</p>';
 		}
 
 		// Call Python function

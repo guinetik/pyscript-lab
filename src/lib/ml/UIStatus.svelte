@@ -27,7 +27,7 @@
 	function getStatusConfig(status) {
 		const configs = {
 			ready: {
-				icon: '🐍',
+				icon: '',
 				bgColor: 'blue-100',
 				borderColor: 'blue-300',
 				titleColor: 'blue-900',
@@ -35,7 +35,7 @@
 				showButton: false
 			},
 			error: {
-				icon: '❌',
+				icon: '',
 				bgColor: 'red-100',
 				borderColor: 'red-300',
 				titleColor: 'red-600',
@@ -43,7 +43,7 @@
 				showButton: false
 			},
 			reinforced: {
-				icon: '✅',
+				icon: '',
 				bgColor: 'green-100',
 				borderColor: 'green-400',
 				titleColor: 'green-900',
@@ -52,7 +52,7 @@
 				buttonText: 'Draw Another Digit'
 			},
 			retrained: {
-				icon: '✅',
+				icon: '',
 				bgColor: 'green-100',
 				borderColor: 'green-400',
 				titleColor: 'green-900',
@@ -61,7 +61,7 @@
 				buttonText: 'Draw Another Digit'
 			},
 			reset: {
-				icon: '🔄',
+				icon: '',
 				bgColor: 'blue-100',
 				borderColor: 'blue-400',
 				titleColor: 'blue-900',

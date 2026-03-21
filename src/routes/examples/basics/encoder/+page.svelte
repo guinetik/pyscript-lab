@@ -30,13 +30,13 @@
 		// Setup callbacks
 		controller.onReady(() => {
 			isReady = true;
-			statusMessage = '✅ Python module ready!';
+			statusMessage = 'Python module ready!';
 			formats = controller.getFormats();
 		});
 
 		controller.onError((error) => {
 			errorMessage = `Error: ${error}`;
-			statusMessage = '❌ Failed to load Python module';
+			statusMessage = 'Failed to load Python module';
 		});
 
 		// Initialize controller
@@ -97,7 +97,7 @@
 <ExperimentCard props={{ previousPage: '/examples/basics/interop', nextPage: '/examples/matplotlib/intro' }}>
 	<div slot="py_slot" class="flex h-full w-full flex-col p-6">
 		<!-- Status message -->
-		<div class="mb-4 rounded-lg bg-blue-50 p-3 text-center text-sm">
+		<div class="mb-4 rounded-lg bg-callout p-3 text-center text-sm">
 			{statusMessage}
 		</div>
 
@@ -116,7 +116,7 @@
 				id="input-text"
 				bind:value={inputText}
 				placeholder={$exampleText.inputPlaceholder || 'Enter text to encode...'}
-				class="w-full rounded-lg border-2 border-blue-900 bg-white p-3 font-mono text-sm focus:border-blue-700 focus:outline-none"
+				class="w-full rounded-lg border-2 border-accent bg-surface p-3 font-mono text-sm focus:border-accent focus:outline-none"
 				rows="6"
 			></textarea>
 		</div>
@@ -130,7 +130,7 @@
 				id="format-select"
 				bind:value={selectedFormat}
 				disabled={!isReady}
-				class="w-full rounded-lg border-2 border-blue-900 p-2 focus:border-blue-700 focus:outline-none disabled:bg-gray-100 disabled:border-gray-300"
+				class="w-full rounded-lg border-2 border-blue-900 p-2 focus:border-blue-700 focus:outline-none disabled:bg-surface-alt disabled:border-border"
 			>
 				{#each formats as format}
 					<option value={format.value}>{format.label}</option>

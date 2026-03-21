@@ -39,7 +39,7 @@
 	function regenerateDiagram(exampleId) {
 		const container = document.getElementById(exampleId);
 		if (container) {
-			container.innerHTML = '<p class="text-gray-500 animate-pulse">🔄 Regenerating...</p>';
+			container.innerHTML = '<p class="text-gray-500 animate-pulse">Regenerating...</p>';
 		}
 		controller.regenerateDiagram(exampleId);
 	}
@@ -68,7 +68,7 @@
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-surface-alt/50">
 				<div class="rounded-lg bg-surface p-4 shadow-card">
-					<p class="text-lg">🐍 Loading diagrams...</p>
+					<p class="text-lg">Loading diagrams...</p>
 				</div>
 			</div>
 		{/if}
@@ -102,14 +102,14 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.infrastructure?.title || '🏗️ Infrastructure as Code Philosophy'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.infrastructure?.title || 'Infrastructure as Code Philosophy'}</h3>
 				<p class="text-sm">
 					{$exampleText.sections?.infrastructure?.description || 'Just like Infrastructure as Code (IaC) manages infrastructure through code, Diagrams as Code creates architecture diagrams programmatically.'}
 				</p>
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.multiCloud?.title || '☁️ Multi-Cloud Support'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.multiCloud?.title || 'Multi-Cloud Support'}</h3>
 				<p class="text-sm">
 					{$exampleText.sections?.multiCloud?.description || 'Diagrams supports all major cloud providers (AWS, Azure, GCP, Kubernetes), on-premise solutions, and SaaS services.'}
 				</p>
@@ -143,7 +143,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.useCases?.title || '💡 Real-World Use Cases'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.useCases?.title || 'Real-World Use Cases'}</h3>
 				<p class="text-sm">
 					• {$exampleText.sections?.useCases?.useCase1 || 'Document system architecture in your repository'}<br />
 					• {$exampleText.sections?.useCases?.useCase2 || 'Auto-generate diagrams from infrastructure code'}<br />
@@ -154,7 +154,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.gettingStarted?.title || '🚀 Getting Started Locally'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.gettingStarted?.title || 'Getting Started Locally'}</h3>
 				<p class="text-sm">
 					{$exampleText.sections?.gettingStarted?.description || 'To use the Diagrams library in a local Python environment:'}<br />
 					<code class="mt-2 block rounded bg-gray-900 p-2 text-gray-100"

@@ -34,7 +34,7 @@
 	<div slot="py_slot" class="relative">
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-slate-300/50">
-				<div class="rounded-lg bg-white p-4 shadow-lg">
+				<div class="rounded-lg bg-surface p-4 shadow-card">
 					<p class="text-lg">🐍 Loading Python charts...</p>
 				</div>
 			</div>
@@ -45,7 +45,7 @@
 		<div id="chart4" class="h-auto w-full"></div>
 	</div>
 	<article slot="content_slot" class="mb-10">
-		<h2 class="mb-5 text-xl font-extrabold">{name}</h2>
+		<h2 class="mb-5 text-xl font-heading font-bold">{name}</h2>
 
 		<div class="space-y-4">
 			<p class="text-sm">
@@ -113,13 +113,13 @@
 
 		<p class="mt-6">
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				href="https://github.com/guinetik/pyscript-lab/blob/master/static/python/bokeh/bokeh_networks.py"
 				target="_blank">View source</a
 			>
 			<br />
 			<a
-				class="text-sky-500"
+				class="text-accent"
 				target="_blank"
 				href="https://www.kaggle.com/code/mayeesha/network-analysis-for-dummies-stackoverflow-data/notebook"
 				>Adapted from this Kaggle</a

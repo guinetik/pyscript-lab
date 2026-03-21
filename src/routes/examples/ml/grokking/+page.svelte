@@ -178,10 +178,10 @@
 <ExperimentCard props={{ previousPage: '/examples/ml/neuro', nextPage: '/' }}>
 	<div slot="py_slot" class="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
 		<!-- Status Bar -->
-		<div class="px-4 py-2 rounded {grokDetected ? 'bg-green-100 border-2 border-green-400' : 'bg-gray-100 border-2 border-gray-300'}">
+		<div class="px-4 py-2 rounded {grokDetected ? 'bg-green-100 border-2 border-green-400' : 'bg-surface-alt border-2 border-border'}">
 			<p class="text-sm font-mono {grokDetected ? 'text-green-800 font-bold' : ''}">
 				{#if grokDetected}
-					✨ {status}
+					{status}
 				{:else}
 					{status}
 				{/if}
@@ -215,21 +215,21 @@
 				disabled={mode === 'training' || mode === 'loading'}
 				class="px-4 py-3 bg-green-500 text-white font-bold rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 			>
-				{mode === 'loading' ? '⏳ Loading...' : '🧠 Start Training'}
+				{mode === 'loading' ? 'Loading...' : 'Start Training'}
 			</button>
 			<button 
 				onclick={stop}
 				disabled={mode !== 'training'}
 				class="px-4 py-3 bg-red-500 text-white font-bold rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 			>
-				⏹️ Stop
+				Stop
 			</button>
 			<button 
 				onclick={reset}
 				disabled={mode === 'loading'}
 				class="px-4 py-3 bg-slate-500 text-white font-bold rounded hover:bg-slate-600 disabled:bg-gray-400 transition"
 			>
-				🔄 Reset
+				Reset
 			</button>
 		</div>
 		
@@ -286,13 +286,13 @@
 				onclick={() => showNeurons = !showNeurons}
 				class="flex-1 px-3 py-2 text-white text-sm font-semibold rounded transition {showNeurons ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
 			>
-				🧠 Network
+				Network
 			</button>
 			<button 
 				onclick={() => showMetrics = !showMetrics}
 				class="flex-1 px-3 py-2 text-white text-sm font-semibold rounded transition {showMetrics ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
 			>
-				📈 Metrics
+				Metrics
 			</button>
 		</div>
 		
@@ -312,7 +312,7 @@
 		
 		<!-- What is Grokking -->
 		<Callout>
-			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.whatIs?.title || '🧠 What is Grokking?'}</h3>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.whatIs?.title || 'What is Grokking?'}</h3>
 			<p class="text-sm">
 				{$exampleText.sections?.whatIs?.description || 'Grokking is a fascinating phenomenon where neural networks suddenly "get it" after appearing to only memorize. The network first achieves 100% training accuracy (memorization), then much later, test accuracy suddenly jumps (generalization).'}
 			</p>
@@ -331,7 +331,7 @@
 		
 		<!-- Why it Happens -->
 		<Callout type="tip">
-			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.why?.title || '⚡ Why Does Grokking Happen?'}</h3>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.why?.title || 'Why Does Grokking Happen?'}</h3>
 			<p class="text-sm">
 				{$exampleText.sections?.why?.description || 'The key is HIGH weight decay (regularization). Without it, networks just memorize. With strong weight decay, the network is pushed toward simpler solutions that generalize. This takes time - the "grokking" moment happens when the network finally discovers the generalizing solution.'}
 			</p>
@@ -345,7 +345,7 @@
 		
 		<!-- The Timeline -->
 		<Callout>
-			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.timeline?.title || '📊 The Grokking Timeline'}</h3>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.timeline?.title || 'The Grokking Timeline'}</h3>
 			<ol class="list-decimal pl-5 text-sm space-y-1">
 				<li><strong>Phase 1 - Memorization:</strong> Train accuracy quickly reaches ~100%</li>
 				<li><strong>Phase 2 - Plateau:</strong> Test accuracy stays low (20-40%)</li>
@@ -358,7 +358,7 @@
 		
 		<!-- Architecture -->
 		<Callout>
-			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || '🏗️ Network Architecture'}</h3>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || 'Network Architecture'}</h3>
 			<p class="text-sm">
 				{$exampleText.sections?.architecture?.description || "Based on Google's Factored MLP with tied embeddings:"}
 			</p>
@@ -373,7 +373,7 @@
 		
 		<!-- Technical Info -->
 		<Callout>
-			<h3 class="mb-2 font-heading font-bold">🔧 Technical: PyScript</h3>
+			<h3 class="mb-2 font-heading font-bold">Technical: PyScript</h3>
 			<p class="text-sm">
 				The neural network is implemented in pure Python, running via PyScript's Pyodide runtime directly in your browser. Training uses asyncio to yield control periodically, keeping the UI responsive. No server required!
 			</p>

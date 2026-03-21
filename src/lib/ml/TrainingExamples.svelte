@@ -20,7 +20,7 @@
 </script>
 
 {#if data && data.visible && data.examples}
-	<div class="rounded-lg bg-purple-50 p-4 border-2 border-purple-200 my-6">
+	<div class="rounded-lg bg-callout p-4 border-2 border-border my-6">
 		<h3 class="font-bold text-center mb-3 text-purple-900">Training Data Examples</h3>
 		<p class="text-sm text-center mb-4 text-purple-700">
 			Here's what the model was trained on:

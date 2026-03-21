@@ -188,7 +188,7 @@
 		<h3 class="text-2xl font-bold mb-4 text-gray-800">{$exampleText.ui?.drawHeading || 'Draw a Number'}</h3>
 
 		<!-- Canvas for drawing -->
-		<div class="mb-4 rounded-lg border-4 border-gray-300 bg-white shadow-lg">
+		<div class="mb-4 rounded-lg border-4 border-border bg-surface shadow-card">
 			<canvas
 				id="drawCanvas"
 				width="320"
@@ -258,7 +258,7 @@
 		</Callout>
 
 		<Callout type="tip">
-			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.activeLearning?.title || '💡 Active Learning with Positive & Negative Feedback'}</h3>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.activeLearning?.title || 'Active Learning with Positive & Negative Feedback'}</h3>
 			<p class="text-sm">
 				{$exampleText.sections?.activeLearning?.description || 'This model learns from both correct and incorrect predictions! After each prediction, you can:'}
 			</p>
@@ -272,7 +272,7 @@
 		</Callout>
 
 		<Callout>
-			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || '🏗️ Architecture'}</h3>
+			<h3 class="mb-2 font-heading font-bold">{$exampleText.sections?.architecture?.title || 'Architecture'}</h3>
 			<p class="text-sm">
 				{$exampleText.sections?.architecture?.description || 'This example demonstrates proper separation of concerns with event-driven initialization:'}
 			</p>

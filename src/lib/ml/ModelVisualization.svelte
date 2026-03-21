@@ -49,7 +49,7 @@
 	</div>
 
 	<!-- All predictions: Probability distribution -->
-	<div class="rounded-lg bg-gray-100 p-4 mb-4">
+	<div class="rounded-lg bg-surface-alt p-4 mb-4">
 		<h4 class="font-bold mb-3 text-center">All Predictions:</h4>
 		<div class="grid grid-cols-5 gap-3 text-sm">
 			{#each $predictionResult.probabilities as probability, digit}

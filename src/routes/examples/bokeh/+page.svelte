@@ -49,13 +49,13 @@
 		{#if loading}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-surface-alt/50">
 				<div class="rounded-lg bg-surface p-4 shadow-card">
-					<p class="text-lg">{$exampleText.loading || '🐍 Loading Python chart...'}</p>
+					<p class="text-lg">{$exampleText.loading || 'Loading Python chart...'}</p>
 				</div>
 			</div>
 		{/if}
 		{#if errorMessage}
 			<div class="absolute inset-0 z-10 flex items-center justify-center bg-red-50/90">
-				<div class="rounded-lg bg-white p-4 shadow-lg border-2 border-red-500">
+				<div class="rounded-lg bg-surface p-4 shadow-card border-2 border-red-500">
 					<p class="text-lg text-red-700">{errorMessage}</p>
 				</div>
 			</div>
@@ -67,14 +67,14 @@
 
 		<div class="space-y-4">
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatIsBokeh?.title || '🎨 What is Bokeh?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.whatIsBokeh?.title || 'What is Bokeh?'}</h3>
 				<p class="text-sm">
 					{$exampleText.whatIsBokeh?.description || 'Bokeh is a powerful Python library...'}
 				</p>
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.howBokeh?.title || '⚙️ How Does Bokeh Generate Charts?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.howBokeh?.title || 'How Does Bokeh Generate Charts?'}</h3>
 				<p class="text-sm space-y-2">
 					<span class="block"
 						><strong>1.</strong> {$exampleText.howBokeh?.step1 || 'Python API: You write Python code...'}</span
@@ -93,7 +93,7 @@
 
 			<Callout>
 				<h3 class="mb-2 font-heading font-bold">
-					{$exampleText.whyBokeh?.title || '🐍 Why Use Bokeh with Python Instead of Pure JavaScript?'}
+					{$exampleText.whyBokeh?.title || 'Why Use Bokeh with Python Instead of Pure JavaScript?'}
 				</h3>
 				<div class="text-sm space-y-2">
 					<p class="font-semibold">{$exampleText.whyBokeh?.intro || 'Even though Bokeh ultimately renders using JavaScript:'}</p>
@@ -121,14 +121,14 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.workflow?.title || '🔄 The PyScript + Bokeh Workflow'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.workflow?.title || 'The PyScript + Bokeh Workflow'}</h3>
 				<p class="text-sm">
 					{$exampleText.workflow?.description || 'In this example, PyScript runs the Python code...'}
 				</p>
 			</Callout>
 
 			<Callout type="tip">
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.interactive?.title || '💡 Interactive Features'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.interactive?.title || 'Interactive Features'}</h3>
 				<p class="text-sm">
 					{$exampleText.interactive?.description || 'Try interacting with the chart above!...'}
 				</p>

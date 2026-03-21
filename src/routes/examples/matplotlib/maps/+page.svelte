@@ -18,8 +18,8 @@
 			</div>
 
 			<div class="space-y-6">
-				<div class="rounded-lg border-2 border-red-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-red-900">{$exampleText.maps?.map1?.title || '🗺️ Map 1: Total Deaths'}</h3>
+				<div class="rounded-lg border-2 border-red-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-red-900">{$exampleText.maps?.map1?.title || 'Map 1: Total Deaths'}</h3>
 					<p class="text-sm text-red-800 mb-3">
 						{$exampleText.maps?.map1?.description || 'Darker red indicates higher death toll. Hover over countries for details.'}
 					</p>
@@ -29,8 +29,8 @@
 					<div id="map1" class="w-full mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-blue-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-blue-900">{$exampleText.maps?.map2?.title || '🌐 Map 2: Confirmed Cases'}</h3>
+				<div class="rounded-lg border-2 border-blue-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-blue-900">{$exampleText.maps?.map2?.title || 'Map 2: Confirmed Cases'}</h3>
 					<p class="text-sm text-blue-800 mb-3">
 						{$exampleText.maps?.map2?.description || 'Darker blue indicates more confirmed cases. Shows total outbreak size using the SAME cached data.'}
 					</p>
@@ -40,8 +40,8 @@
 					<div id="map2" class="w-full mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-orange-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-orange-900">{$exampleText.maps?.map3?.title || '⚠️ Map 3: Case Fatality Rate'}</h3>
+				<div class="rounded-lg border-2 border-orange-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-orange-900">{$exampleText.maps?.map3?.title || 'Map 3: Case Fatality Rate'}</h3>
 					<p class="text-sm text-orange-800 mb-3">
 						{$exampleText.maps?.map3?.description || 'Shows death rate as percentage of confirmed cases (countries with 1000+ cases for statistical significance).'}
 					</p>
@@ -51,8 +51,8 @@
 					<div id="map3" class="w-full mt-3"></div>
 				</div>
 
-				<div class="rounded-lg border-2 border-yellow-200 bg-white p-4">
-					<h3 class="text-lg font-bold mb-2 text-yellow-900">{$exampleText.maps?.map4?.title || '📈 Map 4: New Cases Activity'}</h3>
+				<div class="rounded-lg border-2 border-yellow-200 bg-surface p-4">
+					<h3 class="text-lg font-bold mb-2 text-yellow-900">{$exampleText.maps?.map4?.title || 'Map 4: New Cases Activity'}</h3>
 					<p class="text-sm text-yellow-800 mb-3">
 						{$exampleText.maps?.map4?.description || 'Recent new cases, showing areas of active transmission.'}
 					</p>
@@ -70,7 +70,7 @@
 
 		<div class="space-y-4">
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.choropleth?.title || '🗺️ What is a Choropleth Map?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.choropleth?.title || 'What is a Choropleth Map?'}</h3>
 				<p class="text-sm mb-2">
 					{$exampleText.choropleth?.description || 'A choropleth map is a thematic map where areas are colored or shaded according to a statistical variable. In our case, we\'re coloring countries based on COVID-19 metrics.'}
 				</p>
@@ -83,14 +83,14 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.plotly?.title || '📊 What is Plotly?'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.plotly?.title || 'What is Plotly?'}</h3>
 				<p class="text-sm">
 					{$exampleText.plotly?.description || 'Plotly is an interactive graphing library for Python. Unlike Matplotlib (which creates static images), Plotly generates interactive HTML visualizations that users can explore. It excels at geographic visualizations with built-in support for choropleth maps, and handles country matching automatically using ISO-3 codes.'}
 				</p>
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.mapExplanations?.title || '🔬 The Four Maps Explained'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.mapExplanations?.title || 'The Four Maps Explained'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.mapExplanations?.items?.deaths || 'Deaths Map (Red): Shows the human toll. Absolute numbers highlight heavily populated countries.'}</li>
 					<li>{$exampleText.mapExplanations?.items?.cases || 'Confirmed Cases (Blue): Visualizes total outbreak size. Useful for understanding scale of spread.'}</li>
@@ -100,7 +100,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.technical?.title || '🔍 Technical Implementation'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.technical?.title || 'Technical Implementation'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.technical?.items?.iso3 || 'ISO-3 Country Codes: Uses standardized codes (USA, GBR, FRA) for reliable country matching'}</li>
 					<li>{$exampleText.technical?.items?.projection || 'Natural Earth Projection: A visually pleasing pseudo-cylindrical map projection'}</li>
@@ -111,7 +111,7 @@
 			</Callout>
 
 			<Callout type="tip">
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.insights?.title || '💡 Geographic Insights'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.insights?.title || 'Geographic Insights'}</h3>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.insights?.items?.patterns || 'Spatial Patterns: Maps reveal regional clusters not visible in tables'}</li>
 					<li>{$exampleText.insights?.items?.absolute || 'Absolute vs Relative: Deaths map shows population, CFR normalizes by cases'}</li>
@@ -121,7 +121,7 @@
 			</Callout>
 
 			<Callout>
-				<h3 class="mb-2 font-heading font-bold">{$exampleText.interactive?.title || '🎯 Interactive Features'}</h3>
+				<h3 class="mb-2 font-heading font-bold">{$exampleText.interactive?.title || 'Interactive Features'}</h3>
 				<p class="text-sm mb-2">{$exampleText.interactive?.intro || 'Try these interactions with the maps:'}</p>
 				<ul class="list-disc space-y-1 pl-5 text-sm">
 					<li>{$exampleText.interactive?.items?.hover || 'Hover over any country to see detailed statistics'}</li>
