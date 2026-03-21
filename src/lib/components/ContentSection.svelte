@@ -6,11 +6,7 @@
   let { title, divider = true, children } = $props();
 </script>
 
-{#if divider}
-  <div class="border-t border-border pt-4 mt-4">
-{:else}
-  <div>
-{/if}
+<div class={divider ? "border-t border-border pt-4 mt-4" : ""}>
   {#if title}
     <h3 class="font-heading text-lg font-bold text-text-primary mb-2">{title}</h3>
   {/if}
