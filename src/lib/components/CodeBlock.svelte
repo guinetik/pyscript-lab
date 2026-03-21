@@ -167,6 +167,6 @@ function loadAce() {
 	}
 
 	:global(.code-block-editor .ace_editor) {
-		font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+		font-family: 'Source Code Pro', monospace;
 	}
 </style>

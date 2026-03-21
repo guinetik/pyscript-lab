@@ -18,8 +18,8 @@
 	} = $props();
 </script>
 
-<div class="w-full bg-white rounded-lg p-4 border-2 border-gray-300">
-	<h3 class="font-bold mb-3">📈 Training Metrics</h3>
+<div class="w-full bg-surface rounded-lg p-4 border border-border shadow-card">
+	<h3 class="font-bold mb-3">Training Metrics</h3>
 	<!-- Current values display -->
 	{#if metricsHistory.length > 0}
 		{@const latest = metricsHistory[metricsHistory.length - 1]}

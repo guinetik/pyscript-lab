@@ -63,7 +63,7 @@
     <!-- Toggle button -->
     <button
         onclick={toggleCode}
-        class="mb-3 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+        class="mb-3 flex items-center gap-2 text-sm text-accent hover:text-accent/80 font-medium transition-colors"
         aria-expanded={isCodeVisible}
     >
         <svg
