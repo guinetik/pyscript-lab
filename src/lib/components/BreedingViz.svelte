@@ -47,27 +47,27 @@
 		switch (operator) {
 			case 'preserve':
 				return {
-					badge: 'bg-amber-400/15 text-amber-200 border-amber-300/30',
-					row: 'bg-amber-400/6',
-					dot: 'bg-amber-300'
+					badge: 'bg-amber-100 text-amber-800 border-amber-300',
+					row: 'bg-amber-50',
+					dot: 'bg-amber-500'
 				};
 			case 'sbx':
 				return {
-					badge: 'bg-cyan-400/15 text-cyan-200 border-cyan-300/30',
-					row: 'bg-cyan-400/6',
-					dot: 'bg-cyan-300'
+					badge: 'bg-sky-100 text-sky-800 border-sky-300',
+					row: 'bg-sky-50',
+					dot: 'bg-sky-500'
 				};
 			case 'uniform':
 				return {
-					badge: 'bg-fuchsia-400/15 text-fuchsia-200 border-fuchsia-300/30',
-					row: 'bg-fuchsia-400/6',
-					dot: 'bg-fuchsia-300'
+					badge: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300',
+					row: 'bg-fuchsia-50',
+					dot: 'bg-fuchsia-500'
 				};
 			default:
 				return {
-					badge: 'bg-emerald-400/15 text-emerald-200 border-emerald-300/30',
-					row: 'bg-emerald-400/6',
-					dot: 'bg-emerald-300'
+					badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+					row: 'bg-emerald-50',
+					dot: 'bg-emerald-500'
 				};
 		}
 	}
@@ -155,25 +155,37 @@
 			<div class="mt-3">
 				<p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">Preserved champions / elites</p>
 				<div class="overflow-hidden rounded-lg border border-border bg-surface-alt">
-					<div class="grid grid-cols-[72px_minmax(0,1fr)_110px] gap-0 border-b border-border bg-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">
+					<div class="grid grid-cols-[50px_80px_minmax(0,1fr)_90px_90px] gap-0 border-b border-border bg-surface px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-text-muted">
 						<div>Slot</div>
-						<div>Lineage</div>
 						<div>Operator</div>
+						<div>Parents</div>
+						<div class="text-right">Mut. Rate</div>
+						<div class="text-right">Mut. Strength</div>
 					</div>
 					{#each championEvents as event (event.slot)}
 						{@const theme = operatorTheme(event.operator)}
-						<div class={`grid grid-cols-[72px_minmax(0,1fr)_110px] items-center gap-0 border-t border-border px-3 py-1.5 text-xs text-text-primary ${theme.row}`}>
-							<div class="flex items-center gap-2">
+						<div class={`grid grid-cols-[50px_80px_minmax(0,1fr)_90px_90px] items-center gap-0 border-t border-border px-3 py-1.5 text-xs text-text-primary ${theme.row}`}>
+							<div class="flex items-center gap-1.5">
 								<span class={`h-2 w-2 rounded-full ${theme.dot}`}></span>
-								<span class="font-black text-text-primary">#{event.slot}</span>
-							</div>
-							<div class="min-w-0 truncate font-semibold text-accent">
-								Champion from #{event.parent_slots[0] ?? '—'}
+								<span class="font-bold">#{event.slot}</span>
 							</div>
 							<div>
-								<span class={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${theme.badge}`}>
+								<span class={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${theme.badge}`}>
 									{prettyLabel(event.operator)}
 								</span>
+							</div>
+							<div class="min-w-0 truncate text-text-muted font-mono text-[11px]">
+								{#if event.parent_slots?.length > 0}
+									{event.parent_slots.map(s => `#${s}`).join(' + ')}
+								{:else}
+									—
+								{/if}
+							</div>
+							<div class="text-right font-mono text-[11px]">
+								{event.mutation_rate != null ? (event.mutation_rate * 100).toFixed(1) + '%' : '—'}
+							</div>
+							<div class="text-right font-mono text-[11px]">
+								{event.mutation_strength != null ? event.mutation_strength.toFixed(3) : '—'}
 							</div>
 						</div>
 					{/each}
