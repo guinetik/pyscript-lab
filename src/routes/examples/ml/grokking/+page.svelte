@@ -77,21 +77,31 @@
 				if (result.activations) {
 					const h = config.hidden_size;  // 64
 					const n = config.n_tokens;  // 67
-					
-					const hiddenValues = result.activations.hidden || [];
-					const outputValues = result.activations.output || [];
-					
-					networkVizData = {
-						layer_sizes: result.layer_sizes || [2, h, n],
-						activations: [
-							// Input: 2 token indices (a, b) - always "active"
-							{ values: [1.0, 1.0], active_count: 2 },
-							{ values: hiddenValues, active_count: hiddenValues.filter(v => v > 0.1).length },
-							{ values: outputValues, active_count: outputValues.filter(v => v > 0.1).length }
-						],
-						// Parameters: embed(67x500) + W_hidden(500x64) + W_out(64x500)
-						num_params: (n * 500) + (500 * h) + (h * 500)
-					};
+
+					// Force deep copy to plain JS arrays — Pyodide proxies can die
+					let hiddenValues, outputValues;
+					try {
+						const rawH = result.activations.hidden;
+						const rawO = result.activations.output;
+						hiddenValues = rawH ? Array.from(rawH, Number) : [];
+						outputValues = rawO ? Array.from(rawO, Number) : [];
+					} catch {
+						hiddenValues = [];
+						outputValues = [];
+					}
+
+					// Only update viz if we actually got data
+					if (hiddenValues.length > 0 || outputValues.length > 0) {
+						networkVizData = {
+							layer_sizes: result.layer_sizes || [2, h, n],
+							activations: [
+								{ values: [1.0, 1.0], active_count: 2 },
+								{ values: hiddenValues, active_count: hiddenValues.filter(v => v > 0.1).length },
+								{ values: outputValues, active_count: outputValues.filter(v => v > 0.01).length }
+							],
+							num_params: (n * 500) + (500 * h) + (h * 500)
+						};
+					}
 				}
 			},
 			onGrokDetected: (grokEpochNum) => {
