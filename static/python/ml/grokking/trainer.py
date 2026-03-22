@@ -25,12 +25,6 @@ def generate_all_pairs(mod, symmetric=True):
     return data
 
 
-def split_data(dataset, train_fraction=0.4):
-    """Split dataset into train/test sets."""
-    np.random.shuffle(dataset)
-    split_idx = int(len(dataset) * train_fraction)
-    return dataset[:split_idx], dataset[split_idx:]
-
 
 # ============================================================================
 # FACTORED NETWORK - NUMPY VECTORIZED
@@ -94,35 +88,36 @@ class FactoredNetwork:
         self.grad_W_out.fill(0)
         self.grad_count = 0
     
-    def forward(self, a, b):
+    def forward(self, a, b, save_activations=False):
         """Forward pass through the network."""
         # Embedding lookup
         embedded_a = self.embed[a]  # (embed_size,)
         embedded_b = self.embed[b]  # (embed_size,)
-        
+
         # Hidden projection: embedded @ W_hidden
         hidden_a = embedded_a @ self.W_hidden  # (hidden_size,)
         hidden_b = embedded_b @ self.W_hidden  # (hidden_size,)
-        
+
         # Combine and ReLU: ReLU(hidden_a + hidden_b)
         hidden_preact = hidden_a + hidden_b
         hidden = np.maximum(0, hidden_preact)  # ReLU
-        
-        self._hidden_activations = hidden.copy()
-        
+
         # Output projection: hidden @ W_out
         out = hidden @ self.W_out  # (embed_size,)
-        
+
         # Unembedding (tied weights): out @ embed.T
         logits = out @ self.embed.T  # (n_tokens,)
-        
+
         # Softmax
         logits_stable = logits - np.max(logits)
         exp_logits = np.exp(logits_stable)
         probs = exp_logits / np.sum(exp_logits)
-        
-        self._output_activations = probs.copy()
-        
+
+        # Only copy activations when needed for viz (saves ~1800 np.copy/epoch)
+        if save_activations:
+            self._hidden_activations = hidden.copy()
+            self._output_activations = probs.copy()
+
         return {
             'a': a, 'b': b,
             'embedded_a': embedded_a, 'embedded_b': embedded_b,
@@ -215,23 +210,25 @@ class FactoredNetwork:
         self.epoch = 0
 
 
-def calc_accuracy(network, dataset, sample_size=100):
+def calc_accuracy(network, a_arr, b_arr, t_arr, sample_size=100):
     """
     Calculate prediction accuracy on a SAMPLE of the dataset.
-    Sampling dramatically improves performance while giving accurate estimates.
+    Uses numpy arrays for fast iteration.
     """
-    if not dataset:
+    n = len(a_arr)
+    if n == 0:
         return 0.0
-    
-    # Sample for speed - don't loop through entire dataset
-    if len(dataset) > sample_size:
-        indices = np.random.choice(len(dataset), sample_size, replace=False)
-        sample = [dataset[i] for i in indices]
+
+    if n > sample_size:
+        indices = np.random.choice(n, sample_size, replace=False)
     else:
-        sample = dataset
-    
-    correct = sum(1 for ex in sample if network.predict(ex['a'], ex['b']) == ex['target'])
-    return correct / len(sample)
+        indices = np.arange(n)
+
+    correct = 0
+    for i in indices:
+        if network.predict(int(a_arr[i]), int(b_arr[i])) == int(t_arr[i]):
+            correct += 1
+    return correct / len(indices)
 
 
 # ============================================================================
@@ -274,19 +271,35 @@ class GrokTrainer:
             if hasattr(config, 'to_py'):
                 config = config.to_py()
             self.config.update(config)
-        
+
         self.network = FactoredNetwork(self.config)
         all_data = generate_all_pairs(self.config['n_tokens'], self.config['symmetric'])
-        self.train_data, self.test_data = split_data(all_data, self.config['train_fraction'])
+
+        # Split into train/test
+        np.random.shuffle(all_data)
+        split_idx = int(len(all_data) * self.config['train_fraction'])
+        train_list = all_data[:split_idx]
+        test_list = all_data[split_idx:]
+
+        # Store as numpy arrays for fast access (no Python dict overhead per example)
+        self.train_a = np.array([ex['a'] for ex in train_list], dtype=np.int32)
+        self.train_b = np.array([ex['b'] for ex in train_list], dtype=np.int32)
+        self.train_t = np.array([ex['target'] for ex in train_list], dtype=np.int32)
+        self.test_a = np.array([ex['a'] for ex in test_list], dtype=np.int32)
+        self.test_b = np.array([ex['b'] for ex in test_list], dtype=np.int32)
+        self.test_t = np.array([ex['target'] for ex in test_list], dtype=np.int32)
+        self.n_train = len(train_list)
+        self.n_test = len(test_list)
+
         self.grok_detected = False
         self.grok_epoch = -1
-        
+
         # Reset smoothed metrics
         self.ema_train_acc = 0.0
         self.ema_test_acc = 0.0
-        
-        print(f"[Trainer] Initialized: {len(self.train_data)} train, {len(self.test_data)} test")
-        return len(self.train_data), len(self.test_data)
+
+        print(f"[Trainer] Initialized: {self.n_train} train, {self.n_test} test")
+        return self.n_train, self.n_test
     
     async def train(self, max_epochs=50000, epochs_per_yield=3, ui_update_interval=50):
         """
@@ -307,17 +320,21 @@ class GrokTrainer:
             for _ in range(epochs_per_yield):
                 if not self.running or epoch >= max_epochs:
                     break
-                    
-                # Shuffle training data
-                np.random.shuffle(self.train_data)
+
+                # Shuffle training indices (cheap int32 array, not Python dicts)
+                perm = np.random.permutation(self.n_train)
                 self.network.reset_gradients()
-                
+
                 # Process all training examples (full batch gradient descent)
-                for ex in self.train_data:
-                    cache = self.network.forward(ex['a'], ex['b'])
-                    self.network.backward(ex['target'], cache)
-                
-                self.network.apply_adamw(len(self.train_data))
+                save_act = (epoch % ui_update_interval == 0 or epoch < ui_update_interval)
+                for idx in perm:
+                    cache = self.network.forward(
+                        int(self.train_a[idx]), int(self.train_b[idx]),
+                        save_activations=save_act and idx == perm[-1]
+                    )
+                    self.network.backward(int(self.train_t[idx]), cache)
+
+                self.network.apply_adamw(self.n_train)
                 epoch += 1
             
             # Yield to UI
@@ -329,8 +346,8 @@ class GrokTrainer:
             # Calculate and send metrics (fast with sampling!)
             if epoch % ui_update_interval == 0 or epoch <= ui_update_interval:
                 # Sample-based accuracy with larger samples for stability
-                raw_train_acc = calc_accuracy(self.network, self.train_data, sample_size=200)
-                raw_test_acc = calc_accuracy(self.network, self.test_data, sample_size=300)
+                raw_train_acc = calc_accuracy(self.network, self.train_a, self.train_b, self.train_t, sample_size=200)
+                raw_test_acc = calc_accuracy(self.network, self.test_a, self.test_b, self.test_t, sample_size=300)
                 
                 # Apply exponential moving average for smooth chart
                 if epoch <= ui_update_interval:
