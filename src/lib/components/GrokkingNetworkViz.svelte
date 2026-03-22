@@ -32,14 +32,11 @@
 		background: '#FBF8F3',
 		nodeInactive: '#C8BFB4',
 		nodeActive: '#306998',
-		edgeBase: 'rgba(48, 105, 152, 0.08)',
-		edgeActive: '#306998',
+		edgeCyan: '6, 182, 212',    // cyan-500 rgb for rgba()
 		text: '#2C2C2C',
 		textMuted: '#6B6560',
 		label: '#306998',
 		statActive: '#2E7D4F',
-		barTrack: '#E5DED5',
-		barFill: '#306998',
 	};
 
 	$effect(() => {
@@ -150,7 +147,7 @@
 			};
 		});
 
-		// --- EDGES: clean solid lines, no gradient tricks ---
+		// --- EDGES: cyan synapses for contrast against blue nodes ---
 		for (let l = 0; l < layerPositions.length - 1; l++) {
 			const fromLayer = layerPositions[l];
 			const toLayer = layerPositions[l + 1];
@@ -165,13 +162,12 @@
 					const to = toLayer.nodes[j];
 					const avgActivation = (from.activation + to.activation) / 2;
 
-					// Clean opacity ramp: faint when idle, visible when active
-					const opacity = avgActivation > 0.1
-						? 0.08 + avgActivation * 0.35
-						: 0.04;
+					const opacity = avgActivation > 0.05
+						? 0.1 + avgActivation * 0.4
+						: 0.05;
 
-					ctx.lineWidth = avgActivation > 0.5 ? 1.2 : 0.5;
-					ctx.strokeStyle = `rgba(48, 105, 152, ${opacity})`;
+					ctx.lineWidth = avgActivation > 0.3 ? 1.2 : 0.5;
+					ctx.strokeStyle = `rgba(${COLORS.edgeCyan}, ${opacity})`;
 					ctx.beginPath();
 					ctx.moveTo(from.x, from.y);
 					ctx.lineTo(to.x, to.y);
@@ -184,9 +180,17 @@
 
 		// --- NODES: solid fills, no gradients, clear active/inactive ---
 		layerPositions.forEach((layer, layerIdx) => {
+			// For output layers with many classes (softmax), normalize activations
+			// relative to the max in the layer so the winning class lights up
+			const layerActivations = layer.nodes.map(n => n.activation);
+			const maxAct = Math.max(...layerActivations, 0.001);
+			const isOutputLayer = layerIdx === layerPositions.length - 1 && layer.size > 10;
+
 			layer.nodes.forEach((node) => {
-				const activation = node.activation;
-				const isActive = activation > 0.1;
+				// Normalize: for large output layers, scale relative to max
+				const rawActivation = node.activation;
+				const activation = isOutputLayer ? rawActivation / maxAct : rawActivation;
+				const isActive = activation > 0.05;
 
 				if (layer.usePills) {
 					const pillWidth = 14;
