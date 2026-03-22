@@ -1,17 +1,14 @@
 """
-Grokking Neural Network Trainer - NumPy Vectorized Version
+Grokking Neural Network Trainer - Fully Batched NumPy
 
-Uses numpy for fast matrix operations, allowing original network parameters.
-Runs on the main thread with asyncio yields to keep UI responsive.
+All forward/backward passes are batched matrix multiplies across the
+entire training set. No per-example Python loops in the hot path.
 """
 
 import numpy as np
 import asyncio
 from js import window
 
-# ============================================================================
-# UTILITIES
-# ============================================================================
 
 def generate_all_pairs(mod, symmetric=True):
     """Generate all pairs for modular addition: (a + b) mod p."""
@@ -20,24 +17,17 @@ def generate_all_pairs(mod, symmetric=True):
         for b in range(mod):
             if symmetric and a > b:
                 continue
-            c = (a + b) % mod
-            data.append({'a': a, 'b': b, 'target': c})
+            data.append((a, b, (a + b) % mod))
     return data
 
 
-
-# ============================================================================
-# FACTORED NETWORK - NUMPY VECTORIZED
-# ============================================================================
-
 class FactoredNetwork:
     """
-    Factored Neural Network for modular addition grokking.
-    
-    Uses numpy for fast matrix operations.
-    Architecture: Input → Embed(tied) → Hidden(tied) → ReLU(h_a + h_b) → Out → Unembed(tied)
+    Factored MLP for modular addition grokking — fully batched.
+
+    Architecture: Embed(tied) → Hidden(tied) → ReLU → Out → Unembed(tied)
     """
-    
+
     def __init__(self, config):
         self.n_tokens = config.get('n_tokens', 67)
         self.embed_size = config.get('embed_size', 500)
@@ -47,134 +37,91 @@ class FactoredNetwork:
         self.beta1 = config.get('beta1', 0.9)
         self.beta2 = config.get('beta2', 0.98)
         self.epsilon = 1e-8
-        
+
         self._init_weights()
         self._init_adam_state()
         self.adam_t = 0
         self.epoch = 0
-        
-        # Activations for visualization
+
         self._hidden_activations = np.zeros(self.hidden_size)
         self._output_activations = np.zeros(self.n_tokens)
-    
+
     def _init_weights(self):
-        """Initialize weights with variance scaling."""
         embed_scale = np.sqrt(2.0 / self.n_tokens)
         hidden_scale = np.sqrt(2.0 / self.embed_size)
         out_scale = np.sqrt(2.0 / self.hidden_size)
-        
         self.embed = np.random.randn(self.n_tokens, self.embed_size) * embed_scale
         self.W_hidden = np.random.randn(self.embed_size, self.hidden_size) * hidden_scale
         self.W_out = np.random.randn(self.hidden_size, self.embed_size) * out_scale
-    
+
     def _init_adam_state(self):
-        """Initialize AdamW optimizer state."""
         self.m_embed = np.zeros_like(self.embed)
         self.v_embed = np.zeros_like(self.embed)
         self.m_W_hidden = np.zeros_like(self.W_hidden)
         self.v_W_hidden = np.zeros_like(self.W_hidden)
         self.m_W_out = np.zeros_like(self.W_out)
         self.v_W_out = np.zeros_like(self.W_out)
-        
-        self.grad_embed = np.zeros_like(self.embed)
-        self.grad_W_hidden = np.zeros_like(self.W_hidden)
-        self.grad_W_out = np.zeros_like(self.W_out)
-        self.grad_count = 0
-    
-    def reset_gradients(self):
-        """Reset gradient accumulators."""
-        self.grad_embed.fill(0)
-        self.grad_W_hidden.fill(0)
-        self.grad_W_out.fill(0)
-        self.grad_count = 0
-    
-    def forward(self, a, b, save_activations=False):
-        """Forward pass through the network."""
-        # Embedding lookup
-        embedded_a = self.embed[a]  # (embed_size,)
-        embedded_b = self.embed[b]  # (embed_size,)
 
-        # Hidden projection: embedded @ W_hidden
-        hidden_a = embedded_a @ self.W_hidden  # (hidden_size,)
-        hidden_b = embedded_b @ self.W_hidden  # (hidden_size,)
+    # ------------------------------------------------------------------
+    # Batched forward + backward (entire dataset in one call)
+    # ------------------------------------------------------------------
 
-        # Combine and ReLU: ReLU(hidden_a + hidden_b)
-        hidden_preact = hidden_a + hidden_b
-        hidden = np.maximum(0, hidden_preact)  # ReLU
+    def train_batch(self, a_arr, b_arr, t_arr):
+        """
+        Full forward + backward + AdamW update for one epoch.
+        All ops are batched numpy — no Python per-example loop.
 
-        # Output projection: hidden @ W_out
-        out = hidden @ self.W_out  # (embed_size,)
+        a_arr, b_arr, t_arr: int32 arrays of shape (N,)
+        """
+        N = len(a_arr)
+        embed = self.embed
+        W_h = self.W_hidden
+        W_o = self.W_out
 
-        # Unembedding (tied weights): out @ embed.T
-        logits = out @ self.embed.T  # (n_tokens,)
+        # --- Forward ---
+        emb_a = embed[a_arr]          # (N, E)
+        emb_b = embed[b_arr]          # (N, E)
+        h_pre = (emb_a + emb_b) @ W_h  # (N, H)
+        h = np.maximum(0, h_pre)      # ReLU  (N, H)
+        out = h @ W_o                 # (N, E)
+        logits = out @ embed.T        # (N, T)
 
-        # Softmax
-        logits_stable = logits - np.max(logits)
-        exp_logits = np.exp(logits_stable)
-        probs = exp_logits / np.sum(exp_logits)
+        # Stable softmax
+        logits -= logits.max(axis=1, keepdims=True)
+        exp_l = np.exp(logits)
+        probs = exp_l / exp_l.sum(axis=1, keepdims=True)  # (N, T)
 
-        # Only copy activations when needed for viz (saves ~1800 np.copy/epoch)
-        if save_activations:
-            self._hidden_activations = hidden.copy()
-            self._output_activations = probs.copy()
+        # --- Backward ---
+        d_logits = probs.copy()                       # (N, T)
+        d_logits[np.arange(N), t_arr] -= 1.0          # cross-entropy grad
 
-        return {
-            'a': a, 'b': b,
-            'embedded_a': embedded_a, 'embedded_b': embedded_b,
-            'hidden_preact': hidden_preact, 'hidden': hidden,
-            'out': out, 'probs': probs
-        }
-    
-    def backward(self, target, cache):
-        """Backward pass - accumulate gradients."""
-        a, b = cache['a'], cache['b']
-        embedded_a = cache['embedded_a']
-        embedded_b = cache['embedded_b']
-        hidden_preact = cache['hidden_preact']
-        hidden = cache['hidden']
-        out = cache['out']
-        probs = cache['probs']
-        
-        # Output gradient: dL/dlogits = probs - one_hot(target)
-        d_logits = probs.copy()
-        d_logits[target] -= 1.0
-        
-        # Gradient through unembed: dL/dout and dL/dembed
-        self.grad_embed += np.outer(d_logits, out)
-        d_out = d_logits @ self.embed
-        
-        # Gradient through W_out: dL/dW_out and dL/dhidden
-        self.grad_W_out += np.outer(hidden, d_out)
-        d_hidden = d_out @ self.W_out.T
-        
-        # Gradient through ReLU
-        d_hidden_preact = d_hidden * (hidden_preact > 0)
-        
-        # Gradient through hidden projection
-        self.grad_W_hidden += np.outer(embedded_a, d_hidden_preact)
-        self.grad_W_hidden += np.outer(embedded_b, d_hidden_preact)
-        d_embedded = d_hidden_preact @ self.W_hidden.T
-        
-        # Gradient through embedding
-        self.grad_embed[a] += d_embedded
-        self.grad_embed[b] += d_embedded
-        
-        self.grad_count += 1
-    
-    def apply_adamw(self, batch_size):
-        """Apply AdamW optimizer update."""
-        if self.grad_count == 0:
-            return
-        
+        # Unembed grads
+        g_embed = d_logits.T @ out                    # (T, E)
+        d_out = d_logits @ embed                      # (N, E)
+
+        # W_out grads
+        g_W_out = h.T @ d_out                         # (H, E)
+
+        # Hidden grads
+        d_h = d_out @ W_o.T                           # (N, H)
+        d_h_pre = d_h * (h_pre > 0)                   # ReLU mask  (N, H)
+
+        # W_hidden grads
+        g_W_hidden = (emb_a + emb_b).T @ d_h_pre     # (E, H)
+
+        # Embedding grads (from input side)
+        d_emb = d_h_pre @ W_h.T                       # (N, E)
+        np.add.at(g_embed, a_arr, d_emb)
+        np.add.at(g_embed, b_arr, d_emb)
+
+        # --- AdamW update ---
         self.adam_t += 1
         lr = self.learning_rate
         wd = self.weight_decay
-        scale = 1.0 / batch_size
-        
-        bc1 = 1 - (self.beta1 ** self.adam_t)
-        bc2 = 1 - (self.beta2 ** self.adam_t)
-        
-        # Update function
+        scale = 1.0 / N
+        bc1 = 1 - self.beta1 ** self.adam_t
+        bc2 = 1 - self.beta2 ** self.adam_t
+
         def update(w, m, v, g):
             g = g * scale
             m[:] = self.beta1 * m + (1 - self.beta1) * g
@@ -182,92 +129,104 @@ class FactoredNetwork:
             m_hat = m / bc1
             v_hat = v / bc2
             w[:] = w - lr * (m_hat / (np.sqrt(v_hat) + self.epsilon) + wd * w)
-        
-        update(self.embed, self.m_embed, self.v_embed, self.grad_embed)
-        update(self.W_hidden, self.m_W_hidden, self.v_W_hidden, self.grad_W_hidden)
-        update(self.W_out, self.m_W_out, self.v_W_out, self.grad_W_out)
-        
+
+        update(self.embed,    self.m_embed,    self.v_embed,    g_embed)
+        update(self.W_hidden, self.m_W_hidden, self.v_W_hidden, g_W_hidden)
+        update(self.W_out,    self.m_W_out,    self.v_W_out,    g_W_out)
+
         self.epoch += 1
-        self.grad_count = 0
-    
+        return probs  # for accuracy calc if needed
+
+    # ------------------------------------------------------------------
+    # Batched inference (for accuracy)
+    # ------------------------------------------------------------------
+
+    def predict_batch(self, a_arr, b_arr):
+        """Batched prediction — returns int array of predicted classes."""
+        emb_a = self.embed[a_arr]
+        emb_b = self.embed[b_arr]
+        h = np.maximum(0, (emb_a + emb_b) @ self.W_hidden)
+        logits = (h @ self.W_out) @ self.embed.T
+        return np.argmax(logits, axis=1)
+
+    # ------------------------------------------------------------------
+    # Single-example (for UI predict button)
+    # ------------------------------------------------------------------
+
     def predict(self, a, b):
-        """Predict the output class."""
-        cache = self.forward(a, b)
-        return int(np.argmax(cache['probs']))
-    
+        emb_a = self.embed[a]
+        emb_b = self.embed[b]
+        h = np.maximum(0, (emb_a + emb_b) @ self.W_hidden)
+        logits = (h @ self.W_out) @ self.embed.T
+        return int(np.argmax(logits))
+
+    def save_activations(self, a, b):
+        """Run one forward pass and store activations for viz."""
+        emb_a = self.embed[a]
+        emb_b = self.embed[b]
+        h = np.maximum(0, (emb_a + emb_b) @ self.W_hidden)
+        logits = (h @ self.W_out) @ self.embed.T
+        logits_stable = logits - np.max(logits)
+        exp_l = np.exp(logits_stable)
+        probs = exp_l / exp_l.sum()
+        self._hidden_activations = h.copy()
+        self._output_activations = probs.copy()
+
     def get_activations(self):
-        """Get network activations for visualization."""
         return {
             "hidden": self._hidden_activations.tolist(),
             "output": self._output_activations.tolist()
         }
-    
+
     def reset(self):
-        """Reset network to initial random state."""
         self._init_weights()
         self._init_adam_state()
         self.adam_t = 0
         self.epoch = 0
 
 
-def calc_accuracy(network, a_arr, b_arr, t_arr, sample_size=100):
-    """
-    Calculate prediction accuracy on a SAMPLE of the dataset.
-    Uses numpy arrays for fast iteration.
-    """
+def calc_accuracy_batched(network, a_arr, b_arr, t_arr, sample_size=200):
+    """Batched accuracy — single matrix multiply, no Python loop."""
     n = len(a_arr)
     if n == 0:
         return 0.0
-
     if n > sample_size:
-        indices = np.random.choice(n, sample_size, replace=False)
+        idx = np.random.choice(n, sample_size, replace=False)
+        a_s, b_s, t_s = a_arr[idx], b_arr[idx], t_arr[idx]
     else:
-        indices = np.arange(n)
-
-    correct = 0
-    for i in indices:
-        if network.predict(int(a_arr[i]), int(b_arr[i])) == int(t_arr[i]):
-            correct += 1
-    return correct / len(indices)
+        a_s, b_s, t_s = a_arr, b_arr, t_arr
+    preds = network.predict_batch(a_s, b_s)
+    return float(np.mean(preds == t_s))
 
 
 # ============================================================================
-# TRAINER CLASS
+# TRAINER
 # ============================================================================
 
 class GrokTrainer:
-    """Manages training with UI callbacks."""
-    
     def __init__(self):
         self.network = None
-        self.train_data = []
-        self.test_data = []
         self.running = False
         self.grok_detected = False
         self.grok_epoch = -1
-        
-        # Smoothed metrics (exponential moving average)
         self.ema_train_acc = 0.0
         self.ema_test_acc = 0.0
-        self.ema_alpha = 0.1  # Smoothing factor (lower = smoother)
-        
-        # ORIGINAL parameters that work for grokking!
+        self.ema_alpha = 0.1
+
         self.config = {
-            'n_tokens': 67,       # Original value
-            'embed_size': 500,    # Original value
-            'hidden_size': 64,    # Original value
+            'n_tokens': 67,
+            'embed_size': 500,
+            'hidden_size': 64,
             'learning_rate': 0.01,
-            'weight_decay': 1.0,  # HIGH - key to grokking!
+            'weight_decay': 1.0,
             'beta1': 0.9,
             'beta2': 0.98,
             'train_fraction': 0.4,
             'symmetric': True
         }
-    
+
     def initialize(self, config=None):
-        """Initialize network and data."""
         if config:
-            # Convert JsProxy to Python dict if needed
             if hasattr(config, 'to_py'):
                 config = config.to_py()
             self.config.update(config)
@@ -275,185 +234,145 @@ class GrokTrainer:
         self.network = FactoredNetwork(self.config)
         all_data = generate_all_pairs(self.config['n_tokens'], self.config['symmetric'])
 
-        # Split into train/test
         np.random.shuffle(all_data)
         split_idx = int(len(all_data) * self.config['train_fraction'])
         train_list = all_data[:split_idx]
         test_list = all_data[split_idx:]
 
-        # Store as numpy arrays for fast access (no Python dict overhead per example)
-        self.train_a = np.array([ex['a'] for ex in train_list], dtype=np.int32)
-        self.train_b = np.array([ex['b'] for ex in train_list], dtype=np.int32)
-        self.train_t = np.array([ex['target'] for ex in train_list], dtype=np.int32)
-        self.test_a = np.array([ex['a'] for ex in test_list], dtype=np.int32)
-        self.test_b = np.array([ex['b'] for ex in test_list], dtype=np.int32)
-        self.test_t = np.array([ex['target'] for ex in test_list], dtype=np.int32)
+        self.train_a = np.array([t[0] for t in train_list], dtype=np.int32)
+        self.train_b = np.array([t[1] for t in train_list], dtype=np.int32)
+        self.train_t = np.array([t[2] for t in train_list], dtype=np.int32)
+        self.test_a = np.array([t[0] for t in test_list], dtype=np.int32)
+        self.test_b = np.array([t[1] for t in test_list], dtype=np.int32)
+        self.test_t = np.array([t[2] for t in test_list], dtype=np.int32)
         self.n_train = len(train_list)
         self.n_test = len(test_list)
 
         self.grok_detected = False
         self.grok_epoch = -1
-
-        # Reset smoothed metrics
         self.ema_train_acc = 0.0
         self.ema_test_acc = 0.0
 
         print(f"[Trainer] Initialized: {self.n_train} train, {self.n_test} test")
         return self.n_train, self.n_test
-    
-    async def train(self, max_epochs=50000, epochs_per_yield=3, ui_update_interval=50):
+
+    async def train(self, max_epochs=50000, epochs_per_yield=10, ui_update_interval=100):
         """
-        Train with periodic yields for UI responsiveness.
-        
-        Args:
-            max_epochs: Maximum epochs to train
-            epochs_per_yield: Train this many epochs before yielding (balance speed vs responsiveness)
-            ui_update_interval: How often to send metrics (cheap with sampling!)
+        Fully batched training loop.
+
+        epochs_per_yield: epochs between asyncio yields (higher = faster, less responsive)
+        ui_update_interval: epochs between JS UI updates
         """
         self.running = True
         epoch = 0
-        train_acc = 0
-        test_acc = 0
-        
+
         while self.running and epoch < max_epochs:
-            # Train multiple epochs before yielding (reduces async overhead)
             for _ in range(epochs_per_yield):
                 if not self.running or epoch >= max_epochs:
                     break
 
-                # Shuffle training indices (cheap int32 array, not Python dicts)
+                # Shuffle training data order
                 perm = np.random.permutation(self.n_train)
-                self.network.reset_gradients()
+                a_s = self.train_a[perm]
+                b_s = self.train_b[perm]
+                t_s = self.train_t[perm]
 
-                # Process all training examples (full batch gradient descent)
-                save_act = (epoch % ui_update_interval == 0 or epoch < ui_update_interval)
-                for idx in perm:
-                    cache = self.network.forward(
-                        int(self.train_a[idx]), int(self.train_b[idx]),
-                        save_activations=save_act and idx == perm[-1]
-                    )
-                    self.network.backward(int(self.train_t[idx]), cache)
-
-                self.network.apply_adamw(self.n_train)
+                # One full epoch = one batched call (no Python loop)
+                self.network.train_batch(a_s, b_s, t_s)
                 epoch += 1
-            
-            # Yield to UI
+
             await asyncio.sleep(0)
-            
+
             if not self.running:
                 break
-            
-            # Calculate and send metrics (fast with sampling!)
+
             if epoch % ui_update_interval == 0 or epoch <= ui_update_interval:
-                # Sample-based accuracy with larger samples for stability
-                raw_train_acc = calc_accuracy(self.network, self.train_a, self.train_b, self.train_t, sample_size=200)
-                raw_test_acc = calc_accuracy(self.network, self.test_a, self.test_b, self.test_t, sample_size=300)
-                
-                # Apply exponential moving average for smooth chart
+                raw_train_acc = calc_accuracy_batched(
+                    self.network, self.train_a, self.train_b, self.train_t, 200)
+                raw_test_acc = calc_accuracy_batched(
+                    self.network, self.test_a, self.test_b, self.test_t, 300)
+
                 if epoch <= ui_update_interval:
-                    # First few updates - initialize EMA to raw value
                     self.ema_train_acc = raw_train_acc
                     self.ema_test_acc = raw_test_acc
                 else:
-                    # EMA update: new_ema = alpha * raw + (1-alpha) * old_ema
                     self.ema_train_acc = self.ema_alpha * raw_train_acc + (1 - self.ema_alpha) * self.ema_train_acc
                     self.ema_test_acc = self.ema_alpha * raw_test_acc + (1 - self.ema_alpha) * self.ema_test_acc
-                
-                train_acc = self.ema_train_acc
-                test_acc = self.ema_test_acc
-                
-                # Check for grokking (use raw values for detection to be accurate)
+
                 if not self.grok_detected and raw_train_acc > 0.95 and raw_test_acc > 0.9:
                     self.grok_detected = True
                     self.grok_epoch = epoch
                     print(f"[Trainer] GROKKING at epoch {epoch}!")
-                
-                # Send progress to JS
+
+                # Save activations from a representative example
+                self.network.save_activations(
+                    int(self.train_a[0]), int(self.train_b[0]))
                 activations = self.network.get_activations()
+
                 if hasattr(window, 'onGrokProgress'):
                     window.onGrokProgress({
                         'epoch': epoch,
-                        'train_acc': train_acc,
-                        'test_acc': test_acc,
+                        'train_acc': self.ema_train_acc,
+                        'test_acc': self.ema_test_acc,
                         'grok_detected': self.grok_detected,
                         'grok_epoch': self.grok_epoch,
                         'activations': activations,
-                        # Input(2) → Hidden(64) → Output(67) for correct labels
                         'layer_sizes': [2, self.config['hidden_size'], self.config['n_tokens']]
                     })
-        
+
         self.running = False
         if hasattr(window, 'onGrokComplete'):
             window.onGrokComplete()
-    
+
     def stop(self):
-        """Stop training."""
         self.running = False
-    
+
     def reset(self):
-        """Reset network."""
         if self.network:
             self.network.reset()
         self.grok_detected = False
         self.grok_epoch = -1
         self.ema_train_acc = 0.0
         self.ema_test_acc = 0.0
-    
+
     def predict(self, a, b):
-        """Get prediction for a single input."""
         if not self.network:
             return None
-        
-        cache = self.network.forward(a, b)
-        probs = cache['probs']
-        prediction = int(np.argmax(probs))
+        prediction = self.network.predict(a, b)
         target = (a + b) % self.config['n_tokens']
-        
         return {
             'a': a, 'b': b,
             'target': target,
             'prediction': prediction,
             'correct': prediction == target,
-            'confidence': float(probs[prediction])
         }
 
 
-# Global trainer instance
 trainer = GrokTrainer()
 
 
-# ============================================================================
-# API FUNCTIONS (called from JS)
-# ============================================================================
-
 def grok_initialize(config=None):
-    """Initialize the trainer."""
     if config and hasattr(config, 'to_py'):
         config = config.to_py()
     return trainer.initialize(config)
 
 
 async def grok_train(max_epochs=50000):
-    """Start training."""
     await trainer.train(max_epochs)
 
 
 def grok_stop():
-    """Stop training."""
     trainer.stop()
 
 
 def grok_reset():
-    """Reset network."""
     trainer.reset()
 
 
 def grok_predict(a, b):
-    """Get a prediction."""
     return trainer.predict(a, b)
 
 
-# Signal ready
-print("[Grokking] NumPy-vectorized trainer loaded")
+print("[Grokking] Fully batched trainer loaded")
 if hasattr(window, 'onGrokReady'):
     window.onGrokReady()
