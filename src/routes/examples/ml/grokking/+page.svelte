@@ -178,8 +178,8 @@
 <ExperimentCard props={{ previousPage: '/examples/ml/neuro', nextPage: '/' }}>
 	<div slot="py_slot" class="flex flex-col h-full p-4 space-y-4 overflow-y-auto">
 		<!-- Status Bar -->
-		<div class="px-4 py-2 rounded {grokDetected ? 'bg-green-100 border-2 border-green-400' : 'bg-surface-alt border-2 border-border'}">
-			<p class="text-sm font-mono {grokDetected ? 'text-green-800 font-bold' : ''}">
+		<div class="px-4 py-2 rounded {grokDetected ? 'bg-callout border border-callout-border' : 'bg-surface-alt border border-border'}">
+			<p class="text-sm font-mono {grokDetected ? 'text-emerald-700 font-bold' : 'text-text-muted'}">
 				{#if grokDetected}
 					{status}
 				{:else}
@@ -190,72 +190,72 @@
 		
 		<!-- Training Stats -->
 		<div class="grid grid-cols-4 gap-2">
-			<div class="bg-blue-500 text-white rounded p-3 text-center">
-				<div class="text-xs opacity-75">Epoch</div>
-				<div class="text-xl font-bold">{epoch}</div>
+			<div class="bg-surface-alt border border-border rounded p-3 text-center">
+				<div class="text-xs text-text-muted">Epoch</div>
+				<div class="text-xl font-bold text-text-primary">{epoch}</div>
 			</div>
-			<div class="bg-orange-500 text-white rounded p-3 text-center">
-				<div class="text-xs opacity-75">Train Acc</div>
-				<div class="text-xl font-bold">{(trainAcc * 100).toFixed(1)}%</div>
+			<div class="bg-surface-alt border border-border rounded p-3 text-center">
+				<div class="text-xs text-text-muted">Train Acc</div>
+				<div class="text-xl font-bold text-accent">{(trainAcc * 100).toFixed(1)}%</div>
 			</div>
-			<div class="rounded p-3 text-center text-white {grokDetected ? 'bg-green-500' : 'bg-purple-500'}">
-				<div class="text-xs opacity-75">Test Acc</div>
-				<div class="text-xl font-bold">{(testAcc * 100).toFixed(1)}%</div>
+			<div class="bg-surface-alt border border-border rounded p-3 text-center">
+				<div class="text-xs text-text-muted">Test Acc</div>
+				<div class="text-xl font-bold text-accent">{(testAcc * 100).toFixed(1)}%</div>
 			</div>
-			<div class="rounded p-3 text-center text-white {grokDetected ? 'bg-green-600 animate-pulse' : 'bg-gray-500'}">
-				<div class="text-xs opacity-75">Grokked?</div>
-				<div class="text-xl font-bold">{grokDetected ? `✓ ${grokEpoch}` : 'No'}</div>
+			<div class="rounded p-3 text-center border {grokDetected ? 'bg-callout border-callout-border' : 'bg-surface-alt border-border'}">
+				<div class="text-xs text-text-muted">Grokked?</div>
+				<div class="text-xl font-bold {grokDetected ? 'text-emerald-700' : 'text-text-muted'}">{grokDetected ? `Yes @ ${grokEpoch}` : 'No'}</div>
 			</div>
 		</div>
 		
 		<!-- Main Control Buttons -->
 		<div class="grid grid-cols-3 gap-3">
-			<button 
+			<button
 				onclick={initializeAndTrain}
 				disabled={mode === 'training' || mode === 'loading'}
-				class="px-4 py-3 bg-green-500 text-white font-bold rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+				class="px-4 py-3 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:bg-border disabled:text-text-muted disabled:cursor-not-allowed transition-colors duration-200"
 			>
 				{mode === 'loading' ? 'Loading...' : 'Start Training'}
 			</button>
-			<button 
+			<button
 				onclick={stop}
 				disabled={mode !== 'training'}
-				class="px-4 py-3 bg-red-500 text-white font-bold rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+				class="px-4 py-3 bg-red-600 text-white font-bold rounded hover:bg-red-700 disabled:bg-border disabled:text-text-muted disabled:cursor-not-allowed transition-colors duration-200"
 			>
 				Stop
 			</button>
-			<button 
+			<button
 				onclick={reset}
 				disabled={mode === 'loading'}
-				class="px-4 py-3 bg-slate-500 text-white font-bold rounded hover:bg-slate-600 disabled:bg-gray-400 transition"
+				class="px-4 py-3 border border-accent text-accent font-bold rounded hover:bg-accent hover:text-white disabled:border-border disabled:text-text-muted transition-colors duration-200"
 			>
 				Reset
 			</button>
 		</div>
 		
 		<!-- Test Prediction -->
-		<div class="bg-slate-100 rounded p-3 space-y-2">
-			<h4 class="font-bold text-sm">Test Prediction: (a + b) mod {config.n_tokens}</h4>
+		<div class="bg-surface-alt border border-border rounded p-3 space-y-2">
+			<h4 class="font-heading font-bold text-sm text-text-primary">Test Prediction: (a + b) mod {config.n_tokens}</h4>
 			<div class="flex items-center gap-2">
-				<input 
-					type="number" 
-					bind:value={testA} 
-					min="0" 
+				<input
+					type="number"
+					bind:value={testA}
+					min="0"
 					max={config.n_tokens - 1}
-					class="w-16 px-2 py-1 border rounded text-center"
+					class="w-16 px-2 py-1 border border-border rounded text-center bg-surface font-mono"
 				/>
-				<span class="font-bold">+</span>
-				<input 
-					type="number" 
-					bind:value={testB} 
-					min="0" 
+				<span class="font-bold text-text-primary">+</span>
+				<input
+					type="number"
+					bind:value={testB}
+					min="0"
 					max={config.n_tokens - 1}
-					class="w-16 px-2 py-1 border rounded text-center"
+					class="w-16 px-2 py-1 border border-border rounded text-center bg-surface font-mono"
 				/>
-				<span class="font-bold">mod {config.n_tokens}</span>
-				<button 
+				<span class="font-bold text-text-primary">mod {config.n_tokens}</span>
+				<button
 					onclick={testPrediction}
-					class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+					class="px-3 py-1 bg-accent text-white rounded hover:bg-accent/90 text-sm transition-colors duration-200"
 				>
 					Predict
 				</button>
@@ -264,16 +264,16 @@
 				{#if predictionResult.error}
 					<p class="text-red-600 text-sm">{predictionResult.error}</p>
 				{:else}
-					<p class="text-sm">
+					<p class="text-sm text-text-primary">
 						<span class="font-mono">{predictionResult.a} + {predictionResult.b} = </span>
-						<span class="font-bold {predictionResult.correct ? 'text-green-600' : 'text-red-600'}">
+						<span class="font-bold {predictionResult.correct ? 'text-emerald-700' : 'text-red-600'}">
 							{predictionResult.prediction}
 						</span>
-						<span class="text-gray-500">(target: {predictionResult.target})</span>
+						<span class="text-text-muted">(target: {predictionResult.target})</span>
 						{#if predictionResult.correct}
-							<span class="text-green-600">✓</span>
+							<span class="text-emerald-700">&#10003;</span>
 						{:else}
-							<span class="text-red-600">✗</span>
+							<span class="text-red-600">&#10007;</span>
 						{/if}
 					</p>
 				{/if}
@@ -282,15 +282,15 @@
 
 		<!-- Toggle Buttons -->
 		<div class="flex gap-2">
-			<button 
+			<button
 				onclick={() => showNeurons = !showNeurons}
-				class="flex-1 px-3 py-2 text-white text-sm font-semibold rounded transition {showNeurons ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
+				class="flex-1 px-3 py-2 text-sm font-semibold rounded transition-colors duration-200 {showNeurons ? 'bg-accent text-white' : 'border border-accent text-accent hover:bg-accent hover:text-white'}"
 			>
 				Network
 			</button>
-			<button 
+			<button
 				onclick={() => showMetrics = !showMetrics}
-				class="flex-1 px-3 py-2 text-white text-sm font-semibold rounded transition {showMetrics ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-slate-500 hover:bg-slate-600'}"
+				class="flex-1 px-3 py-2 text-sm font-semibold rounded transition-colors duration-200 {showMetrics ? 'bg-accent text-white' : 'border border-accent text-accent hover:bg-accent hover:text-white'}"
 			>
 				Metrics
 			</button>
