@@ -77,9 +77,29 @@ export class GrokController {
     _setupWindowCallbacks() {
         // Progress callback - called by Python during training
         window.onGrokProgress = (data) => {
-            // Convert Pyodide proxy to plain object
+            // Extract activations BEFORE proxy conversion destroys nested objects
+            let activations = null;
+            try {
+                const rawAct = data.activations || data.get?.('activations');
+                if (rawAct) {
+                    const hidden = rawAct.hidden || rawAct.get?.('hidden');
+                    const output = rawAct.output || rawAct.get?.('output');
+                    activations = {
+                        hidden: hidden?.toJs?.() ? [...hidden.toJs()] : (hidden ? [...hidden] : []),
+                        output: output?.toJs?.() ? [...output.toJs()] : (output ? [...output] : [])
+                    };
+                }
+            } catch (e) {
+                // Fallback: activations will be null
+            }
+
+            // Convert the rest of the proxy
             const result = this._toPlainObject(data);
-            
+            // Overwrite with our safely-extracted activations
+            if (activations) {
+                result.activations = activations;
+            }
+
             if (this.callbacks.onProgress) {
                 this.callbacks.onProgress(result);
             }
