@@ -7,6 +7,30 @@
 
 import telemetry from '../Telemetry.js';
 
+// ── Shared constants for input building (matches Agent.js) ──
+const INPUT_CFG = {
+	startRow: 4,
+	vizWidth: 7,
+	vizHeight: 10
+};
+const RAM = {
+	Player_X_Position_In_Level: 0x06D,
+	Player_X_Position_On_Screen: 0x086,
+	Player_X_Position_Screen_Offset: 0x3AD,
+	Player_Y_Position_Screen_Offset: 0x3B8,
+	Player_Y_Pos_On_Screen: 0xCE,
+	Player_Vertical_Screen_Position: 0xB5,
+	Player_State: 0x0E,
+	Player_Float_State: 0x001D,
+	Enemy_Drawn: 0x0F,
+	Enemy_Type: 0x16,
+	Enemy_X_Position_In_Level: 0x6E,
+	Enemy_X_Position_On_Screen: 0x87,
+	Enemy_Y_Position_On_Screen: 0xCF,
+	Tile_Base: 0x500,
+	Tile_Page_Size: 208
+};
+
 export class HeadlessNES {
 	constructor() {
 		this.nes = null;
@@ -57,49 +81,53 @@ export class HeadlessNES {
 	}
 
 	/**
-	 * Set initial state for quick resets
+	 * Set initial state for quick resets.
+	 * Runs settle frames ONCE and caches the result so reset() is just a fromJSON().
 	 * @param {object} state - NES state object
 	 */
 	setInitialState(state) {
 		// Deep copy to ensure we have a clean state
 		this.initialState = JSON.parse(JSON.stringify(state));
-	}
 
-	/**
-	 * Reset to initial state (fast)
-	 */
-	reset() {
-		if (this.nes && this.initialState) {
-			// Load the saved state
+		// Pre-compute settled state: load, run 100 settle frames, snapshot
+		if (this.nes) {
 			this.nes.fromJSON(this.initialState);
-
-			// Capture state after fromJSON
-			const mem = this.nes.cpu.mem;
-			const afterFromJSON = {
-				x: mem[0x06D] * 256 + mem[0x086],
-				yOff: mem[0x3B8],
-				xOff: mem[0x3AD]
-			};
-
-			// Run settle frames for game to properly start and Mario to spawn
-			// Need ~100 frames for Mario to fall to ground from spawn
 			const SETTLE_FRAMES = 100;
 			for (let i = 0; i < SETTLE_FRAMES; i++) {
 				this.nes.frame();
 			}
+			for (let i = 0; i < 8; i++) {
+				this.nes.buttonUp(1, i);
+			}
+			// Cache the settled state — reset() will just fromJSON this
+			this.settledState = this.nes.toJSON();
 
-			// Capture state after settle frames
-			const afterSettle = {
+			const mem = this.nes.cpu.mem;
+			telemetry.log('headless', 'Settled state cached', {
 				x: mem[0x06D] * 256 + mem[0x086],
 				yOff: mem[0x3B8],
-				xOff: mem[0x3AD],
 				settleFrames: SETTLE_FRAMES
-			};
+			});
+		}
+	}
 
-			// Log reset with both states for comparison
-			telemetry.logReset('headless', afterFromJSON, afterSettle);
-
-			// Clear any button presses from state
+	/**
+	 * Reset to settled state (fast — just fromJSON, no settle frames)
+	 */
+	reset() {
+		if (this.nes && this.settledState) {
+			this.nes.fromJSON(this.settledState);
+			// Clear any button presses
+			for (let i = 0; i < 8; i++) {
+				this.nes.buttonUp(1, i);
+			}
+		} else if (this.nes && this.initialState) {
+			// Fallback if settledState not cached yet
+			this.nes.fromJSON(this.initialState);
+			const SETTLE_FRAMES = 100;
+			for (let i = 0; i < SETTLE_FRAMES; i++) {
+				this.nes.frame();
+			}
 			for (let i = 0; i < 8; i++) {
 				this.nes.buttonUp(1, i);
 			}
@@ -261,6 +289,94 @@ export class HeadlessNES {
 	}
 
 	/**
+	 * Get lightweight state for position/death/win checks — no tiles or enemies.
+	 * Much cheaper than getGameState() for the post-frame position check.
+	 * @returns {Object} { x, playerState, playerFloatState }
+	 */
+	getQuickState() {
+		if (!this.nes?.cpu?.mem) return null;
+		const mem = this.nes.cpu.mem;
+		return {
+			x: mem[RAM.Player_X_Position_In_Level] * 256 + mem[RAM.Player_X_Position_On_Screen],
+			playerState: mem[RAM.Player_State],
+			playerFloatState: mem[RAM.Player_Float_State]
+		};
+	}
+
+	/**
+	 * Build the 80-element neural network input array entirely in JS.
+	 * Eliminates JsProxy overhead — Python receives a plain JS array of numbers.
+	 * @returns {number[]} 80-element array: 70 vision tiles + 10 row encoding
+	 */
+	getInputs() {
+		if (!this.nes?.cpu?.mem) return [];
+		const mem = this.nes.cpu.mem;
+
+		// Mario position
+		const marioLevelX = mem[RAM.Player_X_Position_In_Level] * 256 + mem[RAM.Player_X_Position_On_Screen];
+		const marioScreenX = mem[RAM.Player_X_Position_Screen_Offset];
+		const marioScreenY = mem[RAM.Player_Y_Pos_On_Screen] * mem[RAM.Player_Vertical_Screen_Position] + 16; // SPRITE_HEIGHT
+		const xStart = marioLevelX - marioScreenX;
+
+		// Mario row/col
+		const marioRow = Math.floor((mem[RAM.Player_Y_Position_Screen_Offset] + 16) / 16);
+		const marioCol = Math.floor((mem[RAM.Player_X_Position_Screen_Offset] + 12) / 16);
+
+		// Enemies
+		const enemies = [];
+		for (let i = 0; i < 5; i++) {
+			if (mem[RAM.Enemy_Drawn + i]) {
+				enemies.push({
+					x: mem[RAM.Enemy_X_Position_In_Level + i] * 256 + mem[RAM.Enemy_X_Position_On_Screen + i],
+					y: mem[RAM.Enemy_Y_Position_On_Screen + i]
+				});
+			}
+		}
+
+		// Build tile map (only the rows/cols we need for vision)
+		// Full tile dict covers 15 rows × 16 cols, but we only need a subset
+		const inputs = [];
+		for (let row = INPUT_CFG.startRow; row < INPUT_CFG.startRow + INPUT_CFG.vizHeight; row++) {
+			for (let col = marioCol; col < marioCol + INPUT_CFG.vizWidth; col++) {
+				const yPos = row * 16;
+				const xPos = xStart + col * 16;
+				let val = 0;
+
+				if (row >= 2) {
+					// Tile lookup
+					const page = Math.floor(xPos / 256) % 2;
+					const subX = Math.floor((xPos % 256) / 16);
+					const subY = Math.floor((yPos - 32) / 16);
+
+					if (subY >= 0 && subY < 13) {
+						const addr = RAM.Tile_Base + page * RAM.Tile_Page_Size + subY * 16 + subX;
+						if (mem[addr] !== 0) val = 1;
+					}
+				}
+
+				// Enemy check
+				for (const e of enemies) {
+					const ey = e.y + 8;
+					if (Math.abs(xPos - e.x) <= 8 && Math.abs(yPos - ey) <= 8) {
+						val = -1;
+						break;
+					}
+				}
+
+				inputs.push(val);
+			}
+		}
+
+		// Row encoding: one-hot for mario's row relative to vision start
+		const relativeRow = marioRow - INPUT_CFG.startRow;
+		for (let i = 0; i < INPUT_CFG.vizHeight; i++) {
+			inputs.push(i === relativeRow && relativeRow >= 0 && relativeRow < INPUT_CFG.vizHeight ? 1 : 0);
+		}
+
+		return inputs;
+	}
+
+	/**
 	 * Save state
 	 */
 	saveState() {
@@ -287,6 +403,7 @@ export class HeadlessNES {
 		this.isLoaded = false;
 		this.romData = null;
 		this.initialState = null;
+		this.settledState = null;
 	}
 }
 

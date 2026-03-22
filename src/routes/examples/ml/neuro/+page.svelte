@@ -18,8 +18,12 @@
 	let status = $state('Click a button to begin');
 	let muted = $state(true);
 	
-	// Training mode selection
+	// Training config
 	let trainingMode = $state('simple'); // 'simple' | 'sbx' | 'uniform' | 'optimize'
+	let configForeground = $state(3);
+	let configBackground = $state(3);
+	let configAgents = $state(100);
+	const agentOptions = [10, 25, 50, 100];
 	const trainingModes = [
 		{ value: 'simple', label: 'Simple (Elite + Mutation)', description: 'Preserve top elites and fill the rest with mutated elite copies' },
 		{ value: 'sbx', label: 'SBX Breeding', description: 'Preserve the champion, then breed every other slot with two-parent SBX plus mutation' },
@@ -131,7 +135,11 @@
 		showBreeding = true;
 		breedingData = null;
 		
-		await controller.startTraining(trainingMode);
+		await controller.startTraining(trainingMode, {
+			foregroundSessions: configForeground,
+			backgroundGenerations: configBackground,
+			populationSize: configAgents
+		});
 	}
 
 	function stop() {
@@ -165,6 +173,24 @@
 				style="image-rendering: pixelated; aspect-ratio: 256/240;"
 			></canvas>
 			
+			<!-- Title overlay on idle black screen -->
+			{#if mode === 'idle'}
+				<div class="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none">
+					<p class="text-[clamp(1.6rem,5vw,2.8rem)] font-bold tracking-wide text-white drop-shadow-[0_2px_6px_rgba(0,0,0,.9)]"
+					   style="font-family: 'Press Start 2P', 'Courier New', monospace; text-shadow: 3px 3px 0 #e52521, -1px -1px 0 #049cd8;">
+						SUPER MARIO
+					</p>
+					<p class="mt-1 text-[clamp(1rem,3.2vw,1.8rem)] font-bold tracking-widest text-[#fbd000] drop-shadow-[0_2px_4px_rgba(0,0,0,.9)]"
+					   style="font-family: 'Press Start 2P', 'Courier New', monospace; text-shadow: 2px 2px 0 #e52521;">
+						AI
+					</p>
+					<p class="mt-6 text-xs text-white/70 animate-pulse tracking-wider uppercase"
+					   style="font-family: 'Press Start 2P', 'Courier New', monospace;">
+						Waiting to start
+					</p>
+				</div>
+			{/if}
+
 			<!-- Overlay for Background Training (hidden during foreground display) -->
 			{#if mode === 'training' && trainerState === 'BACKGROUND'}
 				<div class="absolute inset-0 bg-black/70 flex items-center justify-center">
@@ -270,6 +296,50 @@
 			<p class="text-xs text-text-muted mt-1">
 				{trainingModes.find(tm => tm.value === trainingMode)?.description}
 			</p>
+		</div>
+
+		<!-- Training Config -->
+		<div class="bg-callout border-2 border-border rounded p-3">
+			<label class="block text-sm font-bold mb-2">Training Config</label>
+			<div class="grid grid-cols-3 gap-3">
+				<div>
+					<label for="cfg-foreground" class="block text-xs text-text-muted mb-1">Foreground Sessions</label>
+					<input
+						id="cfg-foreground"
+						type="number"
+						min="1"
+						max="20"
+						bind:value={configForeground}
+						disabled={mode !== 'idle'}
+						class="w-full px-2 py-1.5 rounded border-2 border-border bg-surface text-sm font-medium disabled:bg-surface-alt disabled:cursor-not-allowed"
+					/>
+				</div>
+				<div>
+					<label for="cfg-background" class="block text-xs text-text-muted mb-1">Background Gens</label>
+					<input
+						id="cfg-background"
+						type="number"
+						min="1"
+						max="50"
+						bind:value={configBackground}
+						disabled={mode !== 'idle'}
+						class="w-full px-2 py-1.5 rounded border-2 border-border bg-surface text-sm font-medium disabled:bg-surface-alt disabled:cursor-not-allowed"
+					/>
+				</div>
+				<div>
+					<label for="cfg-agents" class="block text-xs text-text-muted mb-1">Agents</label>
+					<select
+						id="cfg-agents"
+						bind:value={configAgents}
+						disabled={mode !== 'idle'}
+						class="w-full px-2 py-1.5 rounded border-2 border-border bg-surface text-sm font-medium disabled:bg-surface-alt disabled:cursor-not-allowed"
+					>
+						{#each agentOptions as n}
+							<option value={n}>{n}</option>
+						{/each}
+					</select>
+				</div>
+			</div>
 		</div>
 
 		<!-- Secondary Controls -->

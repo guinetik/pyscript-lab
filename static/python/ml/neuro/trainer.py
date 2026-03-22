@@ -18,25 +18,22 @@ def tlog(message, data=None):
         window.telemetryLog('trainer', message, data)
 
 
-def tlog_frame(frame_num, state):
-    """Log frame state to telemetry for comparison."""
-    if hasattr(window, 'telemetryLogFrame'):
-        window.telemetryLogFrame('headless', frame_num, state)
 
 from .agent import NeuralAgent, Population
 from .utils import (
-    get_mario_location_in_level, 
-    build_inputs, 
-    is_dead, 
-    did_win,
+    build_inputs,
     calculate_fitness,
-    convert_state
+    convert_state,
+    get_mario_location_in_level,
+    is_dead,
+    did_win
 )
 
 
-# Training config
+# Training config (defaults, overridden by JS config)
 BACKGROUND_GENERATIONS = 3  # Generations per background phase
 FOREGROUND_SESSIONS = 3      # How many times to show agent before training
+POPULATION_SIZE = 100        # Number of agents
 MAX_GENERATIONS = 5000
 MAX_FRAMES_PER_EPISODE = 3000
 STUCK_THRESHOLD = 120
@@ -82,27 +79,36 @@ class Trainer:
         self.on_complete = None  # training finished
         self.on_state = None  # state change
         
-    def initialize(self, rom_data, initial_state, mode='simple'):
+    def initialize(self, rom_data, initial_state, mode='simple',
+                   foreground_sessions=None, background_generations=None, population_size=None):
         """Initialize with ROM and state.
 
         Args:
             rom_data: NES ROM binary
             initial_state: NES state to start from
             mode: Evolution mode ('simple', 'sbx', 'uniform', 'optimize')
+            foreground_sessions: Override for FOREGROUND_SESSIONS
+            background_generations: Override for BACKGROUND_GENERATIONS
+            population_size: Override for POPULATION_SIZE
         """
         self.rom_data = rom_data
         self.initial_state = initial_state
         self.mode = mode  # Store mode for later checks
 
+        # Apply config overrides
+        self.foreground_sessions = foreground_sessions or FOREGROUND_SESSIONS
+        self.background_generations = background_generations or BACKGROUND_GENERATIONS
+        pop_size = population_size or POPULATION_SIZE
+
         # Create population with specified mode
-        # Reference uses 100 agents (10 parents + 90 offspring)
-        self.population = Population(100, mode=mode)
+        self.population = Population(pop_size, mode=mode)
         self.population.initialize()
         self.mode = self.population.mode
         
-        # Create headless pool - pass window references directly to avoid proxy issues
+        # Create headless pool - scale with population (min 2, max 4)
+        pool_size = min(4, max(2, pop_size // 10))
         if hasattr(window, 'createHeadlessNESPool'):
-            self.headless_pool = window.createHeadlessNESPool(4)
+            self.headless_pool = window.createHeadlessNESPool(pool_size)
             # Use window._trainingRomData and window._trainingInitialState directly
             # This ensures JS gets native JS objects, not PyScript proxies
             self.headless_pool.initialize(
@@ -144,7 +150,7 @@ class Trainer:
             return
 
         self.running = True
-        tlog('Starting training loop', {'foregroundSessions': FOREGROUND_SESSIONS, 'backgroundGenerations': BACKGROUND_GENERATIONS})
+        tlog('Starting training loop', {'foregroundSessions': self.foreground_sessions, 'backgroundGenerations': self.background_generations, 'populationSize': len(self.population.agents)})
         
         # Main training loop
         while self.running and self.total_generations < MAX_GENERATIONS:
@@ -157,7 +163,7 @@ class Trainer:
                 self.on_state("FOREGROUND")
                 
             self._foreground_won = False  # Track if agent wins during foreground
-            for session in range(FOREGROUND_SESSIONS):
+            for session in range(self.foreground_sessions):
                 if not self.running:
                     break
 
@@ -165,15 +171,15 @@ class Trainer:
                     # Priority: fastest winner > best distance > random
                     if self.best_win_weights:
                         weights_json = json.dumps(self.best_win_weights)
-                        tlog('Foreground session', {'session': session + 1, 'total': FOREGROUND_SESSIONS, 'type': 'WINNER', 'frames': self.best_win_frames})
+                        tlog('Foreground session', {'session': session + 1, 'total': self.foreground_sessions, 'type': 'WINNER', 'frames': self.best_win_frames})
                     elif self.best_distance_weights:
                         weights_json = json.dumps(self.best_distance_weights)
                         w1_sum = sum(sum(row) for row in self.best_distance_weights['W1'])
-                        tlog('Foreground session', {'session': session + 1, 'total': FOREGROUND_SESSIONS, 'type': 'champion', 'distance': self.best_distance_ever, 'W1sum': w1_sum})
+                        tlog('Foreground session', {'session': session + 1, 'total': self.foreground_sessions, 'type': 'champion', 'distance': self.best_distance_ever, 'W1sum': w1_sum})
                     else:
                         # First run - use random weights from first agent
                         weights_json = json.dumps(self.population.agents[0].get_weights())
-                        tlog('Foreground session', {'session': session + 1, 'total': FOREGROUND_SESSIONS, 'type': 'random'})
+                        tlog('Foreground session', {'session': session + 1, 'total': self.foreground_sessions, 'type': 'random'})
 
                     self.on_foreground(weights_json)
 
@@ -198,7 +204,7 @@ class Trainer:
                 self.on_state("BACKGROUND")
                 await asyncio.sleep(0.05)  # Let UI render
                 
-            for _ in range(BACKGROUND_GENERATIONS):
+            for _ in range(self.background_generations):
                 if not self.running:
                     break
                     
@@ -348,83 +354,91 @@ class Trainer:
         
     def _evaluate_agent(self, agent, idx):
         """Evaluate agent using headless NES.
-        
-        Optimized: 
-        - Uses getGameState() which reads only ~450 bytes vs 65KB!
-        - Converts JsProxy to Python dict once per call to avoid repeated boundary crossing
-        - Early termination for agents moving backwards (LEFT button at start)
+
+        Optimized:
+        - Single getGameState() + convert_state() per frame (not two)
+        - Same Python build_inputs() as foreground Agent.js uses — no train/test mismatch
+        - Cached settle state means reset() is just fromJSON (no 100 settle frames)
+        - Aggressive early termination for backwards/stuck agents
         """
-        nes = self.headless_pool.getInstance(idx % 4) if self.headless_pool else None
+        pool_size = self.headless_pool.size if self.headless_pool else 0
+        nes = self.headless_pool.getInstance(idx % pool_size) if pool_size else None
         if not nes:
             return 0
-            
+
         nes.reset()
         agent.reset()
-        
+
         frames = 0
         stuck_frames = 0
-        state = None  # Reuse for final check
-        
+        state = None
+
         # Early termination tracking
-        EARLY_CHECK_FRAMES = 60  # Check direction in first 60 frames
-        BACKWARDS_THRESHOLD = 3  # Kill if pressing LEFT this many times early
+        EARLY_CHECK_FRAMES = 60
+        BACKWARDS_THRESHOLD = 3
         backwards_count = 0
-        
+        NO_PROGRESS_FRAME = 90  # Kill if still near start after this many frames
+        start_x = int(nes.getMarioX())
+
         while frames < MAX_FRAMES_PER_EPISODE:
-            # Get state and convert to Python ONCE (avoids repeated JsProxy overhead)
+            # Single state read per frame — used for BOTH inputs and position check
             state = convert_state(nes.getGameState())
             inputs = build_inputs(state)
             outputs = agent.forward(inputs)
             buttons = agent.get_buttons(outputs)
 
-            # Debug: log first few frames to compare with JS
-            if frames < 5 or frames in [60, 120, 180]:
-                x = get_mario_location_in_level(state)
-                row, col = (state['playerYScreenOffset'] + 16) // 16, (state['playerXScreenOffset'] + 12) // 16
-                solids = sum(1 for v in inputs[:70] if v == 1)
-                # Raw RAM values for comparison
-                yOff = state['playerYScreenOffset']
-                xOff = state['playerXScreenOffset']
-                tlog_frame(frames, {
-                    'x': x, 'row': row, 'col': col, 'solids': solids,
-                    'yOff': yOff, 'xOff': xOff, 'buttons': list(buttons)
-                })
-            
-            # Early termination: if agent keeps pressing LEFT at start, kill it
-            # LEFT button index is 6 in JSNes
+            # Early termination: backwards agent
             if frames < EARLY_CHECK_FRAMES:
                 if 6 in buttons and 7 not in buttons:  # LEFT without RIGHT
                     backwards_count += 1
                     if backwards_count >= BACKWARDS_THRESHOLD:
-                        # Agent is going backwards - waste of time
                         agent.farthest_x = 0
-                        return 0  # Zero fitness for backwards agents
-            
+                        return 0
+
             nes.setButtons(buttons)
             nes.frame()
             frames += 1
-            
-            # Get state for position check (convert once)
-            state = convert_state(nes.getGameState())
-            x = get_mario_location_in_level(state)
-            
+
+            # Lightweight post-frame check — only 3 RAM reads instead of full state
+            qs = nes.getQuickState()
+            x = int(qs.x)
+
             if x > agent.farthest_x:
                 agent.farthest_x = x
                 stuck_frames = 0
             else:
                 stuck_frames += 1
-                
-            won = did_win(state)
-            if is_dead(state) or won or stuck_frames > STUCK_THRESHOLD:
-                # Store win info on agent for tracking
+
+            # Aggressive early kill: no progress from start after N frames
+            if frames == NO_PROGRESS_FRAME and agent.farthest_x <= start_x + 10:
+                agent.farthest_x = max(0, agent.farthest_x)
+                return 0
+
+            player_state = int(qs.playerState)
+            float_state = int(qs.playerFloatState)
+            dead = player_state in (0x06, 0x0B)
+            won = float_state == 3 and x > 3000
+
+            if dead or won or stuck_frames > STUCK_THRESHOLD:
                 agent.won = won
                 agent.frames = frames
                 break
 
-        won = did_win(state) if state else False
+        # Final state from last quick state
+        if frames > 0:
+            qs = nes.getQuickState()
+            ps = int(qs.playerState)
+            fs = int(qs.playerFloatState)
+            x = int(qs.x)
+            died = ps in (0x06, 0x0B)
+            won = fs == 3 and x > 3000
+        else:
+            died = False
+            won = False
+
         agent.won = won
         agent.frames = frames
-        return calculate_fitness(agent.farthest_x, frames, died=is_dead(state) if state else False, won=won)
+        return calculate_fitness(agent.farthest_x, frames, died=died, won=won)
         
     def _auto_restart(self):
         """Reset population and stats for a fresh start."""
@@ -507,9 +521,16 @@ def init_trainer(on_progress, on_foreground, on_state, on_complete, mode='simple
     rom_data = window._trainingRomData
     initial_state = window._trainingInitialState
 
-    tlog('Got ROM and state from window', {'romLength': len(str(rom_data)), 'mode': mode})
-    
-    return trainer.initialize(rom_data, initial_state, mode=mode)
+    # Read config from window (set by JS controller)
+    config = window._trainingConfig if hasattr(window, '_trainingConfig') and window._trainingConfig else None
+    fg = int(config.foregroundSessions) if config else None
+    bg = int(config.backgroundGenerations) if config else None
+    pop = int(config.populationSize) if config else None
+
+    tlog('Got ROM and state from window', {'romLength': len(str(rom_data)), 'mode': mode, 'fg': fg, 'bg': bg, 'pop': pop})
+
+    return trainer.initialize(rom_data, initial_state, mode=mode,
+                              foreground_sessions=fg, background_generations=bg, population_size=pop)
 
 def start_training():
     """Start async training loop."""

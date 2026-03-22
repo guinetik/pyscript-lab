@@ -69,8 +69,16 @@ export class NeuroController {
         const stateObj = await stateResponse.json();
         this.initialStateJSON = JSON.stringify(stateObj);
 
-        // Load initial state
+        // Load initial state and cache settled state
         this.nes.nes.fromJSON(JSON.parse(this.initialStateJSON));
+        const SETTLE_FRAMES = 100;
+        for (let i = 0; i < SETTLE_FRAMES; i++) {
+            this.nes.nes.frame();
+        }
+        for (let i = 0; i < 8; i++) {
+            this.nes.nes.buttonUp(1, i);
+        }
+        this.settledStateJSON = JSON.stringify(this.nes.nes.toJSON());
 
         // Store original frame function
         this.originalNesFrame = this.nes.nes.frame.bind(this.nes.nes);
@@ -106,50 +114,27 @@ setup_js_bridge()
 
         this.nes.stop();
 
-        // Clear buttons
-        for (let i = 0; i < 8; i++) {
-            this.nes.nes.buttonUp(1, i);
-        }
-        this.pressedButtons.clear();
-
         // Restore original frame
         if (this.originalNesFrame) {
             this.nes.nes.frame = this.originalNesFrame;
         }
 
-        // Restore state
-        this.nes.nes.fromJSON(JSON.parse(this.initialStateJSON));
-
-        // Capture state after fromJSON
-        const mem = this.nes.nes.cpu.mem;
-        const afterFromJSON = {
-            x: mem[0x06D] * 256 + mem[0x086],
-            yOff: mem[0x3B8],
-            xOff: mem[0x3AD]
-        };
-
-        // Run settle frames for game to properly start and Mario to spawn
-        // Must match HeadlessNES (100 frames) for consistent behavior
-        const SETTLE_FRAMES = 100;
-        for (let i = 0; i < SETTLE_FRAMES; i++) {
-            this.nes.nes.frame();
+        // Restore from cached settled state (no 100 settle frames needed)
+        if (this.settledStateJSON) {
+            this.nes.nes.fromJSON(JSON.parse(this.settledStateJSON));
+        } else {
+            // Fallback
+            this.nes.nes.fromJSON(JSON.parse(this.initialStateJSON));
+            for (let i = 0; i < 100; i++) {
+                this.nes.nes.frame();
+            }
         }
 
-        // Capture state after settle frames
-        const afterSettle = {
-            x: mem[0x06D] * 256 + mem[0x086],
-            yOff: mem[0x3B8],
-            xOff: mem[0x3AD],
-            settleFrames: SETTLE_FRAMES
-        };
-
-        // Log reset with both states for comparison
-        telemetry.logReset('visual', afterFromJSON, afterSettle);
-
-        // Clear buttons again
+        // Clear buttons
         for (let i = 0; i < 8; i++) {
             this.nes.nes.buttonUp(1, i);
         }
+        this.pressedButtons.clear();
     }
 
     async startPlay() {
@@ -180,13 +165,22 @@ setup_js_bridge()
     /**
      * Start training with specified evolution mode.
      * @param {string} mode - Evolution mode: 'simple', 'sbx', 'uniform', or 'optimize'
+     * @param {object} config - Training config overrides
+     * @param {number} config.foregroundSessions - Foreground display sessions per cycle
+     * @param {number} config.backgroundGenerations - Background generations per cycle
+     * @param {number} config.populationSize - Number of agents in population
      */
-    async startTraining(mode = 'simple') {
+    async startTraining(mode = 'simple', config = {}) {
         this.resetNES();
 
-        // Store ROM and state on window for Python
+        // Store ROM, state, and config on window for Python
         window._trainingRomData = this.romBinaryString;
         window._trainingInitialState = JSON.parse(this.initialStateJSON);
+        window._trainingConfig = {
+            foregroundSessions: config.foregroundSessions || 3,
+            backgroundGenerations: config.backgroundGenerations || 3,
+            populationSize: config.populationSize || 100
+        };
 
         // For 'optimize' mode, load reference weights for Python to use
         if (mode === 'optimize') {
