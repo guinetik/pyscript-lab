@@ -10,7 +10,7 @@
 	import ExperimentCard from '$lib/components/ExperimentCard.svelte';
 	import ContentSection from '$lib/components/ContentSection.svelte';
 	import Callout from '$lib/components/Callout.svelte';
-	import NeuralNetworkViz from '$lib/components/NeuralNetworkViz.svelte';
+	import GrokkingNetworkViz from '$lib/components/GrokkingNetworkViz.svelte';
 	import MetricsChart from '$lib/components/MetricsChart.svelte';
 	import { GrokController } from '$lib/controller/GrokController.js';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
@@ -298,7 +298,7 @@
 		
 		<!-- Neural Network Visualization -->
 		{#if showNeurons}
-			<NeuralNetworkViz bind:vizData={networkVizData} />
+			<GrokkingNetworkViz bind:vizData={networkVizData} />
 		{/if}
 		
 		<!-- Metrics Chart -->
