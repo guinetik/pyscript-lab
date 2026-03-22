@@ -11,7 +11,7 @@
 	import ContentSection from '$lib/components/ContentSection.svelte';
 	import Callout from '$lib/components/Callout.svelte';
 	import GrokkingNetworkViz from '$lib/components/GrokkingNetworkViz.svelte';
-	import MetricsChart from '$lib/components/MetricsChart.svelte';
+	import GrokkingMetricsChart from '$lib/components/GrokkingMetricsChart.svelte';
 	import { GrokController } from '$lib/controller/GrokController.js';
 	import { exampleTranslationStore } from '$lib/i18n/exampleLoader.js';
 
@@ -67,9 +67,9 @@
 				
 				// Update metrics history (keep last 200 points)
 				metricsHistory = [...metricsHistory.slice(-199), {
-					gen: result.epoch,
-					fitness: result.train_acc * 100,
-					distance: result.test_acc * 100
+					epoch: result.epoch,
+					trainAcc: result.train_acc * 100,
+					testAcc: result.test_acc * 100
 				}];
 				
 				// Update network visualization
@@ -313,7 +313,7 @@
 		
 		<!-- Metrics Chart -->
 		{#if showMetrics}
-			<MetricsChart metricsHistory={metricsHistory} label1="Train Acc" label2="Test Acc" />
+			<GrokkingMetricsChart metricsHistory={metricsHistory} />
 		{/if}
 	</div>
 	
